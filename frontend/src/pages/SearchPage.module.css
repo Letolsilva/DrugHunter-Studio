@@ -1,0 +1,311 @@
+/* SearchPage.module.css */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+/* Navbar */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  height: 56px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.navLogo {
+  font-family: var(--font-sans);
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+.navLogo b {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.navRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.navUser {
+  font-size: 13px;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.adminBadge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  background: rgba(0, 212, 170, 0.15);
+  color: var(--accent);
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+
+/* Main */
+.main {
+  flex: 1;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 48px 32px;
+}
+
+/* Search area */
+.searchArea {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeIn 0.3s ease;
+}
+
+.searchHeader {
+  text-align: center;
+  margin-bottom: 8px;
+}
+.title {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -1px;
+  margin-bottom: 8px;
+}
+.subtitle {
+  font-size: 14px;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+}
+
+/* Search box */
+.searchBox {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: 18px 20px;
+  font-size: 15px;
+  font-family: var(--font-mono);
+  resize: none;
+  color: var(--text);
+  line-height: 1.6;
+}
+.textarea:focus {
+  box-shadow: none;
+  border-color: var(--border);
+  outline: none;
+}
+.textarea::placeholder {
+  color: var(--text-3);
+}
+.textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.searchActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  gap: 8px;
+}
+.hint {
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+}
+
+/* Botão pausar / retomar */
+.btnPausar {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: var(--yellow);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btnPausar:hover {
+  background: rgba(245, 158, 11, 0.25);
+}
+
+.btnRetomar {
+  background: rgba(0, 212, 170, 0.15);
+  border: 1px solid rgba(0, 212, 170, 0.3);
+  color: var(--accent);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btnRetomar:hover {
+  background: rgba(0, 212, 170, 0.25);
+}
+
+/* Progress card */
+.progressCard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.progressTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.progressStatus {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Pills de status */
+.pillBuscando {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 212, 170, 0.12);
+  border: 1px solid rgba(0, 212, 170, 0.25);
+  color: var(--accent);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse-accent 1.4s infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.pillPausado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: var(--yellow);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+
+.progressLabel {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progressCount {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.progressPct {
+  color: var(--accent);
+}
+
+/* Barra */
+.progressBar {
+  height: 8px;
+  background: var(--bg-3);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-hover), var(--accent));
+  border-radius: 4px;
+  transition: width 0.4s ease;
+  box-shadow: 0 0 10px rgba(0, 212, 170, 0.3);
+  min-width: 4px;
+}
+.progressPausado {
+  background: linear-gradient(90deg, #a07010, var(--yellow));
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+.progressStats {
+  display: flex;
+  gap: 20px;
+  font-size: 12px;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+}
+.progressStats b {
+  color: var(--accent);
+}
+
+/* Erro */
+.erro {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--r-md);
+  padding: 14px 18px;
+  color: var(--red);
+  font-size: 14px;
+}
+
+/* Botão cancelar */
+.btnCancelar {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: color 0.15s;
+  letter-spacing: 0.2px;
+}
+.btnCancelar:hover {
+  color: #d1d5db;
+  cursor: pointer;
+}

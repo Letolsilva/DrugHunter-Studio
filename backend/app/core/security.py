@@ -1,0 +1,50 @@
+"""
+Segurança — hashing de senha e geração/validação de JWT
+"""
+
+import os
+from datetime import datetime, timedelta
+from typing import Optional
+
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+
+SECRET_KEY = os.getenv("SECRET_KEY", "TROQUE_ESTA_CHAVE_EM_PRODUCAO_abc123xyz789")
+ALGORITHM = "HS256"
+
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def hash_senha(senha: str) -> str:
+    return pwd_context.hash(senha)
+
+
+def verificar_senha(senha_plana: str, hash_: str) -> bool:
+    return pwd_context.verify(senha_plana, hash_)
+
+
+def criar_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    payload = data.copy()
+    expire = datetime.utcnow() + (
+        expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    payload.update({"exp": expire, "type": "access"})
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def criar_refresh_token(data: dict) -> str:
+    payload = data.copy()
+    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    payload.update({"exp": expire, "type": "refresh"})
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def decodificar_token(token: str) -> Optional[dict]:
+    """Retorna payload do JWT ou None se inválido/expirado."""
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:
+        return None
