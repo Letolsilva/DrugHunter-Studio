@@ -1,24 +1,22 @@
-// App.jsx
-import { Routes, Route, Navigate } from "react-router-dom";
+// routes.tsx
+import { Routes, Route, Navigate, type ReactNode } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
-import AuthPage from "./pages/AuthPage";
-import SearchPage from "./pages/SearchPage";
+import AuthPage from "./pages/AuthPage/AuthPage";
+import SearchPage from "./pages/SearchPage/SearchPage";
+import type { SearchUseCase } from "./data/usecases/search.usecase";
 
-function RotaProtegida({ children }) {
+interface RotaProtegidaProps {
+  children: ReactNode;
+}
+
+function RotaProtegida({ children }: RotaProtegidaProps) {
   const { user, loading } = useAuth();
 
   if (loading) {
     return (
       <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-          gap: 16,
-          background: "var(--bg)",
-        }}
+        className="min-h-screen flex flex-col items-center justify-center gap-4"
+        style={{ background: "var(--bg)" }}
       >
         <span
           className="spinner"
@@ -37,10 +35,14 @@ function RotaProtegida({ children }) {
     );
   }
 
-  return user ? children : <Navigate to="/" replace />;
+  return user ? <>{children}</> : <Navigate to="/" replace />;
 }
 
-export default function App() {
+interface AppRoutesProps {
+  searchUseCase: SearchUseCase;
+}
+
+export default function AppRoutes({ searchUseCase }: AppRoutesProps) {
   const { user, loading } = useAuth();
 
   return (
@@ -59,11 +61,10 @@ export default function App() {
         path="/search"
         element={
           <RotaProtegida>
-            <SearchPage />
+            <SearchPage searchUseCase={searchUseCase} />
           </RotaProtegida>
         }
       />
-      {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
