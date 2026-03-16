@@ -1,5 +1,6 @@
 // templates/search/SearchTemplate.tsx
-import type { RefObject } from "react";
+import { useState, useRef, useEffect, type RefObject } from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardTemplate from "../dashboard/DashboardTemplate";
 import { Button } from "../../components/ui/Button";
 import type { UserModel } from "../../domain/models/auth.model";
@@ -48,6 +49,21 @@ export default function SearchTemplate({
   iniciarBusca,
   resetBusca,
 }: SearchTemplateProps) {
+  const navigate = useNavigate();
+  const [menuAberto, setMenuAberto] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuAberto) return;
+    function handleClickFora(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuAberto(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickFora);
+    return () => document.removeEventListener("mousedown", handleClickFora);
+  }, [menuAberto]);
+
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg)]">
       {/* Navbar */}
@@ -64,13 +80,120 @@ export default function SearchTemplate({
             )}
             {user?.username}
           </span>
-          <Button
-            variant="ghost"
-            onClick={handleLogout}
-            style={{ padding: "6px 14px", fontSize: 13 }}
-          >
-            Sair
-          </Button>
+          {/* Menu suspenso */}
+          <div ref={menuRef} style={{ position: "relative" }}>
+            <button
+              type="button"
+              onClick={() => setMenuAberto((v) => !v)}
+              title="Menu"
+              style={{
+                background: "transparent",
+                border: `1px solid ${menuAberto ? "var(--accent)" : "var(--border)"}`,
+                borderRadius: "var(--radius)",
+                color: menuAberto ? "var(--accent)" : "var(--text-3)",
+                cursor: "pointer",
+                padding: "4px 10px",
+                fontSize: 20,
+                lineHeight: 1,
+                display: "flex",
+                alignItems: "center",
+                transition: "color 0.15s, border-color 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                const el = e.currentTarget as HTMLButtonElement;
+                el.style.color = "var(--accent)";
+                el.style.borderColor = "var(--accent)";
+              }}
+              onMouseLeave={(e) => {
+                if (menuAberto) return;
+                const el = e.currentTarget as HTMLButtonElement;
+                el.style.color = "var(--text-3)";
+                el.style.borderColor = "var(--border)";
+              }}
+            >
+              ⋮
+            </button>
+            {menuAberto && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "calc(100% + 8px)",
+                  right: 0,
+                  background: "var(--bg-2)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius)",
+                  minWidth: 168,
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+                  zIndex: 200,
+                  overflow: "hidden",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuAberto(false);
+                    navigate("/historico");
+                  }}
+                  style={{
+                    width: "100%",
+                    background: "transparent",
+                    border: "none",
+                    borderBottom: "1px solid var(--border)",
+                    color: "var(--text-2)",
+                    cursor: "pointer",
+                    padding: "10px 16px",
+                    fontSize: 13,
+                    textAlign: "left",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    transition: "background 0.1s",
+                  }}
+                  onMouseEnter={(e) =>
+                    ((e.currentTarget as HTMLButtonElement).style.background =
+                      "var(--bg)")
+                  }
+                  onMouseLeave={(e) =>
+                    ((e.currentTarget as HTMLButtonElement).style.background =
+                      "transparent")
+                  }
+                >
+                  <span>🕐</span> Histórico
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuAberto(false);
+                    handleLogout();
+                  }}
+                  style={{
+                    width: "100%",
+                    background: "transparent",
+                    border: "none",
+                    color: "var(--text-2)",
+                    cursor: "pointer",
+                    padding: "10px 16px",
+                    fontSize: 13,
+                    textAlign: "left",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    transition: "background 0.1s",
+                  }}
+                  onMouseEnter={(e) =>
+                    ((e.currentTarget as HTMLButtonElement).style.background =
+                      "var(--bg)")
+                  }
+                  onMouseLeave={(e) =>
+                    ((e.currentTarget as HTMLButtonElement).style.background =
+                      "transparent")
+                  }
+                >
+                  <span>🚪</span> Sair
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </nav>
 

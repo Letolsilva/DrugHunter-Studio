@@ -72,6 +72,8 @@ class Search(Base):
     organismo_query = Column(String(300))
     total_resultados = Column(Integer, default=0)
     veio_do_cache = Column(Boolean, default=False)
+    teve_erro = Column(Boolean, default=False)
+    mensagem_erro = Column(Text, nullable=True)
     criado_em = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="searches")

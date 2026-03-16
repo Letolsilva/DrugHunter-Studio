@@ -20,17 +20,18 @@ import urllib.request
 import urllib.error
 from typing import List, Optional, AsyncGenerator
 
-SEARCH_URL  = "https://search.rcsb.org/rcsbsearch/v2/query"
-ENTRY_URL   = "https://data.rcsb.org/rest/v1/core/entry/{}"
+SEARCH_URL = "https://search.rcsb.org/rcsbsearch/v2/query"
+ENTRY_URL = "https://data.rcsb.org/rest/v1/core/entry/{}"
 POLYMER_URL = "https://data.rcsb.org/rest/v1/core/polymer_entity/{}/1"
 
-MAX_POR_PROTEINA = 50    # máximo de resultados por proteína
-DELAY_ENTRE_IDS  = 0.15  # respeitar rate limit da API do RCSB
+MAX_POR_PROTEINA = 50  # máximo de resultados por proteína
+DELAY_ENTRE_IDS = 0.15  # respeitar rate limit da API do RCSB
 
 
 # ─────────────────────────────────────────────────────────────
 # Parsing da lista digitada pelo usuário
 # ─────────────────────────────────────────────────────────────
+
 
 def parsear_lista_proteinas(entrada: str) -> List[str]:
     """
@@ -49,6 +50,7 @@ def parsear_lista_proteinas(entrada: str) -> List[str]:
 # HTTP helpers
 # ─────────────────────────────────────────────────────────────
 
+
 def _http_get(url: str, timeout: int = 10) -> dict:
     try:
         with urllib.request.urlopen(url, timeout=timeout) as resp:
@@ -57,21 +59,32 @@ def _http_get(url: str, timeout: int = 10) -> dict:
         return {}
 
 
-def _http_post(url: str, payload: dict, timeout: int = 15) -> dict:
+def _http_post(url: str, payload: dict, timeout: int = 15, retries: int = 3) -> dict:
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         url, data=data, headers={"Content-Type": "application/json"}
     )
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return json.loads(resp.read())
-    except Exception as e:
-        raise RuntimeError(f"Erro na busca RCSB: {e}")
+    ultimo_erro = None
+    for tentativa in range(retries):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                corpo = resp.read()
+                if not corpo:
+                    raise RuntimeError("Resposta vazia do RCSB")
+                return json.loads(corpo)
+        except Exception as e:
+            ultimo_erro = e
+            if tentativa < retries - 1:
+                import time
+
+                time.sleep(1.5 * (tentativa + 1))
+    raise RuntimeError(f"Erro na busca RCSB: {ultimo_erro}")
 
 
 # ─────────────────────────────────────────────────────────────
 # Busca de IDs por nome de proteína
 # ─────────────────────────────────────────────────────────────
+
 
 def _buscar_ids_por_proteina(nome: str) -> List[str]:
     """
@@ -122,6 +135,7 @@ def _buscar_ids_por_proteina(nome: str) -> List[str]:
 # Captura do organismo via polymer_entity
 # ─────────────────────────────────────────────────────────────
 
+
 def _buscar_organismo(pdb_id: str) -> str:
     """
     Busca o organismo fonte real via endpoint polymer_entity.
@@ -148,6 +162,7 @@ def _buscar_organismo(pdb_id: str) -> str:
 # Detalhes de uma entrada PDB
 # ─────────────────────────────────────────────────────────────
 
+
 def _buscar_detalhes(pdb_id: str) -> dict:
     return _http_get(ENTRY_URL.format(pdb_id.lower()))
 
@@ -161,9 +176,12 @@ def _avaliar_qualidade(resolucao, metodo, tem_ligante, ramachandran) -> str:
     if resolucao is not None:
         try:
             r = float(resolucao)
-            if r <= 2.0:   score += 3
-            elif r <= 2.5: score += 2
-            elif r <= 3.0: score += 1
+            if r <= 2.0:
+                score += 3
+            elif r <= 2.5:
+                score += 2
+            elif r <= 3.0:
+                score += 1
         except Exception:
             pass
     if tem_ligante:
@@ -174,10 +192,14 @@ def _avaliar_qualidade(resolucao, metodo, tem_ligante, ramachandran) -> str:
                 score += 1
         except Exception:
             pass
-    if score >= 7:   return "Excelente"
-    elif score >= 5: return "Boa"
-    elif score >= 3: return "Razoável"
-    else:            return "Verificar"
+    if score >= 7:
+        return "Excelente"
+    elif score >= 5:
+        return "Boa"
+    elif score >= 3:
+        return "Razoável"
+    else:
+        return "Verificar"
 
 
 def _extrair_campos(pdb_id: str, dados: dict, proteina_buscada: str) -> dict:
@@ -215,25 +237,26 @@ def _extrair_campos(pdb_id: str, dados: dict, proteina_buscada: str) -> dict:
     qualidade = _avaliar_qualidade(resolucao, metodo, tem_ligante, ramachandran)
 
     return {
-        "pdb_id":           pdb_id.upper(),
+        "pdb_id": pdb_id.upper(),
         "proteina_buscada": proteina_buscada,
-        "titulo":           titulo[:120] + "..." if len(titulo) > 120 else titulo,
-        "organismo":        organismo,
-        "classificacao":    classificacao,
-        "resolucao":        resolucao,
-        "metodo":           metodo,
-        "tem_ligante":      tem_ligante,
-        "num_cadeias":      num_cadeias,
-        "ramachandran":     ramachandran,
-        "depositado_em":    deposicao,
-        "qualidade":        qualidade,
-        "link_pdb":         f"https://www.rcsb.org/structure/{pdb_id.upper()}",
+        "titulo": titulo[:120] + "..." if len(titulo) > 120 else titulo,
+        "organismo": organismo,
+        "classificacao": classificacao,
+        "resolucao": resolucao,
+        "metodo": metodo,
+        "tem_ligante": tem_ligante,
+        "num_cadeias": num_cadeias,
+        "ramachandran": ramachandran,
+        "depositado_em": deposicao,
+        "qualidade": qualidade,
+        "link_pdb": f"https://www.rcsb.org/structure/{pdb_id.upper()}",
     }
 
 
 # ─────────────────────────────────────────────────────────────
 # Função principal — geradora assíncrona com progresso
 # ─────────────────────────────────────────────────────────────
+
 
 async def executar_scraping(proteinas_input: str) -> AsyncGenerator[dict, None]:
     """
@@ -256,21 +279,25 @@ async def executar_scraping(proteinas_input: str) -> AsyncGenerator[dict, None]:
 
     lista = parsear_lista_proteinas(proteinas_input)
     if not lista:
-        yield {"tipo": "erro_proteina", "proteina": "", "mensagem": "Nenhuma proteína informada."}
+        yield {
+            "tipo": "erro_proteina",
+            "proteina": "",
+            "mensagem": "Nenhuma proteína informada.",
+        }
         return
 
     yield {"tipo": "lista_proteinas", "proteinas": lista, "total_proteinas": len(lista)}
 
-    total_geral  = 0
+    total_geral = 0
     por_proteina = {}
-    ids_vistos   = set()  # deduplica entre proteínas da mesma busca
+    ids_vistos = set()  # deduplica entre proteínas da mesma busca
 
     for idx, proteina in enumerate(lista):
         yield {
-            "tipo":    "inicio_proteina",
+            "tipo": "inicio_proteina",
             "proteina": proteina,
-            "indice":  idx + 1,
-            "total":   len(lista),
+            "indice": idx + 1,
+            "total": len(lista),
         }
 
         try:
@@ -284,9 +311,9 @@ async def executar_scraping(proteinas_input: str) -> AsyncGenerator[dict, None]:
         ids_vistos.update(ids_novos)
 
         yield {
-            "tipo":                 "ids_encontrados",
-            "proteina":             proteina,
-            "total_ids":            len(ids_novos),
+            "tipo": "ids_encontrados",
+            "proteina": proteina,
+            "total_ids": len(ids_novos),
             "duplicatas_ignoradas": len(ids) - len(ids_novos),
         }
 
@@ -298,11 +325,11 @@ async def executar_scraping(proteinas_input: str) -> AsyncGenerator[dict, None]:
         coletados = 0
         for i, pdb_id in enumerate(ids_novos):
             yield {
-                "tipo":    "progresso",
+                "tipo": "progresso",
                 "proteina": proteina,
-                "atual":   i + 1,
-                "total":   len(ids_novos),
-                "pdb_id":  pdb_id,
+                "atual": i + 1,
+                "total": len(ids_novos),
+                "pdb_id": pdb_id,
             }
 
             dados = await loop.run_in_executor(None, _buscar_detalhes, pdb_id)
@@ -320,7 +347,7 @@ async def executar_scraping(proteinas_input: str) -> AsyncGenerator[dict, None]:
         yield {"tipo": "fim_proteina", "proteina": proteina, "coletados": coletados}
 
     yield {
-        "tipo":            "fim",
+        "tipo": "fim",
         "total_coletados": total_geral,
-        "por_proteina":    por_proteina,
+        "por_proteina": por_proteina,
     }

@@ -49,6 +49,7 @@ async def buscar_stream(
     async def gerar():
         protein_ids_salvos = []
         user_id = usuario.id if usuario else None
+        erros_proteinas: list[str] = []
 
         # ── Cache hit ─────────────────────────────────────────
         if not forcar_novo:
@@ -65,7 +66,13 @@ async def buscar_stream(
                     }
                 )
                 registrar_busca(
-                    db, user_id, proteinas, None, len(cached), veio_do_cache=True
+                    db,
+                    user_id,
+                    proteinas,
+                    None,
+                    len(cached),
+                    veio_do_cache=True,
+                    protein_ids=[p.id for p in cached],
                 )
                 return
 
@@ -78,7 +85,14 @@ async def buscar_stream(
                 if p:
                     protein_ids_salvos.append(p.id)
 
+            elif evento.get("tipo") == "erro_proteina":
+                erros_proteinas.append(
+                    f"{evento.get('proteina', '')}: {evento.get('mensagem', 'erro desconhecido')}"
+                )
+
             elif evento.get("tipo") == "fim":
+                teve_erro = len(erros_proteinas) > 0
+                mensagem_erro = " | ".join(erros_proteinas) if teve_erro else None
                 registrar_busca(
                     db=db,
                     user_id=user_id,
@@ -87,6 +101,8 @@ async def buscar_stream(
                     total_resultados=evento.get("total_coletados", 0),
                     veio_do_cache=False,
                     protein_ids=protein_ids_salvos,
+                    teve_erro=teve_erro,
+                    mensagem_erro=mensagem_erro,
                 )
 
     return StreamingResponse(
@@ -115,7 +131,11 @@ def download_csv(
         or_(*[Protein.proteina_buscada.ilike(f"%{p}%") for p in lista])
     )
     if organismo:
-        query = query.filter(Protein.organismo.ilike(f"%{organismo}%"))
+        orgs = [o.strip() for o in organismo.split(",") if o.strip()]
+        if orgs:
+            query = query.filter(
+                or_(*[Protein.organismo.ilike(f"%{o}%") for o in orgs])
+            )
     if qualidade:
         query = query.filter(Protein.qualidade == qualidade)
 

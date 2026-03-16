@@ -125,6 +125,8 @@ def registrar_busca(
     total_resultados: int,
     veio_do_cache: bool = False,
     protein_ids: Optional[List[int]] = None,
+    teve_erro: bool = False,
+    mensagem_erro: Optional[str] = None,
 ) -> Search:
     busca = Search(
         user_id=user_id,
@@ -132,6 +134,8 @@ def registrar_busca(
         organismo_query=organismo_query,
         total_resultados=total_resultados,
         veio_do_cache=veio_do_cache,
+        teve_erro=teve_erro,
+        mensagem_erro=mensagem_erro,
         criado_em=datetime.utcnow(),
     )
     db.add(busca)

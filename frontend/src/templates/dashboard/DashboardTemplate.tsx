@@ -23,7 +23,7 @@ export default function DashboardTemplate({
   onNovaBusca,
   inputOriginal: _inputOriginal,
 }: DashboardTemplateProps) {
-  const [filtroOrganismo, setFiltroOrganismo] = useState("");
+  const [filtroOrganismos, setFiltroOrganismos] = useState<string[]>([]);
   const [filtroProteina, setFiltroProteina] = useState("");
   const [filtroQualidade, setFiltroQualidade] = useState("");
   const [filtroLigante, setFiltroLigante] = useState("");
@@ -46,8 +46,10 @@ export default function DashboardTemplate({
 
   const filtrados = useMemo(() => {
     let r = dados;
-    if (filtroOrganismo)
-      r = r.filter((d) => d.organismo?.includes(filtroOrganismo));
+    if (filtroOrganismos.length > 0)
+      r = r.filter((d) =>
+        filtroOrganismos.some((o) => d.organismo?.includes(o)),
+      );
     if (filtroProteina)
       r = r.filter((d) => d.proteina_buscada === filtroProteina);
     if (filtroQualidade) r = r.filter((d) => d.qualidade === filtroQualidade);
@@ -75,7 +77,7 @@ export default function DashboardTemplate({
     });
   }, [
     dados,
-    filtroOrganismo,
+    filtroOrganismos,
     filtroProteina,
     filtroQualidade,
     filtroLigante,
@@ -161,7 +163,7 @@ export default function DashboardTemplate({
   };
 
   const limparFiltros = () => {
-    setFiltroOrganismo("");
+    setFiltroOrganismos([]);
     setFiltroProteina("");
     setFiltroQualidade("");
     setFiltroLigante("");
@@ -233,8 +235,8 @@ export default function DashboardTemplate({
       <FiltersBar
         busca={busca}
         setBusca={setBusca}
-        filtroOrganismo={filtroOrganismo}
-        setFiltroOrganismo={setFiltroOrganismo}
+        filtroOrganismos={filtroOrganismos}
+        setFiltroOrganismos={setFiltroOrganismos}
         filtroProteina={filtroProteina}
         setFiltroProteina={setFiltroProteina}
         filtroQualidade={filtroQualidade}

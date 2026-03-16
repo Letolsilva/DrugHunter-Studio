@@ -2,7 +2,7 @@
 Dependencies FastAPI — injeção do usuário autenticado nas rotas.
 """
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
@@ -56,15 +56,18 @@ def get_usuario_admin(usuario: User = Depends(get_usuario_atual)) -> User:
 
 
 def get_usuario_opcional(
-    token: str = Depends(
+    request: "Request",
+    token_header: str = Depends(
         OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
     ),
     db: Session = Depends(get_db),
 ) -> User | None:
     """
     Dependency que tenta autenticar mas não bloqueia se não tiver token.
-    Útil para rotas que funcionam anônimas mas têm comportamento diferente logado.
+    Aceita token via header Authorization OU via query param ?token=
+    (necessário para EventSource/SSE que não suporta headers customizados).
     """
+    token = token_header or request.query_params.get("token")
     if not token:
         return None
     payload = decodificar_token(token)

@@ -37,6 +37,13 @@ async def tarefa_limpeza_ttl():
                         )
                     else:
                         logger.debug("[TTL] Nenhuma proteína expirada encontrada.")
+
+                # Limpeza de histórico de buscas com +30 dias
+                from app.services.auth import limpar_historico_antigo
+
+                n_hist = limpar_historico_antigo(db)
+                if n_hist > 0:
+                    logger.info(f"[TTL] Histórico: {n_hist} buscas antigas removidas")
             finally:
                 db.close()
 

@@ -15,6 +15,7 @@ from app.services.auth import (
     autenticar_usuario,
     gerar_tokens,
     historico_usuario,
+    buscar_historico_detalhe,
 )
 from app.models.models import User
 
@@ -128,7 +129,7 @@ def me(usuario: User = Depends(get_usuario_atual)):
 
 @router.get("/me/historico")
 def meu_historico(
-    limite: int = 20,
+    limite: int = 50,
     usuario: User = Depends(get_usuario_atual),
     db: Session = Depends(get_db),
 ):
@@ -137,6 +138,22 @@ def meu_historico(
         "username": usuario.username,
         "historico": historico_usuario(db, usuario.id, limite),
     }
+
+
+@router.get("/me/historico/{search_id}")
+def historico_detalhe(
+    search_id: int,
+    usuario: User = Depends(get_usuario_atual),
+    db: Session = Depends(get_db),
+):
+    """Retorna as proteínas de uma busca histórica específica do usuário."""
+    detalhe = buscar_historico_detalhe(db, usuario.id, search_id)
+    if not detalhe:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Busca não encontrada.",
+        )
+    return detalhe
 
 
 @router.put("/me/senha")

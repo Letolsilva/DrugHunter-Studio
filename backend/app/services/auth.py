@@ -2,12 +2,12 @@
 Serviço de autenticação — registro, login, perfil e histórico.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
-from app.models.models import User, Search
+from app.models.models import User, Search, Protein
 from app.core.security import (
     hash_senha,
     verificar_senha,
@@ -104,7 +104,7 @@ def gerar_tokens(user: User) -> dict:
 # ── Histórico de buscas ───────────────────────────────────────
 
 
-def historico_usuario(db: Session, user_id: int, limite: int = 20) -> list:
+def historico_usuario(db: Session, user_id: int, limite: int = 50) -> list:
     """Retorna as últimas N buscas do usuário com detalhes."""
     buscas = (
         db.query(Search)
@@ -120,9 +120,67 @@ def historico_usuario(db: Session, user_id: int, limite: int = 20) -> list:
             "organismo_query": b.organismo_query,
             "total_resultados": b.total_resultados,
             "veio_do_cache": b.veio_do_cache,
-            "criado_em": b.criado_em.strftime("%d/%m/%Y %H:%M")
+            "teve_erro": b.teve_erro or False,
+            "mensagem_erro": b.mensagem_erro,
+            "criado_em": b.criado_em.strftime("%Y-%m-%dT%H:%M:%SZ")
             if b.criado_em
             else None,
         }
         for b in buscas
     ]
+
+
+def _protein_to_dict(p: Protein) -> dict:
+    return {
+        "pdb_id": p.pdb_id,
+        "proteina_buscada": p.proteina_buscada,
+        "titulo": p.titulo,
+        "organismo": p.organismo,
+        "classificacao": p.classificacao,
+        "resolucao": p.resolucao,
+        "metodo": p.metodo,
+        "tem_ligante": p.tem_ligante,
+        "num_cadeias": p.num_cadeias,
+        "ramachandran": p.ramachandran,
+        "depositado_em": p.depositado_em,
+        "qualidade": p.qualidade,
+        "link_pdb": p.link_pdb,
+    }
+
+
+def buscar_historico_detalhe(
+    db: Session, user_id: int, search_id: int
+) -> Optional[dict]:
+    """Retorna proteínas de uma busca histórica específica do usuário."""
+    busca = (
+        db.query(Search)
+        .filter(Search.id == search_id, Search.user_id == user_id)
+        .first()
+    )
+    if not busca:
+        return None
+
+    proteinas = [sr.protein for sr in busca.resultados if sr.protein]
+    return {
+        "id": busca.id,
+        "proteina_query": busca.proteina_query,
+        "organismo_query": busca.organismo_query,
+        "total_resultados": busca.total_resultados,
+        "veio_do_cache": busca.veio_do_cache,
+        "criado_em": busca.criado_em.strftime("%Y-%m-%dT%H:%M:%SZ")
+        if busca.criado_em
+        else None,
+        "proteinas": [_protein_to_dict(p) for p in proteinas],
+    }
+
+
+def limpar_historico_antigo(db: Session) -> int:
+    """Remove buscas com mais de 30 dias. Retorna quantidade removida."""
+    cutoff = datetime.utcnow() - timedelta(days=30)
+    buscas = db.query(Search).filter(Search.criado_em < cutoff).all()
+    n = len(buscas)
+    for b in buscas:
+        db.delete(b)
+    if n:
+        db.commit()
+    return n

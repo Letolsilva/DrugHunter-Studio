@@ -3,7 +3,9 @@ import { Routes, Route, Navigate, type ReactNode } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import AuthPage from "./pages/AuthPage/AuthPage";
 import SearchPage from "./pages/SearchPage/SearchPage";
+import HistoryPage from "./pages/HistoryPage/HistoryPage";
 import type { SearchUseCase } from "./data/usecases/search.usecase";
+import type { HistoryUseCase } from "./data/usecases/history.usecase";
 
 interface RotaProtegidaProps {
   children: ReactNode;
@@ -40,9 +42,13 @@ function RotaProtegida({ children }: RotaProtegidaProps) {
 
 interface AppRoutesProps {
   searchUseCase: SearchUseCase;
+  historyUseCase: HistoryUseCase;
 }
 
-export default function AppRoutes({ searchUseCase }: AppRoutesProps) {
+export default function AppRoutes({
+  searchUseCase,
+  historyUseCase,
+}: AppRoutesProps) {
   const { user, loading } = useAuth();
 
   return (
@@ -62,6 +68,14 @@ export default function AppRoutes({ searchUseCase }: AppRoutesProps) {
         element={
           <RotaProtegida>
             <SearchPage searchUseCase={searchUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/historico"
+        element={
+          <RotaProtegida>
+            <HistoryPage historyUseCase={historyUseCase} />
           </RotaProtegida>
         }
       />
