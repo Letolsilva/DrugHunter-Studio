@@ -265,7 +265,7 @@ export function FiltersBar({
               onChangePage(1);
             }}
             options={[
-              { value: "", label: "Todas as proteÃ­nas" },
+              { value: "", label: "Todas as proteí­nas" },
               ...proteinas.map((p) => ({ value: p, label: p })),
             ]}
           />
@@ -312,7 +312,7 @@ export function FiltersBar({
           value={ordem}
           onChange={setOrdem}
           options={[
-            { value: "resolucao", label: "ResoluÃ§Ã£o (crescente)" },
+            { value: "resolucao", label: "Resolução (crescente)" },
             { value: "qualidade", label: "Qualidade (melhor primeiro)" },
             { value: "data", label: "Data (mais recente)" },
           ]}

@@ -51,6 +51,45 @@ def buscar_do_cache(db: Session, proteinas_query: str) -> List[Protein]:
     return resultados
 
 
+def separar_cache_e_pendentes(
+    db: Session, proteinas_query: str
+) -> tuple[List[Protein], List[str]]:
+    """
+    Verifica cache proteína a proteína.
+    Retorna (resultados_em_cache, proteinas_nao_cacheadas).
+    Garante que proteínas sem cache sejam sempre enviadas para scraping,
+    mesmo que outras da mesma busca já estejam cacheadas.
+    """
+    from app.services.scraper import parsear_lista_proteinas
+
+    lista = parsear_lista_proteinas(proteinas_query)
+    if not lista:
+        return [], []
+
+    resultados_cache: List[Protein] = []
+    pendentes: List[str] = []
+    agora = datetime.utcnow()
+
+    for proteina in lista:
+        hits = (
+            db.query(Protein)
+            .filter(Protein.proteina_buscada.ilike(f"%{proteina}%"))
+            .all()
+        )
+        if hits:
+            for p in hits:
+                p.ultima_consulta = agora
+                p.total_consultas = (p.total_consultas or 0) + 1
+            resultados_cache.extend(hits)
+        else:
+            pendentes.append(proteina)
+
+    if resultados_cache:
+        db.commit()
+
+    return resultados_cache, pendentes
+
+
 # ── Upsert de proteína ────────────────────────────────────────
 
 

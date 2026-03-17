@@ -16,7 +16,7 @@ from app.core.deps import get_usuario_opcional
 from app.models.models import User
 from app.services.scraper import executar_scraping, parsear_lista_proteinas
 from app.services.cache import (
-    buscar_do_cache,
+    separar_cache_e_pendentes,
     salvar_proteina_no_cache,
     registrar_busca,
     listar_organismos_disponiveis,
@@ -50,14 +50,20 @@ async def buscar_stream(
         protein_ids_salvos = []
         user_id = usuario.id if usuario else None
         erros_proteinas: list[str] = []
+        cached: list = []
+        proteinas_para_scrape = proteinas
 
-        # ── Cache hit ─────────────────────────────────────────
+        # ── Cache (por proteína individual) ───────────────────
         if not forcar_novo:
-            cached = buscar_do_cache(db, proteinas)
+            cached, pendentes = separar_cache_e_pendentes(db, proteinas)
+
             if cached:
                 yield _sse({"tipo": "cache_hit", "total": len(cached)})
                 for p in cached:
                     yield _sse({"tipo": "resultado", "dado": _p(p), "cache": True})
+
+            if not pendentes:
+                # Todas as proteínas estavam em cache
                 yield _sse(
                     {
                         "tipo": "fim",
@@ -76,34 +82,45 @@ async def buscar_stream(
                 )
                 return
 
-        # ── Scraping ──────────────────────────────────────────
-        async for evento in executar_scraping(proteinas):
-            yield _sse(evento)
+            # Apenas as proteínas faltantes vão para scraping
+            proteinas_para_scrape = ", ".join(pendentes)
 
-            if evento.get("tipo") == "resultado":
-                p = salvar_proteina_no_cache(db, evento["dado"])
-                if p:
-                    protein_ids_salvos.append(p.id)
-
-            elif evento.get("tipo") == "erro_proteina":
-                erros_proteinas.append(
-                    f"{evento.get('proteina', '')}: {evento.get('mensagem', 'erro desconhecido')}"
-                )
-
-            elif evento.get("tipo") == "fim":
+        # ── Scraping das proteínas não cacheadas ──────────────
+        async for evento in executar_scraping(proteinas_para_scrape):
+            if evento.get("tipo") == "fim":
+                total_final = len(cached) + evento.get("total_coletados", 0)
                 teve_erro = len(erros_proteinas) > 0
                 mensagem_erro = " | ".join(erros_proteinas) if teve_erro else None
+                yield _sse(
+                    {
+                        "tipo": "fim",
+                        "total_coletados": total_final,
+                        "veio_do_cache": False,
+                    }
+                )
                 registrar_busca(
                     db=db,
                     user_id=user_id,
                     proteina_query=proteinas,
                     organismo_query=None,
-                    total_resultados=evento.get("total_coletados", 0),
+                    total_resultados=total_final,
                     veio_do_cache=False,
-                    protein_ids=protein_ids_salvos,
+                    protein_ids=[p.id for p in cached] + protein_ids_salvos,
                     teve_erro=teve_erro,
                     mensagem_erro=mensagem_erro,
                 )
+            else:
+                yield _sse(evento)
+
+                if evento.get("tipo") == "resultado":
+                    p = salvar_proteina_no_cache(db, evento["dado"])
+                    if p:
+                        protein_ids_salvos.append(p.id)
+
+                elif evento.get("tipo") == "erro_proteina":
+                    erros_proteinas.append(
+                        f"{evento.get('proteina', '')}: {evento.get('mensagem', 'erro desconhecido')}"
+                    )
 
     return StreamingResponse(
         gerar(),
