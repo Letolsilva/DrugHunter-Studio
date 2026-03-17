@@ -17,6 +17,7 @@ import {
 } from "../../components/icons";
 import type { UserModel } from "../../domain/models/auth.model";
 import type { PdbResultModel } from "../../domain/models/search.model";
+import type { UseDashboardReturn } from "../../hooks/useDashboard";
 
 interface SearchTemplateProps {
   user: UserModel | null;
@@ -42,6 +43,7 @@ interface SearchTemplateProps {
   cancelar: () => void;
   iniciarBusca: (forcarNovo?: boolean) => void;
   resetBusca: () => void;
+  dashboard: UseDashboardReturn;
 }
 
 export default function SearchTemplate({
@@ -68,6 +70,7 @@ export default function SearchTemplate({
   cancelar,
   iniciarBusca,
   resetBusca,
+  dashboard,
 }: SearchTemplateProps) {
   return (
     <div className="min-h-screen flex flex-col bg-surface-primary">
@@ -274,10 +277,10 @@ export default function SearchTemplate({
 
         {fase === "resultado" && (
           <DashboardTemplate
+            {...dashboard}
             dados={resultados}
             proteinas={proteinas}
             onNovaBusca={resetBusca}
-            inputOriginal={input}
           />
         )}
       </main>

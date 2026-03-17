@@ -9,11 +9,16 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import type { SearchUseCase } from "../../data/usecases/search.usecase";
+import type { DashboardUseCase } from "../../data/usecases/dashboard.usecase";
 import type {
   PdbResultModel,
   SearchEventModel,
 } from "../../domain/models/search.model";
 import type { UserModel } from "../../domain/models/auth.model";
+import {
+  useDashboard,
+  type UseDashboardReturn,
+} from "../../hooks/useDashboard";
 
 type Fase = "idle" | "buscando" | "pausado" | "resultado";
 
@@ -41,10 +46,12 @@ export interface UseSearchPageReturn {
   cancelar: () => void;
   iniciarBusca: (forcarNovo?: boolean) => void;
   resetBusca: () => void;
+  dashboard: UseDashboardReturn;
 }
 
 export function useSearchPage(
   searchUseCase: SearchUseCase,
+  dashboardUseCase: DashboardUseCase,
 ): UseSearchPageReturn {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -239,6 +246,8 @@ export function useSearchPage(
     setResultados([]);
   }, []);
 
+  const dashboard = useDashboard(resultados, dashboardUseCase);
+
   return {
     user,
     input,
@@ -263,5 +272,6 @@ export function useSearchPage(
     cancelar,
     iniciarBusca,
     resetBusca,
+    dashboard,
   };
 }

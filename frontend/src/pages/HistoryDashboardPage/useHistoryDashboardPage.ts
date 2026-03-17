@@ -3,7 +3,12 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import type { HistoryUseCase } from "../../data/usecases/history.usecase";
+import type { DashboardUseCase } from "../../data/usecases/dashboard.usecase";
 import type { SearchHistoryDetail } from "../../domain/models/history.model";
+import {
+  useDashboard,
+  type UseDashboardReturn,
+} from "../../hooks/useDashboard";
 
 type DashboardFase = "carregando" | "detalhe" | "erro";
 
@@ -12,11 +17,14 @@ export interface UseHistoryDashboardPageReturn {
   detalhe: SearchHistoryDetail | null;
   erroMsg: string;
   voltarLista: () => void;
+  novaBusca: () => void;
   handleLogout: () => void;
+  dashboard: UseDashboardReturn;
 }
 
 export function useHistoryDashboardPage(
   historyUseCase: HistoryUseCase,
+  dashboardUseCase: DashboardUseCase,
 ): UseHistoryDashboardPageReturn {
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -34,6 +42,12 @@ export function useHistoryDashboardPage(
   const voltarLista = () => {
     navigate("/historico");
   };
+
+  const novaBusca = () => {
+    navigate("/search");
+  };
+
+  const dashboard = useDashboard(detalhe?.proteinas ?? [], dashboardUseCase);
 
   useEffect(() => {
     const numId = Number(id);
@@ -61,6 +75,8 @@ export function useHistoryDashboardPage(
     detalhe,
     erroMsg,
     voltarLista,
+    novaBusca,
     handleLogout,
+    dashboard,
   };
 }

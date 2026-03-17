@@ -18,7 +18,9 @@ export default function HistoryDashboardTemplate({
   detalhe,
   erroMsg,
   voltarLista,
+  novaBusca,
   handleLogout,
+  dashboard,
 }: UseHistoryDashboardPageReturn) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -87,13 +89,13 @@ export default function HistoryDashboardTemplate({
             </div>
 
             <DashboardTemplate
+              {...dashboard}
               dados={detalhe.proteinas}
               proteinas={detalhe.proteina_query
                 .split(",")
                 .map((s) => s.trim())
                 .filter(Boolean)}
-              onNovaBusca={voltarLista}
-              inputOriginal={detalhe.proteina_query}
+              onNovaBusca={novaBusca}
             />
           </div>
         )}

@@ -7,6 +7,7 @@ import HistoryListPage from "./pages/HistoryListPage/HistoryListPage";
 import HistoryDashboardPage from "./pages/HistoryDashboardPage/HistoryDashboardPage";
 import type { SearchUseCase } from "./data/usecases/search.usecase";
 import type { HistoryUseCase } from "./data/usecases/history.usecase";
+import type { DashboardUseCase } from "./data/usecases/dashboard.usecase";
 
 interface RotaProtegidaProps {
   children: ReactNode;
@@ -45,11 +46,13 @@ function RotaProtegida({ children }: RotaProtegidaProps) {
 interface AppRoutesProps {
   searchUseCase: SearchUseCase;
   historyUseCase: HistoryUseCase;
+  dashboardUseCase: DashboardUseCase;
 }
 
 export default function AppRoutes({
   searchUseCase,
   historyUseCase,
+  dashboardUseCase,
 }: AppRoutesProps) {
   const { user, loading } = useAuth();
 
@@ -69,7 +72,10 @@ export default function AppRoutes({
         path="/search"
         element={
           <RotaProtegida>
-            <SearchPage searchUseCase={searchUseCase} />
+            <SearchPage
+              searchUseCase={searchUseCase}
+              dashboardUseCase={dashboardUseCase}
+            />
           </RotaProtegida>
         }
       />
@@ -85,7 +91,10 @@ export default function AppRoutes({
         path="/historico/:id"
         element={
           <RotaProtegida>
-            <HistoryDashboardPage historyUseCase={historyUseCase} />
+            <HistoryDashboardPage
+              historyUseCase={historyUseCase}
+              dashboardUseCase={dashboardUseCase}
+            />
           </RotaProtegida>
         }
       />
