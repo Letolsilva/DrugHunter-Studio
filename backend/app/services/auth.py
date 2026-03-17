@@ -1,5 +1,7 @@
-"""
-Serviço de autenticação — registro, login, perfil e histórico.
+﻿"""
+services/auth.py  Acesso a dados de usuários, tokens e histórico de buscas.
+
+Responsabilidade: operações de banco. Não conhece HTTP nem request/response.
 """
 
 from datetime import datetime, timedelta
@@ -7,7 +9,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
-from app.models.models import User, Search, Protein
+from app.domain.models import User, Search, Protein
 from app.core.security import (
     hash_senha,
     verificar_senha,
@@ -16,27 +18,20 @@ from app.core.security import (
 )
 
 
-# ── Registro ──────────────────────────────────────────────────
-
-
 def registrar_usuario(db: Session, email: str, username: str, senha: str) -> User:
-    """Cria novo usuário. Lança erro se email ou username já existirem."""
-
+    """Cria novo usuário. Lança 409 se email ou username já existirem."""
     if db.query(User).filter(User.email == email.lower().strip()).first():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Este e-mail já está cadastrado.",
         )
-
     if db.query(User).filter(User.username == username.strip()).first():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Este nome de usuário já está em uso.",
         )
 
-    # Primeiro usuário registrado vira admin automaticamente
     is_admin = db.query(User).count() == 0
-
     user = User(
         email=email.lower().strip(),
         username=username.strip(),
@@ -51,43 +46,29 @@ def registrar_usuario(db: Session, email: str, username: str, senha: str) -> Use
     return user
 
 
-# ── Login ─────────────────────────────────────────────────────
-
-
 def autenticar_usuario(db: Session, login: str, senha: str) -> User:
-    """
-    Autentica por email ou username + senha.
-    Lança HTTPException 401 se credenciais inválidas.
-    """
-    # Tenta encontrar por email ou username
+    """Autentica por email ou username + senha. Lança 401 se inválido."""
     user = (
         db.query(User).filter(User.email == login.lower().strip()).first()
         or db.query(User).filter(User.username == login.strip()).first()
     )
-
     if not user or not verificar_senha(senha, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="E-mail/usuário ou senha incorretos.",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Conta desativada. Entre em contato com o administrador.",
         )
-
     return user
 
 
 def gerar_tokens(user: User) -> dict:
     """Gera par de access + refresh tokens para um usuário."""
-    payload = {
-        "sub": str(user.id),
-        "username": user.username,
-        "is_admin": user.is_admin,
-    }
+    payload = {"sub": str(user.id), "username": user.username, "is_admin": user.is_admin}
     return {
         "access_token": criar_access_token(payload),
         "refresh_token": criar_refresh_token(payload),
@@ -101,11 +82,16 @@ def gerar_tokens(user: User) -> dict:
     }
 
 
-# ── Histórico de buscas ───────────────────────────────────────
+def alterar_senha(db: Session, user: User, senha_atual: str, nova_senha: str) -> None:
+    """Valida a senha atual e persiste o novo hash."""
+    if not verificar_senha(senha_atual, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Senha atual incorreta.")
+    user.hashed_password = hash_senha(nova_senha)
+    db.commit()
 
 
 def historico_usuario(db: Session, user_id: int, limite: int = 50) -> list:
-    """Retorna as últimas N buscas do usuário com detalhes."""
+    """Retorna as últimas N buscas do usuário com metadados."""
     buscas = (
         db.query(Search)
         .filter(Search.user_id == user_id)
@@ -122,9 +108,7 @@ def historico_usuario(db: Session, user_id: int, limite: int = 50) -> list:
             "veio_do_cache": b.veio_do_cache,
             "teve_erro": b.teve_erro or False,
             "mensagem_erro": b.mensagem_erro,
-            "criado_em": b.criado_em.strftime("%Y-%m-%dT%H:%M:%SZ")
-            if b.criado_em
-            else None,
+            "criado_em": b.criado_em.strftime("%Y-%m-%dT%H:%M:%SZ") if b.criado_em else None,
         }
         for b in buscas
     ]
@@ -148,9 +132,7 @@ def _protein_to_dict(p: Protein) -> dict:
     }
 
 
-def buscar_historico_detalhe(
-    db: Session, user_id: int, search_id: int
-) -> Optional[dict]:
+def buscar_historico_detalhe(db: Session, user_id: int, search_id: int) -> Optional[dict]:
     """Retorna proteínas de uma busca histórica específica do usuário."""
     busca = (
         db.query(Search)
@@ -159,7 +141,6 @@ def buscar_historico_detalhe(
     )
     if not busca:
         return None
-
     proteinas = [sr.protein for sr in busca.resultados if sr.protein]
     return {
         "id": busca.id,
@@ -167,15 +148,13 @@ def buscar_historico_detalhe(
         "organismo_query": busca.organismo_query,
         "total_resultados": busca.total_resultados,
         "veio_do_cache": busca.veio_do_cache,
-        "criado_em": busca.criado_em.strftime("%Y-%m-%dT%H:%M:%SZ")
-        if busca.criado_em
-        else None,
+        "criado_em": busca.criado_em.strftime("%Y-%m-%dT%H:%M:%SZ") if busca.criado_em else None,
         "proteinas": [_protein_to_dict(p) for p in proteinas],
     }
 
 
 def excluir_historico_item(db: Session, user_id: int, search_id: int) -> bool:
-    """Remove uma busca específica do usuário. Retorna True se encontrada e removida."""
+    """Remove uma busca específica do usuário. Retorna True se removida."""
     busca = (
         db.query(Search)
         .filter(Search.id == search_id, Search.user_id == user_id)

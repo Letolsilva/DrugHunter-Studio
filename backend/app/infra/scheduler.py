@@ -1,7 +1,8 @@
 """
-Scheduler — limpeza automática de TTL
+Infra — Scheduler de limpeza automática de TTL
+
 Roda em background via asyncio ao iniciar o servidor.
-Frequência: a cada 24h.
+Frequência: a cada 24 horas.
 """
 
 import asyncio
@@ -16,14 +17,13 @@ async def tarefa_limpeza_ttl():
     Loop infinito que executa a limpeza de proteínas expiradas
     uma vez por dia enquanto o servidor estiver rodando.
     """
-    # Aguarda 60s antes da primeira execução (servidor precisa estar pronto)
-    await asyncio.sleep(60)
+    await asyncio.sleep(60)  # aguarda o servidor estar pronto
 
     while True:
         try:
-            # Importa aqui para evitar circular import
-            from app.db.database import SessionLocal, get_config
-            from app.services.cache import limpar_proteinas_expiradas
+            from app.infra.db.database import SessionLocal, get_config
+            from app.services.admin import limpar_proteinas_expiradas
+            from app.services.auth import limpar_historico_antigo
 
             db = SessionLocal()
             try:
@@ -38,27 +38,13 @@ async def tarefa_limpeza_ttl():
                     else:
                         logger.debug("[TTL] Nenhuma proteína expirada encontrada.")
 
-                # Limpeza de histórico de buscas com +30 dias
-                from app.services.auth import limpar_historico_antigo
-
                 n_hist = limpar_historico_antigo(db)
                 if n_hist > 0:
                     logger.info(f"[TTL] Histórico: {n_hist} buscas antigas removidas")
             finally:
                 db.close()
 
-        except Exception as e:
-            logger.error(f"[TTL] Erro na limpeza automática: {e}")
+        except Exception as exc:
+            logger.error(f"[TTL] Erro na limpeza automática: {exc}")
 
-        # Aguarda 24h para a próxima execução
         await asyncio.sleep(24 * 60 * 60)
-
-
-def iniciar_scheduler(app):
-    """Registra a tarefa de limpeza no loop do FastAPI."""
-    import asyncio
-
-    @app.on_event("startup")
-    async def startup_scheduler():
-        asyncio.create_task(tarefa_limpeza_ttl())
-        logger.info("[Scheduler] Limpeza automática de TTL agendada (24h)")

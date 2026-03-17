@@ -1,0 +1,21 @@
+{
+  "version": "0.2",
+  "language": "en,pt",
+  "words": [
+    "senha",
+    "senhaAtual",
+    "novaSenha",
+    "Atual",
+    "historico",
+    "organismos",
+    "proximas",
+    "expirar",
+    "limpar",
+    "fungos",
+    "scraper",
+    "fetchWithAuth",
+    "uvicorn",
+    "fastapi",
+    "pydantic"
+  ]
+}

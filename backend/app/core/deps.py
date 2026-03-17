@@ -1,14 +1,17 @@
 """
-Dependencies FastAPI — injeção do usuário autenticado nas rotas.
+Core — Dependencies FastAPI: injeção do usuário autenticado nas rotas.
+
+Estas funções são "portas de entrada" da arquitetura hexagonal:
+adaptam o protocolo HTTP/JWT para o domínio (User).
 """
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
-from app.db.database import get_db
+from app.infra.db.database import get_db
 from app.core.security import decodificar_token
-from app.models.models import User
+from app.domain.models import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 

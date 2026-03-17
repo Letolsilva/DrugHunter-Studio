@@ -1,18 +1,12 @@
-"""
-Schemas Pydantic — validação de entrada e saída
-"""
+"""Schemas Pydantic do módulo de busca de proteínas."""
 
 from typing import Optional
 from pydantic import BaseModel
 
 
-class BuscaRequest(BaseModel):
-    proteina: Optional[str] = None
-    organismo: Optional[str] = None
-
-
 class ProteinSchema(BaseModel):
     pdb_id: str
+    proteina_buscada: Optional[str] = None
     titulo: Optional[str] = None
     organismo: Optional[str] = None
     classificacao: Optional[str] = None
@@ -27,3 +21,7 @@ class ProteinSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class CancelarRequest(BaseModel):
+    proteinas_query: str

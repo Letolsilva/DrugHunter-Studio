@@ -1,5 +1,15 @@
 """
-PDB Explorer API — FastAPI app principal (Fase 3)
+PDB Explorer API — FastAPI app principal
+
+Arquitetura Hexagonal:
+  core/          → segurança e dependencies de injeção
+  domain/        → modelos ORM e schemas Pydantic
+  infra/db/      → banco de dados (engine, sessão, configs)
+  infra/external/→ adapter externo (RCSB scraper)
+  infra/         → scheduler de limpeza TTL
+  modules/auth/  → routes → use_cases → service  (autenticação)
+  modules/search/→ routes → use_cases → service  (busca de proteínas)
+  modules/admin/ → routes → use_cases → service  (administração)
 """
 
 import logging
@@ -8,8 +18,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.db.database import criar_tabelas, SessionLocal, get_config
-from app.api import search, admin, auth
+from app.infra.db.database import criar_tabelas, SessionLocal, get_config
+from app.routes.auth import router as auth_router
+from app.routes.search import router as search_router
+from app.routes.admin import router as admin_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("pdb_explorer")
@@ -28,7 +40,7 @@ async def lifespan(app: FastAPI):
     finally:
         db.close()
 
-    from app.services.scheduler import tarefa_limpeza_ttl
+    from app.infra.scheduler import tarefa_limpeza_ttl
 
     task = asyncio.create_task(tarefa_limpeza_ttl())
     logger.info("🕐 Scheduler de limpeza TTL iniciado")
@@ -41,7 +53,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="PDB Explorer API",
     description="API para busca e análise de estruturas proteicas do RCSB PDB",
-    version="3.0.0",
+    version="4.0.0",
     lifespan=lifespan,
 )
 
@@ -53,11 +65,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
-app.include_router(search.router)
-app.include_router(admin.router)
+app.include_router(auth_router)
+app.include_router(search_router)
+app.include_router(admin_router)
 
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "version": "3.0.0"}
+    return {"status": "ok", "version": "4.0.0"}

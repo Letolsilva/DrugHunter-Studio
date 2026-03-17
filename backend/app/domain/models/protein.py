@@ -1,0 +1,31 @@
+"""Modelo de proteína (cache de estruturas PDB)."""
+
+from datetime import datetime
+from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, Text
+
+from app.domain.models.base import Base
+
+
+class Protein(Base):
+    """Cache de estruturas PDB — compartilhado entre todos os usuários."""
+
+    __tablename__ = "proteins"
+
+    id = Column(Integer, primary_key=True, index=True)
+    pdb_id = Column(String(10), unique=True, index=True, nullable=False)
+    proteina_buscada = Column(String(300), index=True)
+    titulo = Column(Text)
+    organismo = Column(String(500), index=True)
+    classificacao = Column(String(200))
+    resolucao = Column(Float)
+    metodo = Column(String(100))
+    tem_ligante = Column(Boolean, default=False)
+    num_cadeias = Column(Integer)
+    ramachandran = Column(Float)
+    depositado_em = Column(String(20))
+    qualidade = Column(String(50))
+    link_pdb = Column(String(200))
+
+    criado_em = Column(DateTime, default=datetime.utcnow, nullable=False)
+    ultima_consulta = Column(DateTime, default=datetime.utcnow, nullable=False)
+    total_consultas = Column(Integer, default=1, nullable=False)

@@ -1,5 +1,8 @@
 """
-Segurança — hashing de senha e geração/validação de JWT
+Core — Segurança: hashing de senha e geração/validação de JWT.
+
+Não depende de nada do domínio ou da infraestrutura —
+é utilitário puro reutilizado por qualquer módulo.
 """
 
 import os

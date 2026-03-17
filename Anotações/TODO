@@ -1,2 +1,4 @@
-refatorar a arquitetura do back
+refatorar a arquitetura do back e ajustar componentes do front para ifcar modular
 quantidade de estruturas que quer coletar
+validação de campos com o yup
+testar a limpeza em 30 dias

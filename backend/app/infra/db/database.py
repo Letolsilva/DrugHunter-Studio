@@ -1,22 +1,24 @@
 """
-Configuração do banco de dados — Fase 2
+Infra — Configuração do banco de dados
+
 Suporta SQLite (dev) e PostgreSQL (prod) via DATABASE_URL.
 Inclui seed das configs padrão no SystemConfig.
 """
 
 import os
-from sqlalchemy import create_engine, event, text
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
-from app.models.models import Base, SystemConfig
+from app.domain.models import Base, SystemConfig
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
     "sqlite:///./pdb_explorer.db",
-    # Para PostgreSQL (Fase 6):
+    # Para PostgreSQL (produção):
     # "postgresql://user:senha@localhost:5432/pdb_explorer"
 )
 
 # ── Engine ────────────────────────────────────────────────────
+
 connect_args = {}
 if DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
@@ -38,7 +40,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def get_db():
-    """Dependency para injetar sessão nas rotas FastAPI."""
+    """Dependency FastAPI — injeta sessão do banco nas rotas."""
     db = SessionLocal()
     try:
         yield db
@@ -46,7 +48,8 @@ def get_db():
         db.close()
 
 
-# ── Configs padrão do SystemConfig ───────────────────────────
+# ── Seed de configs padrão ────────────────────────────────────
+
 CONFIGS_PADRAO = [
     {
         "chave": "ttl_dias",

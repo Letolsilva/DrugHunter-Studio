@@ -1,16 +1,11 @@
 """
-PDB Explorer Scraper — Fase 1 (v2)
-====================================
-O usuário digita UMA OU MAIS proteínas (separadas por vírgula).
-Para cada proteína, busca todas as estruturas no RCSB PDB e retorna
-os dados completos incluindo o campo Organismo.
+Infra — Adapter externo para a API RCSB PDB (scraper)
 
-Exemplos de entrada:
-    proteinas = "glucan synthase"
-    proteinas = "glucan synthase, FKS1, arabinose dehydrogenase"
+Responsabilidade única: comunicar-se com a API pública do RCSB
+e retornar dados brutos de estruturas proteicas.
 
-NÃO há filtro por organismo na busca — o organismo é um campo de
-RETORNO (o usuário vê e filtra pela dashboard depois).
+Essa camada é um "adapter de saída" na arquitetura hexagonal:
+o domínio nunca acessa HTTP diretamente — chama esta interface.
 """
 
 import json
@@ -18,14 +13,14 @@ import re
 import asyncio
 import urllib.request
 import urllib.error
-from typing import List, Optional, AsyncGenerator
+from typing import List, AsyncGenerator
 
 SEARCH_URL = "https://search.rcsb.org/rcsbsearch/v2/query"
 ENTRY_URL = "https://data.rcsb.org/rest/v1/core/entry/{}"
 POLYMER_URL = "https://data.rcsb.org/rest/v1/core/polymer_entity/{}/1"
 
 MAX_POR_PROTEINA = 50  # máximo de resultados por proteína
-DELAY_ENTRE_IDS = 0.15  # respeitar rate limit da API do RCSB
+DELAY_ENTRE_IDS = 0.15  # respeitar rate limit da API RCSB
 
 
 # ─────────────────────────────────────────────────────────────
@@ -38,16 +33,15 @@ def parsear_lista_proteinas(entrada: str) -> List[str]:
     Transforma a string digitada em lista de proteínas.
     Aceita vírgula, ponto-e-vírgula ou quebra de linha como separador.
 
-    "glucan synthase"                  → ["glucan synthase"]
-    "glucan synthase, FKS1"            → ["glucan synthase", "FKS1"]
-    "glucan synthase; FKS1; ERG11"     → ["glucan synthase", "FKS1", "ERG11"]
+    "glucan synthase"              → ["glucan synthase"]
+    "glucan synthase, FKS1"        → ["glucan synthase", "FKS1"]
     """
     partes = re.split(r"[,;\n]+", entrada)
     return [p.strip() for p in partes if p.strip()]
 
 
 # ─────────────────────────────────────────────────────────────
-# HTTP helpers
+# HTTP helpers (síncronos — executados via run_in_executor)
 # ─────────────────────────────────────────────────────────────
 
 
@@ -72,8 +66,8 @@ def _http_post(url: str, payload: dict, timeout: int = 15, retries: int = 3) -> 
                 if not corpo:
                     raise RuntimeError("Resposta vazia do RCSB")
                 return json.loads(corpo)
-        except Exception as e:
-            ultimo_erro = e
+        except Exception as exc:
+            ultimo_erro = exc
             if tentativa < retries - 1:
                 import time
 
@@ -87,11 +81,7 @@ def _http_post(url: str, payload: dict, timeout: int = 15, retries: int = 3) -> 
 
 
 def _buscar_ids_por_proteina(nome: str) -> List[str]:
-    """
-    Retorna lista de PDB IDs que correspondem ao nome da proteína.
-    - Múltiplas palavras: contains_phrase no título + exact_match no organismo
-    - Palavra única: contains_words no título + exact_match no organismo
-    """
+    """Retorna lista de PDB IDs que correspondem ao nome da proteína."""
     nome = nome.strip()
     operador_titulo = "contains_phrase" if " " in nome else "contains_words"
 
@@ -139,7 +129,6 @@ def _buscar_ids_por_proteina(nome: str) -> List[str]:
 def _buscar_organismo(pdb_id: str) -> str:
     """
     Busca o organismo fonte real via endpoint polymer_entity.
-    É o mesmo campo 'Organism(s)' visível na página do RCSB.
     Múltiplos organismos são separados por ' | '.
     """
     url = POLYMER_URL.format(pdb_id.lower())
@@ -219,21 +208,14 @@ def _extrair_campos(pdb_id: str, dados: dict, proteina_buscada: str) -> dict:
         deposicao = deposicao.split("T")[0]
 
     titulo = dados.get("struct", {}).get("title", "N/A")
-
     n_ligantes = info.get("nonpolymer_entity_count", 0) or 0
     tem_ligante = int(n_ligantes) > 0
-
     num_cadeias = info.get("polymer_entity_count", None)
-
     ramachandran = dados.get("pdbx_vrpt_summary", {}).get(
         "percent_ramachandran_outliers_full_length", None
     )
-
     classificacao = dados.get("struct_keywords", {}).get("pdbx_keywords", "N/A")
-
-    # Campo organismo — capturado do polymer_entity (mesmo que o site mostra)
     organismo = _buscar_organismo(pdb_id)
-
     qualidade = _avaliar_qualidade(resolucao, metodo, tem_ligante, ramachandran)
 
     return {
@@ -254,25 +236,22 @@ def _extrair_campos(pdb_id: str, dados: dict, proteina_buscada: str) -> dict:
 
 
 # ─────────────────────────────────────────────────────────────
-# Função principal — geradora assíncrona com progresso
+# Função principal — gerador assíncrono com progresso via SSE
 # ─────────────────────────────────────────────────────────────
 
 
 async def executar_scraping(proteinas_input: str) -> AsyncGenerator[dict, None]:
     """
-    Gerador assíncrono que processa uma lista de proteínas.
+    Gerador assíncrono que processa uma lista de proteínas buscando na API RCSB.
 
     Eventos emitidos (dict com campo 'tipo'):
-
       lista_proteinas  → {"proteinas": [...], "total_proteinas": N}
       inicio_proteina  → {"proteina": "...", "indice": i, "total": N}
       ids_encontrados  → {"proteina": "...", "total_ids": N, "duplicatas_ignoradas": N}
       progresso        → {"proteina": "...", "atual": i, "total": N, "pdb_id": "..."}
-      resultado        → {"dado": {pdb_id, titulo, organismo, classificacao, resolucao,
-                                   metodo, tem_ligante, num_cadeias, ramachandran,
-                                   depositado_em, qualidade, link_pdb, proteina_buscada}}
+      resultado        → {"dado": {campos completos da proteína}}
       fim_proteina     → {"proteina": "...", "coletados": N}
-      fim              → {"total_coletados": N, "por_proteina": {"proteina": N, ...}}
+      fim              → {"total_coletados": N, "por_proteina": {...}}
       erro_proteina    → {"proteina": "...", "mensagem": "..."}
     """
     loop = asyncio.get_event_loop()
@@ -290,7 +269,7 @@ async def executar_scraping(proteinas_input: str) -> AsyncGenerator[dict, None]:
 
     total_geral = 0
     por_proteina = {}
-    ids_vistos = set()  # deduplica entre proteínas da mesma busca
+    ids_vistos: set = set()
 
     for idx, proteina in enumerate(lista):
         yield {
@@ -302,8 +281,8 @@ async def executar_scraping(proteinas_input: str) -> AsyncGenerator[dict, None]:
 
         try:
             ids = await loop.run_in_executor(None, _buscar_ids_por_proteina, proteina)
-        except Exception as e:
-            yield {"tipo": "erro_proteina", "proteina": proteina, "mensagem": str(e)}
+        except Exception as exc:
+            yield {"tipo": "erro_proteina", "proteina": proteina, "mensagem": str(exc)}
             por_proteina[proteina] = 0
             continue
 

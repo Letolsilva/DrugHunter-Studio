@@ -21,9 +21,16 @@ async function refreshTokens() {
   return tokens.access_token;
 }
 
-async function fetchWithAuth(path, options = {}) {
+interface FetchOptions extends Omit<RequestInit, "headers"> {
+  headers?: Record<string, string>;
+}
+
+async function fetchWithAuth(path: string, options: FetchOptions = {}) {
   const token = localStorage.getItem(ACCESS_TOKEN_KEY);
-  const headers = { "Content-Type": "application/json", ...options.headers };
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...options.headers,
+  };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
   let res = await fetch(`/api${path}`, { ...options, headers });
@@ -52,7 +59,7 @@ async function fetchWithAuth(path, options = {}) {
 export const auth = {
   me: () => fetchWithAuth("/auth/me"),
   historico: () => fetchWithAuth("/auth/me/historico"),
-  alterarSenha: (senhaAtual, novaSenha) =>
+  alterarSenha: (senhaAtual: string, novaSenha: string) =>
     fetchWithAuth("/auth/me/senha", {
       method: "PUT",
       body: JSON.stringify({ senha_atual: senhaAtual, nova_senha: novaSenha }),
@@ -63,7 +70,7 @@ export const auth = {
 export const admin = {
   stats: () => fetchWithAuth("/admin/stats"),
   config: () => fetchWithAuth("/admin/config"),
-  setConfig: (chave, valor) =>
+  setConfig: (chave: string, valor: unknown) =>
     fetchWithAuth(`/admin/config/${chave}`, {
       method: "PUT",
       body: JSON.stringify({ valor }),
@@ -72,14 +79,14 @@ export const admin = {
   proximasExpirar: () => fetchWithAuth("/admin/cache/proximas-expirar"),
   organismos: () => fetchWithAuth("/admin/organismos"),
   listarUsuarios: () => fetchWithAuth("/auth/admin/usuarios"),
-  toggleUsuario: (id) =>
+  toggleUsuario: (id: number | string) =>
     fetchWithAuth(`/auth/admin/usuarios/${id}/toggle-ativo`, { method: "PUT" }),
 };
 
 // ── Search endpoints ───────────────────────────────────────
 export const search = {
   organismos: () => fetchWithAuth("/search/organismos"),
-  csv: (params = {}) => {
+  csv: (params: Record<string, string> = {}) => {
     const qs = new URLSearchParams(params).toString();
     return fetchWithAuth(`/search/csv${qs ? "?" + qs : ""}`);
   },
