@@ -10,7 +10,7 @@ interface CardProps {
 export function Card({ children, className = "", style }: CardProps) {
   return (
     <div
-      className={`bg-[var(--card)] border border-[var(--border)] rounded-xl ${className}`}
+      className={`bg-panel border border-outline rounded-xl ${className}`}
       style={style}
     >
       {children}

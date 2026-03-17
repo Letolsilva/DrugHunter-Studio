@@ -26,7 +26,7 @@ export function FormField({
 }: FormFieldProps) {
   return (
     <div className={`flex flex-col gap-1 ${className ?? ""}`}>
-      <label className="text-[11px] font-medium text-[var(--text-2)] uppercase tracking-[0.06em]">
+      <label className="text-[11px] font-medium text-foreground-muted uppercase tracking-[0.06em]">
         {label}
       </label>
       <input

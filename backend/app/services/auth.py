@@ -174,6 +174,20 @@ def buscar_historico_detalhe(
     }
 
 
+def excluir_historico_item(db: Session, user_id: int, search_id: int) -> bool:
+    """Remove uma busca específica do usuário. Retorna True se encontrada e removida."""
+    busca = (
+        db.query(Search)
+        .filter(Search.id == search_id, Search.user_id == user_id)
+        .first()
+    )
+    if not busca:
+        return False
+    db.delete(busca)
+    db.commit()
+    return True
+
+
 def limpar_historico_antigo(db: Session) -> int:
     """Remove buscas com mais de 30 dias. Retorna quantidade removida."""
     cutoff = datetime.utcnow() - timedelta(days=30)

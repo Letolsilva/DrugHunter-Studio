@@ -10,12 +10,12 @@ import {
 
 const TOOLTIP_STYLE = {
   contentStyle: {
-    background: "var(--card)",
-    border: "1px solid var(--border)",
+    background: "#141c2e",
+    border: "1px solid #1e2d4a",
     borderRadius: 8,
     fontSize: 12,
   },
-  itemStyle: { color: "var(--text)" },
+  itemStyle: { color: "#e2e8f0" },
 };
 
 interface ChartDatum {
@@ -33,7 +33,7 @@ export function MethodBarChart({ data }: MethodBarChartProps) {
       <BarChart data={data} layout="vertical" margin={{ left: 8 }}>
         <XAxis
           type="number"
-          tick={{ fontSize: 11, fill: "var(--text-3)" }}
+          tick={{ fontSize: 11, fill: "#4a6080" }}
           axisLine={false}
           tickLine={false}
         />
@@ -41,12 +41,12 @@ export function MethodBarChart({ data }: MethodBarChartProps) {
           type="category"
           dataKey="name"
           width={130}
-          tick={{ fontSize: 11, fill: "var(--text-2)" }}
+          tick={{ fontSize: 11, fill: "#94a3b8" }}
           axisLine={false}
           tickLine={false}
         />
         <Tooltip {...TOOLTIP_STYLE} />
-        <Bar dataKey="value" fill="var(--accent)" radius={[0, 4, 4, 0]} />
+        <Bar dataKey="value" fill="#00d4aa" radius={[0, 4, 4, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

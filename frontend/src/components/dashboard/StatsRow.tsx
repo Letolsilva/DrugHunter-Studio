@@ -37,12 +37,12 @@ export function StatsRow({ dados, organismos }: StatsRowProps) {
       {stats.map((s) => (
         <div
           key={s.label}
-          className="flex-1 min-w-[100px] bg-[var(--card)] border border-[var(--border)] rounded-xl px-4 py-3.5 flex flex-col gap-1"
+          className="flex-1 min-w-[100px] bg-panel border border-outline rounded-xl px-4 py-3.5 flex flex-col gap-1"
         >
-          <span className="text-[24px] font-extrabold text-[var(--accent)] font-mono leading-none">
+          <span className="text-[24px] font-extrabold text-accent font-mono leading-none">
             {s.value}
           </span>
-          <span className="text-[11px] text-[var(--text-3)] uppercase tracking-[0.5px]">
+          <span className="text-[11px] text-foreground-subtle uppercase tracking-[0.5px]">
             {s.label}
           </span>
         </div>

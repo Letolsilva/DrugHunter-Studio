@@ -1,5 +1,6 @@
 // components/dashboard/Pagination.tsx
 import { Button } from "../ui/Button";
+import { ArrowLeftIcon, ArrowRightIcon } from "../icons";
 
 interface PaginationProps {
   pagina: number;
@@ -24,9 +25,11 @@ export function Pagination({
         disabled={pagina === 1}
         style={{ padding: "6px 14px", fontSize: 13 }}
       >
-        ← Anterior
+        <span className="inline-flex items-center gap-1.5">
+          <ArrowLeftIcon size={13} /> Anterior
+        </span>
       </Button>
-      <span className="text-[13px] text-[var(--text-2)]">
+      <span className="text-[13px] text-foreground-muted">
         Página <b>{pagina}</b> de <b>{paginas}</b>
       </span>
       <Button
@@ -35,7 +38,9 @@ export function Pagination({
         disabled={pagina === paginas}
         style={{ padding: "6px 14px", fontSize: 13 }}
       >
-        Próxima →
+        <span className="inline-flex items-center gap-1.5">
+          Próxima <ArrowRightIcon size={13} />
+        </span>
       </Button>
     </div>
   );

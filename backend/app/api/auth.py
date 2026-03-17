@@ -16,6 +16,7 @@ from app.services.auth import (
     gerar_tokens,
     historico_usuario,
     buscar_historico_detalhe,
+    excluir_historico_item,
 )
 from app.models.models import User
 
@@ -154,6 +155,21 @@ def historico_detalhe(
             detail="Busca não encontrada.",
         )
     return detalhe
+
+
+@router.delete("/me/historico/{search_id}", status_code=status.HTTP_204_NO_CONTENT)
+def excluir_historico(
+    search_id: int,
+    usuario: User = Depends(get_usuario_atual),
+    db: Session = Depends(get_db),
+):
+    """Remove uma busca histórica específica do usuário autenticado."""
+    removido = excluir_historico_item(db, usuario.id, search_id)
+    if not removido:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Busca não encontrada.",
+        )
 
 
 @router.put("/me/senha")

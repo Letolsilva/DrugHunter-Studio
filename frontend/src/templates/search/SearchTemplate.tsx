@@ -1,8 +1,20 @@
 // templates/search/SearchTemplate.tsx
-import { useState, useRef, useEffect, type RefObject } from "react";
-import { useNavigate } from "react-router-dom";
+import type { RefObject } from "react";
 import DashboardTemplate from "../dashboard/DashboardTemplate";
 import { Button } from "../../components/ui/Button";
+import { DropdownMenu, Navbar } from "../../components/layout";
+import {
+  AppLogoIcon,
+  ClockIcon,
+  CloseIcon,
+  LogoutIcon,
+  MenuIcon,
+  PauseIcon,
+  PlayIcon,
+  RefreshIcon,
+  SearchIcon,
+  WarningIcon,
+} from "../../components/icons";
 import type { UserModel } from "../../domain/models/auth.model";
 import type { PdbResultModel } from "../../domain/models/search.model";
 
@@ -21,7 +33,11 @@ interface SearchTemplateProps {
   labelRef: RefObject<HTMLSpanElement | null>;
   coletadasRef: RefObject<HTMLElement | null>;
   protAtualRef: RefObject<HTMLElement | null>;
+  menuAberto: boolean;
+  menuRef: RefObject<HTMLDivElement | null>;
   handleLogout: () => void;
+  toggleMenu: () => void;
+  irParaHistorico: () => void;
   togglePausa: () => void;
   cancelar: () => void;
   iniciarBusca: (forcarNovo?: boolean) => void;
@@ -43,178 +59,72 @@ export default function SearchTemplate({
   labelRef,
   coletadasRef,
   protAtualRef,
+  menuAberto,
+  menuRef,
   handleLogout,
+  toggleMenu,
+  irParaHistorico,
   togglePausa,
   cancelar,
   iniciarBusca,
   resetBusca,
 }: SearchTemplateProps) {
-  const navigate = useNavigate();
-  const [menuAberto, setMenuAberto] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!menuAberto) return;
-    function handleClickFora(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuAberto(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickFora);
-    return () => document.removeEventListener("mousedown", handleClickFora);
-  }, [menuAberto]);
-
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--bg)]">
-      {/* Navbar */}
-      <nav className="flex items-center justify-between px-8 h-14 bg-[var(--bg-2)] border-b border-[var(--border)] sticky top-0 z-[100]">
-        <span className="text-[17px] font-medium text-[var(--text-2)]">
-          ⬡ PDB<b className="text-[var(--text)] font-extrabold">Explorer</b>
+    <div className="min-h-screen flex flex-col bg-surface-primary">
+      <Navbar>
+        <span className="inline-flex items-center gap-1.5 text-[17px] font-medium text-foreground-muted">
+          <AppLogoIcon size={17} className="text-foreground-muted" />
+          PDB<b className="font-extrabold text-foreground">Explorer</b>
         </span>
-        <div className="flex items-center gap-3">
-          <span className="text-[13px] text-[var(--text-2)] flex items-center gap-2">
-            {user?.is_admin && (
-              <span className="font-mono text-[9px] font-bold bg-[rgba(0,212,170,0.15)] text-[var(--accent)] px-1.5 py-0.5 rounded tracking-widest">
-                ADMIN
-              </span>
-            )}
-            {user?.username}
-          </span>
-          {/* Menu suspenso */}
-          <div ref={menuRef} style={{ position: "relative" }}>
-            <button
-              type="button"
-              onClick={() => setMenuAberto((v) => !v)}
-              title="Menu"
-              style={{
-                background: "transparent",
-                border: `1px solid ${menuAberto ? "var(--accent)" : "var(--border)"}`,
-                borderRadius: "var(--radius)",
-                color: menuAberto ? "var(--accent)" : "var(--text-3)",
-                cursor: "pointer",
-                padding: "4px 10px",
-                fontSize: 20,
-                lineHeight: 1,
-                display: "flex",
-                alignItems: "center",
-                transition: "color 0.15s, border-color 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                const el = e.currentTarget as HTMLButtonElement;
-                el.style.color = "var(--accent)";
-                el.style.borderColor = "var(--accent)";
-              }}
-              onMouseLeave={(e) => {
-                if (menuAberto) return;
-                const el = e.currentTarget as HTMLButtonElement;
-                el.style.color = "var(--text-3)";
-                el.style.borderColor = "var(--border)";
-              }}
-            >
-              ⋮
-            </button>
-            {menuAberto && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "calc(100% + 8px)",
-                  right: 0,
-                  background: "var(--bg-2)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "var(--radius)",
-                  minWidth: 168,
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-                  zIndex: 200,
-                  overflow: "hidden",
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuAberto(false);
-                    navigate("/historico");
-                  }}
-                  style={{
-                    width: "100%",
-                    background: "transparent",
-                    border: "none",
-                    borderBottom: "1px solid var(--border)",
-                    color: "var(--text-2)",
-                    cursor: "pointer",
-                    padding: "10px 16px",
-                    fontSize: 13,
-                    textAlign: "left",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    transition: "background 0.1s",
-                  }}
-                  onMouseEnter={(e) =>
-                    ((e.currentTarget as HTMLButtonElement).style.background =
-                      "var(--bg)")
-                  }
-                  onMouseLeave={(e) =>
-                    ((e.currentTarget as HTMLButtonElement).style.background =
-                      "transparent")
-                  }
-                >
-                  <span>🕐</span> Histórico
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuAberto(false);
-                    handleLogout();
-                  }}
-                  style={{
-                    width: "100%",
-                    background: "transparent",
-                    border: "none",
-                    color: "var(--text-2)",
-                    cursor: "pointer",
-                    padding: "10px 16px",
-                    fontSize: 13,
-                    textAlign: "left",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    transition: "background 0.1s",
-                  }}
-                  onMouseEnter={(e) =>
-                    ((e.currentTarget as HTMLButtonElement).style.background =
-                      "var(--bg)")
-                  }
-                  onMouseLeave={(e) =>
-                    ((e.currentTarget as HTMLButtonElement).style.background =
-                      "transparent")
-                  }
-                >
-                  <span>🚪</span> Sair
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </nav>
 
-      <main className="flex-1 max-w-[1400px] w-full mx-auto px-8 py-12">
+        <DropdownMenu
+          isOpen={menuAberto}
+          menuRef={menuRef}
+          onToggle={toggleMenu}
+          buttonTitle="Menu"
+          trigger={<MenuIcon size={25} />}
+        >
+          <button
+            type="button"
+            onClick={irParaHistorico}
+            className="grid w-full cursor-pointer grid-cols-[16px_1fr] items-center gap-2 border-b border-outline bg-transparent px-4 py-2.5 text-left text-[13px] text-foreground-muted transition-colors hover:bg-surface-primary"
+          >
+            <span className="inline-flex w-4 justify-start">
+              <ClockIcon size={14} />
+            </span>
+            <span className="text-left">Histórico</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="grid w-full cursor-pointer grid-cols-[16px_1fr] items-center gap-2 bg-transparent px-4 py-2.5 text-left text-[13px] text-foreground-muted transition-colors hover:bg-surface-primary"
+          >
+            <span className="inline-flex w-4 justify-start">
+              <LogoutIcon size={14} />
+            </span>
+            <span className="text-left">Sair</span>
+          </button>
+        </DropdownMenu>
+      </Navbar>
+
+      <main className="mx-auto w-full max-w-[1400px] flex-1 px-8 py-12">
         {fase !== "resultado" && (
           <div className="flex flex-col gap-4">
             {/* Cabeçalho de busca */}
             <div className="text-center mb-2">
-              <h1 className="text-[32px] font-extrabold text-[var(--text)] tracking-tight mb-2">
+              <h1 className="mb-2 text-[32px] font-extrabold tracking-tight text-foreground-muted">
                 Buscar Proteínas
               </h1>
-              <p className="text-[14px] text-[var(--text-3)] font-mono">
+              <p className="font-mono text-[14px] text-foreground-subtle">
                 Digite uma ou mais proteínas separadas por vírgula
               </p>
             </div>
 
             {/* Caixa de busca */}
-            <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl overflow-hidden">
+            <div className="overflow-hidden rounded-xl border border-outline bg-panel">
               <textarea
-                className="w-full bg-transparent border-none border-b border-[var(--border)] rounded-none p-5 text-[15px] font-mono resize-none text-[var(--text)] leading-relaxed placeholder-[var(--text-3)] disabled:opacity-60 disabled:cursor-not-allowed"
-                style={{ outline: "none", boxShadow: "none" }}
+                className="w-full resize-none rounded-none border-none border-b border-outline bg-transparent p-5 font-mono text-[15px] leading-relaxed text-foreground placeholder-foreground-subtle focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
                 placeholder={"glucan synthase\nFKS1, ERG11, Candida auris"}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -225,7 +135,7 @@ export default function SearchTemplate({
                 }}
               />
               <div className="flex items-center justify-between px-4 py-3 gap-2 flex-wrap">
-                <span className="text-[11px] text-[var(--text-3)] font-mono">
+                <span className="font-mono text-[11px] text-foreground-subtle">
                   Ctrl+Enter para buscar
                 </span>
                 <div className="flex gap-2">
@@ -234,9 +144,11 @@ export default function SearchTemplate({
                       variant="ghost"
                       onClick={() => iniciarBusca(true)}
                       disabled={!input.trim()}
-                      style={{ fontSize: 13, padding: "8px 16px" }}
+                      className="px-4 py-2 text-[13px]"
                     >
-                      ↺ Forçar novo
+                      <span className="inline-flex items-center gap-1.5">
+                        <RefreshIcon size={13} /> Forçar novo
+                      </span>
                     </Button>
                   )}
                   {(fase === "buscando" || fase === "pausado") && (
@@ -245,17 +157,26 @@ export default function SearchTemplate({
                         onClick={togglePausa}
                         className={`px-4 py-2 text-[13px] font-semibold rounded-lg cursor-pointer border transition-all ${
                           pausado
-                            ? "bg-[rgba(0,212,170,0.15)] border-[rgba(0,212,170,0.3)] text-[var(--accent)] hover:bg-[rgba(0,212,170,0.25)]"
-                            : "bg-[rgba(245,158,11,0.15)] border-[rgba(245,158,11,0.3)] text-[var(--yellow)] hover:bg-[rgba(245,158,11,0.25)]"
+                            ? "bg-accent-15 border-accent-30 text-accent hover:bg-accent-25"
+                            : "bg-yellow-15 border-yellow-30 text-yellow hover:bg-yellow-25"
                         }`}
                       >
-                        {pausado ? "▶ Retomar" : "⏸ Pausar"}
+                        <span className="inline-flex items-center gap-1.5">
+                          {pausado ? (
+                            <PlayIcon size={12} />
+                          ) : (
+                            <PauseIcon size={12} />
+                          )}
+                          {pausado ? "Retomar" : "Pausar"}
+                        </span>
                       </button>
                       <button
                         onClick={cancelar}
-                        className="bg-transparent border-none text-[#9ca3af] px-3.5 py-2 text-[13px] font-semibold rounded-lg cursor-pointer transition-colors hover:text-[#d1d5db]"
+                        className="cursor-pointer rounded-lg border-none bg-transparent px-3.5 py-2 text-[13px] font-semibold text-foreground-muted transition-colors hover:text-foreground"
                       >
-                        ✕ Cancelar
+                        <span className="inline-flex items-center gap-1.5">
+                          <CloseIcon size={12} /> Cancelar
+                        </span>
                       </button>
                     </>
                   )}
@@ -264,9 +185,11 @@ export default function SearchTemplate({
                       variant="primary"
                       onClick={() => iniciarBusca()}
                       disabled={!input.trim()}
-                      style={{ padding: "8px 24px" }}
+                      className="px-6 py-2"
                     >
-                      🔍 Buscar
+                      <span className="inline-flex items-center gap-1.5">
+                        <SearchIcon size={13} /> Buscar
+                      </span>
                     </Button>
                   )}
                 </div>
@@ -275,63 +198,62 @@ export default function SearchTemplate({
 
             {/* Card de progresso */}
             {(fase === "buscando" || fase === "pausado") && (
-              <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl px-6 py-5 flex flex-col gap-3.5">
+              <div className="flex flex-col gap-3.5 rounded-xl border border-outline bg-panel px-6 py-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2.5 min-w-0">
                     {pausado ? (
-                      <span className="inline-flex items-center gap-1.5 bg-[rgba(245,158,11,0.12)] border border-[rgba(245,158,11,0.25)] text-[var(--yellow)] px-2.5 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap font-mono">
-                        ⏸ Pausado
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-yellow-25 bg-yellow-12 px-2.5 py-0.5 font-mono text-[11px] font-bold whitespace-nowrap text-yellow">
+                        <PauseIcon size={10} /> Pausado
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 bg-[rgba(0,212,170,0.12)] border border-[rgba(0,212,170,0.25)] text-[var(--accent)] px-2.5 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap font-mono">
-                        <span className="w-[7px] h-[7px] rounded-full bg-[var(--accent)] animate-pulse inline-block flex-shrink-0" />
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-accent-25 bg-accent-12 px-2.5 py-0.5 font-mono text-[11px] font-bold whitespace-nowrap text-accent">
+                        <span className="inline-block h-[7px] w-[7px] shrink-0 animate-pulse rounded-full bg-accent" />
                         Buscando
                       </span>
                     )}
                     <span
                       ref={labelRef}
-                      className="text-[12px] font-mono text-[var(--text-2)] overflow-hidden text-ellipsis whitespace-nowrap"
+                      className="overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[12px] text-foreground-muted"
                     >
                       Iniciando...
                     </span>
                   </div>
-                  <span className="font-mono text-[13px] text-[var(--text-2)] font-bold whitespace-nowrap flex-shrink-0">
+                  <span className="shrink-0 whitespace-nowrap font-mono text-[13px] font-bold text-foreground-muted">
                     <span ref={contadorRef}>0/0</span>
-                    <span className="text-[var(--accent)]">
+                    <span className="text-accent">
                       {" "}
                       <span ref={pctTextoRef}>0</span>%
                     </span>
                   </span>
                 </div>
 
-                <div className="h-2 bg-[var(--bg-2)] rounded border border-[var(--border)] overflow-hidden">
+                <div className="h-2 overflow-hidden rounded border border-outline bg-surface-secondary">
                   <div
                     ref={barraRef}
-                    className="h-full rounded transition-[width] duration-[400ms]"
+                    className={`h-full rounded transition-[width] duration-[400ms] ${
+                      pausado ? "shadow-yellow-glow" : "shadow-accent-glow"
+                    }`}
                     style={{
                       width: "2%",
                       background: pausado
-                        ? "linear-gradient(90deg, #a07010, var(--yellow))"
-                        : "linear-gradient(90deg, var(--accent-hover), var(--accent))",
-                      boxShadow: pausado
-                        ? "0 0 10px rgba(245,158,11,0.3)"
-                        : "0 0 10px rgba(0,212,170,0.3)",
+                        ? "linear-gradient(90deg, #a07010, var(--color-yellow))"
+                        : "linear-gradient(90deg, var(--color-accent-hover), var(--color-accent))",
                       minWidth: 4,
                     }}
                   />
                 </div>
 
-                <div className="flex gap-5 text-[12px] text-[var(--text-3)] font-mono">
+                <div className="flex gap-5 font-mono text-[12px] text-foreground-subtle">
                   <span>
                     Coletadas:{" "}
-                    <b ref={coletadasRef} className="text-[var(--accent)]">
+                    <b ref={coletadasRef} className="text-accent">
                       0
                     </b>
                   </span>
                   {proteinas.length > 1 && (
                     <span>
                       Proteína:{" "}
-                      <b ref={protAtualRef} className="text-[var(--accent)]">
+                      <b ref={protAtualRef} className="text-accent">
                         —
                       </b>
                     </span>
@@ -341,8 +263,10 @@ export default function SearchTemplate({
             )}
 
             {erroMsg && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3.5 text-[var(--red)] text-[14px]">
-                ⚠ {erroMsg}
+              <div className="rounded-lg border border-red/20 bg-red/10 px-4 py-3.5 text-[14px] text-red">
+                <span className="inline-flex items-center gap-1.5">
+                  <WarningIcon size={14} /> {erroMsg}
+                </span>
               </div>
             )}
           </div>

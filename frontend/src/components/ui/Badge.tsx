@@ -2,17 +2,13 @@
 import type { ReactNode } from "react";
 
 const VARIANTS: Record<string, string> = {
-  excelente:
-    "bg-[rgba(0,212,170,0.15)]  text-[#00d4aa] border border-[rgba(0,212,170,0.3)]",
-  boa: "bg-[rgba(59,130,246,0.15)]  text-[#60a5fa] border border-[rgba(59,130,246,0.3)]",
-  razoavel:
-    "bg-[rgba(245,158,11,0.15)]  text-[#fbbf24] border border-[rgba(245,158,11,0.3)]",
-  verificar:
-    "bg-[rgba(239,68,68,0.15)]   text-[#f87171] border border-[rgba(239,68,68,0.3)]",
-  ligante:
-    "bg-[rgba(59,130,246,0.12)]  text-[#7dd3fc] border border-[rgba(59,130,246,0.25)]",
+  excelente: "bg-accent-15 text-accent border border-accent-30",
+  boa: "bg-blue-15 text-blue-300 border border-blue-30",
+  razoavel: "bg-yellow-15 text-amber-400 border border-yellow-30",
+  verificar: "bg-red-15 text-red-400 border border-red-30",
+  ligante: "bg-blue-12 text-sky-300 border border-blue-25",
   "sem-ligante":
-    "bg-transparent             text-[var(--text-3)] border border-[var(--border)]",
+    "bg-transparent             text-foreground-subtle border border-outline",
 };
 
 interface BadgeProps {

@@ -10,12 +10,12 @@ import {
 
 const TOOLTIP_STYLE = {
   contentStyle: {
-    background: "var(--card)",
-    border: "1px solid var(--border)",
+    background: "#141c2e",
+    border: "1px solid #1e2d4a",
     borderRadius: 8,
     fontSize: 12,
   },
-  itemStyle: { color: "var(--text)" },
+  itemStyle: { color: "#e2e8f0" },
 };
 
 interface ChartDatum {
@@ -33,17 +33,17 @@ export function ProteinBarChart({ data }: ProteinBarChartProps) {
       <BarChart data={data}>
         <XAxis
           dataKey="name"
-          tick={{ fontSize: 11, fill: "var(--text-2)" }}
+          tick={{ fontSize: 11, fill: "#94a3b8" }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
-          tick={{ fontSize: 11, fill: "var(--text-3)" }}
+          tick={{ fontSize: 11, fill: "#4a6080" }}
           axisLine={false}
           tickLine={false}
         />
         <Tooltip {...TOOLTIP_STYLE} />
-        <Bar dataKey="value" fill="var(--blue)" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

@@ -1,5 +1,11 @@
 // pages/SearchPage/useSearchPage.ts
-import { useState, useRef, useCallback, type RefObject } from "react";
+import {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  type RefObject,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import type { SearchUseCase } from "../../data/usecases/search.usecase";
@@ -26,7 +32,11 @@ export interface UseSearchPageReturn {
   labelRef: RefObject<HTMLSpanElement | null>;
   coletadasRef: RefObject<HTMLElement | null>;
   protAtualRef: RefObject<HTMLElement | null>;
+  menuAberto: boolean;
+  menuRef: RefObject<HTMLDivElement | null>;
   handleLogout: () => void;
+  toggleMenu: () => void;
+  irParaHistorico: () => void;
   togglePausa: () => void;
   cancelar: () => void;
   iniciarBusca: (forcarNovo?: boolean) => void;
@@ -45,11 +55,13 @@ export function useSearchPage(
   const [erroMsg, setErroMsg] = useState("");
   const [proteinas, setProteinas] = useState<string[]>([]);
   const [pausado, setPausado] = useState(false);
+  const [menuAberto, setMenuAberto] = useState(false);
 
   const esRef = useRef<EventSource | null>(null);
   const pausadoRef = useRef(false);
   const bufferRef = useRef<SearchEventModel[]>([]);
   const inputBuscaRef = useRef("");
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const barraRef = useRef<HTMLDivElement | null>(null);
   const pctTextoRef = useRef<HTMLSpanElement | null>(null);
@@ -58,10 +70,31 @@ export function useSearchPage(
   const coletadasRef = useRef<HTMLElement | null>(null);
   const protAtualRef = useRef<HTMLElement | null>(null);
 
-  const handleLogout = () => {
+  useEffect(() => {
+    if (!menuAberto) return;
+    function handleClickFora(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuAberto(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickFora);
+    return () => document.removeEventListener("mousedown", handleClickFora);
+  }, [menuAberto]);
+
+  const handleLogout = useCallback(() => {
+    setMenuAberto(false);
     logout();
     navigate("/");
-  };
+  }, [logout, navigate]);
+
+  const toggleMenu = useCallback(() => {
+    setMenuAberto((v) => !v);
+  }, []);
+
+  const irParaHistorico = useCallback(() => {
+    setMenuAberto(false);
+    navigate("/historico");
+  }, [navigate]);
 
   const atualizarBarra = useCallback(
     (atual: number, total: number, label?: string) => {
@@ -221,7 +254,11 @@ export function useSearchPage(
     labelRef,
     coletadasRef,
     protAtualRef,
+    menuAberto,
+    menuRef,
     handleLogout,
+    toggleMenu,
+    irParaHistorico,
     togglePausa,
     cancelar,
     iniciarBusca,

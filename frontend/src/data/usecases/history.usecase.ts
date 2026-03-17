@@ -34,4 +34,8 @@ export class HistoryUseCase extends IHistoryUseCase {
     );
     return adaptHistoryDetail(res.data);
   }
+
+  async deleteItem(id: number, token: string): Promise<void> {
+    await this.httpClient.delete(`/auth/me/historico/${id}`, { token });
+  }
 }

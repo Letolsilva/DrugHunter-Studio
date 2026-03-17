@@ -1,5 +1,64 @@
 @import "tailwindcss";
 
+/* ── Tailwind v4 theme — gerado de tailwind.config.js ─────── */
+@theme {
+  /* Surfaces */
+  --color-surface-primary: #0a0e1a;
+  --color-surface-secondary: #0f1623;
+  --color-panel: #141c2e;
+  --color-panel-hover: #1a2440;
+
+  /* Outlines */
+  --color-outline: #1e2d4a;
+  --color-outline-strong: #253652;
+
+  /* Foreground / text */
+  --color-foreground: #e2e8f0;
+  --color-foreground-muted: #94a3b8;
+  --color-foreground-subtle: #4a6080;
+
+  /* Accent (teal) */
+  --color-accent: #00d4aa;
+  --color-accent-hover: #00bfa0;
+  --color-accent-12: rgba(0, 212, 170, 0.12);
+  --color-accent-15: rgba(0, 212, 170, 0.15);
+  --color-accent-25: rgba(0, 212, 170, 0.25);
+  --color-accent-30: rgba(0, 212, 170, 0.3);
+  --color-accent-muted: rgba(0, 212, 170, 0.25);
+
+  /* Blue */
+  --color-blue: #3b82f6;
+  --color-blue-12: rgba(59, 130, 246, 0.12);
+  --color-blue-15: rgba(59, 130, 246, 0.15);
+  --color-blue-25: rgba(59, 130, 246, 0.25);
+  --color-blue-30: rgba(59, 130, 246, 0.3);
+
+  /* Red */
+  --color-red: #ef4444;
+  --color-red-12: rgba(239, 68, 68, 0.12);
+  --color-red-15: rgba(239, 68, 68, 0.15);
+  --color-red-30: rgba(239, 68, 68, 0.3);
+
+  /* Yellow */
+  --color-yellow: #f59e0b;
+  --color-yellow-12: rgba(245, 158, 11, 0.12);
+  --color-yellow-15: rgba(245, 158, 11, 0.15);
+  --color-yellow-25: rgba(245, 158, 11, 0.25);
+  --color-yellow-30: rgba(245, 158, 11, 0.3);
+
+  /* Shadows */
+  --shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-accent-glow: 0 0 10px rgba(0, 212, 170, 0.3);
+  --shadow-yellow-glow: 0 0 10px rgba(245, 158, 11, 0.3);
+
+  /* Border radius */
+  --radius: 8px;
+  --radius-lg: 12px;
+
+  /* Font */
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+}
+
 /* ── Reset & base ─────────────────────────────────────────── */
 @layer base {
   *,
@@ -11,34 +70,6 @@
   }
 }
 
-/* ── CSS variables — dark theme ───────────────────────────── */
-:root {
-  --bg: #0a0e1a;
-  --bg-2: #0f1623;
-  --card: #141c2e;
-  --card-2: #1a2440;
-  --border: #1e2d4a;
-  --border-2: #253652;
-
-  --text: #e2e8f0;
-  --text-2: #94a3b8;
-  --text-3: #4a6080;
-
-  --accent: #00d4aa;
-  --accent-dim: rgba(0, 212, 170, 0.12);
-  --accent-hover: #00bfa0;
-
-  --blue: #3b82f6;
-  --blue-dim: rgba(59, 130, 246, 0.12);
-
-  --red: #ef4444;
-  --yellow: #f59e0b;
-
-  --radius: 8px;
-  --radius-lg: 12px;
-  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
-}
-
 /* ── Global body ─────────────────────────────────────────── */
 html,
 body,
@@ -47,8 +78,8 @@ body,
 }
 
 body {
-  background-color: var(--bg);
-  color: var(--text);
+  background-color: var(--color-surface-primary);
+  color: var(--color-foreground);
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
     Arial, sans-serif;
@@ -64,14 +95,14 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg);
+  background: var(--color-surface-primary);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-2);
+  background: var(--color-outline-strong);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-3);
+  background: var(--color-foreground-subtle);
 }
 
 /* ── Buttons ─────────────────────────────────────────────── */
@@ -80,7 +111,7 @@ body {
   align-items: center;
   gap: 6px;
   padding: 10px 20px;
-  background: var(--accent);
+  background: var(--color-accent);
   color: #001a14;
   border: none;
   border-radius: var(--radius);
@@ -95,7 +126,7 @@ body {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--accent-hover);
+  background: var(--color-accent-hover);
   transform: translateY(-1px);
 }
 
@@ -111,8 +142,8 @@ body {
   gap: 6px;
   padding: 10px 16px;
   background: transparent;
-  color: var(--text-2);
-  border: 1px solid var(--border-2);
+  color: var(--color-foreground-muted);
+  border: 1px solid var(--color-outline-strong);
   border-radius: var(--radius);
   font-size: 14px;
   font-weight: 500;
@@ -125,9 +156,9 @@ body {
 }
 
 .btn-ghost:hover:not(:disabled) {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-dim);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--color-accent-12);
 }
 
 .btn-ghost:disabled {
@@ -145,9 +176,9 @@ body {
 input,
 select,
 textarea {
-  background: var(--bg-2);
-  color: var(--text);
-  border: 1px solid var(--border-2);
+  background: var(--color-surface-secondary);
+  color: var(--color-foreground);
+  border: 1px solid var(--color-outline-strong);
   border-radius: var(--radius);
   padding: 9px 12px;
   font-size: 14px;
@@ -161,13 +192,13 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-dim);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-12);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: var(--text-3);
+  color: var(--color-foreground-subtle);
 }
 
 select {
@@ -180,8 +211,8 @@ select {
 }
 
 select option {
-  background: var(--card-2);
-  color: var(--text);
+  background: var(--color-panel-hover);
+  color: var(--color-foreground);
 }
 
 /* ── Spinner ─────────────────────────────────────────────── */
@@ -189,8 +220,8 @@ select option {
   display: inline-block;
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(0, 212, 170, 0.3);
-  border-top-color: var(--accent);
+  border: 2px solid var(--color-accent-30);
+  border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   flex-shrink: 0;
@@ -231,9 +262,9 @@ select option {
 }
 
 .badge-excelente {
-  background: rgba(0, 212, 170, 0.15);
+  background: var(--color-accent-15);
   color: #00d4aa;
-  border: 1px solid rgba(0, 212, 170, 0.3);
+  border: 1px solid var(--color-accent-30);
 }
 
 .badge-boa {
@@ -262,6 +293,6 @@ select option {
 
 .badge-sem-ligante {
   background: transparent;
-  color: var(--text-3);
-  border: 1px solid var(--border);
+  color: var(--color-foreground-subtle);
+  border: 1px solid var(--color-outline);
 }

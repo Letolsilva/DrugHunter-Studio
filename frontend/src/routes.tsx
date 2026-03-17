@@ -3,7 +3,8 @@ import { Routes, Route, Navigate, type ReactNode } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import AuthPage from "./pages/AuthPage/AuthPage";
 import SearchPage from "./pages/SearchPage/SearchPage";
-import HistoryPage from "./pages/HistoryPage/HistoryPage";
+import HistoryListPage from "./pages/HistoryListPage/HistoryListPage";
+import HistoryDashboardPage from "./pages/HistoryDashboardPage/HistoryDashboardPage";
 import type { SearchUseCase } from "./data/usecases/search.usecase";
 import type { HistoryUseCase } from "./data/usecases/history.usecase";
 
@@ -18,7 +19,7 @@ function RotaProtegida({ children }: RotaProtegidaProps) {
     return (
       <div
         className="min-h-screen flex flex-col items-center justify-center gap-4"
-        style={{ background: "var(--bg)" }}
+        style={{ background: "#0a0e1a" }}
       >
         <span
           className="spinner"
@@ -26,8 +27,9 @@ function RotaProtegida({ children }: RotaProtegidaProps) {
         />
         <span
           style={{
-            color: "var(--text-3)",
-            fontFamily: "var(--font-mono)",
+            color: "#4a6080",
+            fontFamily:
+              "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
             fontSize: 13,
           }}
         >
@@ -75,7 +77,15 @@ export default function AppRoutes({
         path="/historico"
         element={
           <RotaProtegida>
-            <HistoryPage historyUseCase={historyUseCase} />
+            <HistoryListPage historyUseCase={historyUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/historico/:id"
+        element={
+          <RotaProtegida>
+            <HistoryDashboardPage historyUseCase={historyUseCase} />
           </RotaProtegida>
         }
       />

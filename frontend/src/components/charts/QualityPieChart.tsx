@@ -17,12 +17,12 @@ const QUALIDADE_COR: Record<string, string> = {
 
 const TOOLTIP_STYLE = {
   contentStyle: {
-    background: "var(--card)",
-    border: "1px solid var(--border)",
+    background: "#141c2e",
+    border: "1px solid #1e2d4a",
     borderRadius: 8,
     fontSize: 12,
   },
-  itemStyle: { color: "var(--text)" },
+  itemStyle: { color: "#e2e8f0" },
 };
 
 interface ChartDatum {
@@ -58,7 +58,7 @@ export function QualityPieChart({ data }: QualityPieChartProps) {
         <Legend
           iconType="circle"
           iconSize={8}
-          wrapperStyle={{ fontSize: 12, color: "var(--text-2)" }}
+          wrapperStyle={{ fontSize: 12, color: "#94a3b8" }}
         />
       </PieChart>
     </ResponsiveContainer>

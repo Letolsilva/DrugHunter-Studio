@@ -2,6 +2,7 @@
 import type { ChangeEvent, FormEvent } from "react";
 import { Spinner } from "../../components/ui/Spinner";
 import { FormField } from "../../components/ui/FormField";
+import { AppLogoIcon } from "../../components/icons";
 
 interface AuthTemplateProps {
   modo: "login" | "register";
@@ -27,14 +28,14 @@ export default function AuthTemplate({
   const isRegister = modo === "register";
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-[var(--bg)]">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-surface-primary">
       {/* Fundo decorativo */}
       <div className="absolute inset-0 pointer-events-none">
         <div
           className="absolute inset-0 opacity-35"
           style={{
             backgroundImage:
-              "linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)",
+              "linear-gradient(#1e2d4a 1px, transparent 1px), linear-gradient(90deg, #1e2d4a 1px, transparent 1px)",
             backgroundSize: "40px 40px",
             maskImage:
               "radial-gradient(ellipse 70% 70% at 50% 50%, black 40%, transparent 100%)",
@@ -49,38 +50,36 @@ export default function AuthTemplate({
             width: 600,
             height: 400,
             background:
-              "radial-gradient(ellipse at center, rgba(0,212,170,0.12) 0%, transparent 70%)",
+              "radial-gradient(ellipse at center, rgba(0, 212, 170, 0.12) 0%, transparent 70%)",
           }}
         />
       </div>
 
-      <div className="relative px-8 z-10 bg-[var(--card)] border border-[var(--border-2)] rounded-2xl w-full max-w-[420px] shadow-[0_24px_64px_rgba(0,0,0,0.55)] fade-in">
+      <div className="relative px-8 z-10 bg-panel border border-outline-strong rounded-2xl w-full max-w-[420px] shadow-[0_24px_64px_rgba(0,0,0,0.55)] fade-in">
         {/* Header */}
         <div className="text-center pt-8 pb-5">
           <div className="inline-flex items-center gap-2 mb-2">
-            <span className="text-[26px] text-[var(--accent)] leading-none">
-              ⬡
-            </span>
-            <span className="text-[22px] font-normal text-[var(--text)] tracking-tight">
-              PDB<b className="font-bold text-[var(--accent)]">Explorer</b>
+            <AppLogoIcon size={24} className="text-accent" />
+            <span className="text-[22px] font-normal text-foreground tracking-tight">
+              PDB<b className="font-bold text-accent">Explorer</b>
             </span>
           </div>
-          <p className="text-[12px] text-[var(--text-3)] leading-snug mt-1">
+          <p className="text-[12px] text-foreground-subtle leading-snug mt-1">
             Análise de estruturas proteicas de hiperfungos
           </p>
         </div>
 
         {/* Tabs */}
         <div className="mb-6">
-          <div className="flex bg-[var(--bg-2)] border border-[var(--border)] rounded-lg p-[3px]">
+          <div className="flex bg-surface-secondary border border-outline rounded-lg p-[3px]">
             {(["login", "register"] as const).map((m) => (
               <button
                 key={m}
                 onClick={() => trocarModo(m)}
-                className={`flex-1 py-2 text-[13px] font-medium border-none cursor-pointer transition-all rounded-[calc(var(--radius)-2px)] ${
+                className={`flex-1 py-2 text-[13px] font-medium border-none cursor-pointer transition-all rounded-[calc(8px-2px)] ${
                   modo === m
-                    ? "bg-[var(--card-2)] text-[var(--text)] shadow-sm"
-                    : "bg-transparent text-[var(--text-3)] hover:text-[var(--text-2)]"
+                    ? "bg-panel-hover text-foreground shadow-sm"
+                    : "bg-transparent text-foreground-subtle hover:text-foreground-muted"
                 }`}
               >
                 {m === "login" ? "Entrar" : "Criar conta"}
