@@ -1,23 +1,22 @@
-// components/history/HistoryCard.tsx
 import { useState, type ReactNode } from "react";
-import { TrashIcon } from "../icons/TrashIcon";
-import { ConfirmModal } from "../ui/ConfirmModal";
+import { TrashIcon } from "../../icons/TrashIcon";
+import { ConfirmModal } from "../../ui/ConfirmModal";
 
-interface HistoryCardProps {
-  comErro: boolean;
+export interface HistoryItemCardRootProps {
   onClick: () => void;
   onDelete: () => void;
+  disabled?: boolean;
   title?: string;
   children: ReactNode;
 }
 
-export function HistoryCard({
-  comErro,
+export function HistoryItemCardRoot({
   onClick,
   onDelete,
+  disabled = false,
   title,
   children,
-}: HistoryCardProps) {
+}: HistoryItemCardRootProps) {
   const [confirmarDelete, setConfirmarDelete] = useState(false);
 
   return (
@@ -26,10 +25,10 @@ export function HistoryCard({
         <button
           type="button"
           onClick={onClick}
-          disabled={comErro}
+          disabled={disabled}
           title={title}
-          className={`flex w-full items-start justify-between gap-3 rounded-lg border px-[18px] pr-10 py-3.5 text-left transition-[border-color,background] ${
-            comErro
+          className={`flex w-full items-start gap-3 rounded-lg border px-[18px] pr-10 py-3.5 text-left transition-[border-color,background] ${
+            disabled
               ? "cursor-not-allowed border-red/20 bg-red/[0.04] opacity-80"
               : "cursor-pointer border-outline bg-panel hover:border-outline-strong hover:bg-panel-hover"
           }`}

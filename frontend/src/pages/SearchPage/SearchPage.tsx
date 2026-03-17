@@ -13,6 +13,59 @@ export default function SearchPage({
   searchUseCase,
   dashboardUseCase,
 }: SearchPageProps) {
-  const props = useSearchPage(searchUseCase, dashboardUseCase);
-  return <SearchTemplate {...props} />;
+  const {
+    user,
+    input,
+    setInput,
+    fase,
+    resultados,
+    erroMsg,
+    proteinas,
+    pausado,
+    barraRef,
+    pctTextoRef,
+    contadorRef,
+    labelRef,
+    coletadasRef,
+    protAtualRef,
+    menuAberto,
+    menuRef,
+    handleLogout,
+    toggleMenu,
+    irParaHistorico,
+    togglePausa,
+    cancelar,
+    iniciarBusca,
+    resetBusca,
+    dashboard,
+  } = useSearchPage(searchUseCase, dashboardUseCase);
+
+  return (
+    <SearchTemplate
+      user={user}
+      input={input}
+      setInput={setInput}
+      fase={fase}
+      resultados={resultados}
+      erroMsg={erroMsg}
+      proteinas={proteinas}
+      pausado={pausado}
+      barraRef={barraRef}
+      pctTextoRef={pctTextoRef}
+      contadorRef={contadorRef}
+      labelRef={labelRef}
+      coletadasRef={coletadasRef}
+      protAtualRef={protAtualRef}
+      menuAberto={menuAberto}
+      menuRef={menuRef}
+      handleLogout={handleLogout}
+      toggleMenu={toggleMenu}
+      irParaHistorico={irParaHistorico}
+      togglePausa={togglePausa}
+      cancelar={cancelar}
+      iniciarBusca={iniciarBusca}
+      resetBusca={resetBusca}
+      dashboard={dashboard}
+    />
+  );
 }

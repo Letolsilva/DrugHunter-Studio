@@ -2,16 +2,20 @@
 import type { ChangeEvent, FormEvent } from "react";
 import { Spinner } from "../../components/ui/Spinner";
 import { FormField } from "../../components/ui/FormField";
+import { TabSwitcher } from "../../components/ui/TabSwitcher";
+import { DecorativeBackground } from "../../components/ui/DecorativeBackground";
 import { AppLogoIcon } from "../../components/icons";
+
+type AuthField = "email" | "username" | "password";
+type FieldErrors = Partial<Record<AuthField, string>>;
 
 interface AuthTemplateProps {
   modo: "login" | "register";
   form: { email: string; username: string; password: string };
   erro: string;
+  fieldErrors: FieldErrors;
   loading: boolean;
-  setField: (
-    k: "email" | "username" | "password",
-  ) => (e: ChangeEvent<HTMLInputElement>) => void;
+  setField: (k: AuthField) => (e: ChangeEvent<HTMLInputElement>) => void;
   trocarModo: (novoModo: "login" | "register") => void;
   handleSubmit: (e: FormEvent) => void;
 }
@@ -20,6 +24,7 @@ export default function AuthTemplate({
   modo,
   form,
   erro,
+  fieldErrors,
   loading,
   setField,
   trocarModo,
@@ -29,31 +34,7 @@ export default function AuthTemplate({
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-surface-primary">
-      {/* Fundo decorativo */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div
-          className="absolute inset-0 opacity-35"
-          style={{
-            backgroundImage:
-              "linear-gradient(#1e2d4a 1px, transparent 1px), linear-gradient(90deg, #1e2d4a 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-            maskImage:
-              "radial-gradient(ellipse 70% 70% at 50% 50%, black 40%, transparent 100%)",
-          }}
-        />
-        <div
-          className="absolute"
-          style={{
-            top: "30%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 600,
-            height: 400,
-            background:
-              "radial-gradient(ellipse at center, rgba(0, 212, 170, 0.12) 0%, transparent 70%)",
-          }}
-        />
-      </div>
+      <DecorativeBackground />
 
       <div className="relative px-8 z-10 bg-panel border border-outline-strong rounded-2xl w-full max-w-[420px] shadow-[0_24px_64px_rgba(0,0,0,0.55)] fade-in">
         {/* Header */}
@@ -69,31 +50,19 @@ export default function AuthTemplate({
           </p>
         </div>
 
-        {/* Tabs */}
         <div className="mb-6">
-          <div className="flex bg-surface-secondary border border-outline rounded-lg p-[3px]">
-            {(["login", "register"] as const).map((m) => (
-              <button
-                key={m}
-                onClick={() => trocarModo(m)}
-                className={`flex-1 py-2 text-[13px] font-medium border-none cursor-pointer transition-all rounded-[calc(8px-2px)] ${
-                  modo === m
-                    ? "bg-panel-hover text-foreground shadow-sm"
-                    : "bg-transparent text-foreground-subtle hover:text-foreground-muted"
-                }`}
-              >
-                {m === "login" ? "Entrar" : "Criar conta"}
-              </button>
-            ))}
-          </div>
+          <TabSwitcher
+            tabs={[
+              { value: "login", label: "Entrar" },
+              { value: "register", label: "Criar conta" },
+            ]}
+            active={modo}
+            onChange={trocarModo}
+          />
         </div>
 
         {/* Formulário */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/*
-           * Campo e-mail colapsa com max-h + overflow-hidden no modo login.
-           * Isso elimina o espaço em branco que "invisible" deixava.
-           */}
           <div
             className={`transition-all duration-200 overflow-hidden ${
               isRegister ? "max-h-24 opacity-100" : "max-h-0 opacity-0"
@@ -101,33 +70,36 @@ export default function AuthTemplate({
             aria-hidden={!isRegister}
           >
             <FormField
-              label="E-mail"
-              type="email"
+              label="E-mail*"
+              type="text"
               placeholder="seu@email.com"
               value={form.email}
               onChange={setField("email")}
               autoComplete="email"
               tabIndex={isRegister ? undefined : -1}
               disabled={!isRegister}
+              error={fieldErrors.email}
             />
           </div>
 
           <FormField
-            label={isRegister ? "Nome de usuário" : "E-mail ou usuário"}
+            label={isRegister ? "Nome de usuário*" : "E-mail ou usuário*"}
             type="text"
             placeholder={isRegister ? "username" : "seu@email.com ou username"}
             value={form.username}
             onChange={setField("username")}
             autoComplete="username"
+            error={fieldErrors.username}
           />
 
           <FormField
-            label="Senha"
+            label="Senha*"
             type="password"
             placeholder={isRegister ? "mínimo 6 caracteres" : "••••••••"}
             value={form.password}
             onChange={setField("password")}
             autoComplete={isRegister ? "new-password" : "current-password"}
+            error={fieldErrors.password}
           />
 
           {/* Área de erro — colapsa quando vazia para não gerar espaço extra */}

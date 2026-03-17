@@ -22,13 +22,10 @@ export default function HistoryDashboardTemplate({
   handleLogout,
   dashboard,
 }: UseHistoryDashboardPageReturn) {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
   return (
     <div className="min-h-screen flex flex-col bg-surface-primary">
       <Navbar>
-        <div className="flex items-center gap-3">
+        <Navbar.Left>
           <button
             type="button"
             onClick={voltarLista}
@@ -44,15 +41,17 @@ export default function HistoryDashboardTemplate({
           <span className="ml-1 border-l border-outline pl-3 font-mono text-[12px] text-foreground-subtle">
             Histórico de Buscas
           </span>
-        </div>
+        </Navbar.Left>
 
-        <Button
-          variant="ghost"
-          onClick={handleLogout}
-          style={{ padding: "6px 14px", fontSize: 13 }}
-        >
-          Sair
-        </Button>
+        <Navbar.Right>
+          <Button
+            variant="ghost"
+            onClick={handleLogout}
+            style={{ padding: "6px 14px", fontSize: 13 }}
+          >
+            Sair
+          </Button>
+        </Navbar.Right>
       </Navbar>
 
       <main className="flex-1 max-w-[1400px] w-full mx-auto px-8 py-10">

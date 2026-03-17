@@ -1,9 +1,11 @@
 // pages/HistoryListPage/useHistoryListPage.ts
-import { useState, useEffect } from "react";
+import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import type { HistoryUseCase } from "../../data/usecases/history.usecase";
 import type { SearchHistoryItem } from "../../domain/models/history.model";
+
+const POR_PAGINA = 20;
 
 type ListFase = "lista" | "carregando" | "erro";
 
@@ -14,6 +16,10 @@ export interface UseHistoryListPageReturn {
   abrirDetalhe: (item: SearchHistoryItem) => void;
   deletarItem: (id: number) => void;
   handleLogout: () => void;
+  pagina: number;
+  paginas: number;
+  grupos: Record<string, SearchHistoryItem[]>;
+  setPagina: Dispatch<SetStateAction<number>>;
 }
 
 export function useHistoryListPage(
@@ -25,6 +31,16 @@ export function useHistoryListPage(
   const [fase, setFase] = useState<ListFase>("carregando");
   const [historico, setHistorico] = useState<SearchHistoryItem[]>([]);
   const [erroMsg, setErroMsg] = useState("");
+  const [pagina, setPagina] = useState(1);
+
+  const paginas = Math.ceil(historico.length / POR_PAGINA);
+  const inicio = (pagina - 1) * POR_PAGINA;
+  const itensPagina = historico.slice(inicio, inicio + POR_PAGINA);
+  const grupos: Record<string, SearchHistoryItem[]> = {};
+  itensPagina.forEach((item) => {
+    if (!grupos[item.data_local]) grupos[item.data_local] = [];
+    grupos[item.data_local].push(item);
+  });
 
   const handleLogout = () => {
     logout();
@@ -65,5 +81,9 @@ export function useHistoryListPage(
     abrirDetalhe,
     deletarItem,
     handleLogout,
+    pagina,
+    paginas,
+    grupos,
+    setPagina,
   };
 }

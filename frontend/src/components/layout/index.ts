@@ -1,2 +1,2 @@
-export { Navbar } from "./Navbar";
-export { DropdownMenu } from "./DropdownMenu";
+export { Navbar } from "./navbar";
+export { DropdownMenu } from "./dropdownmenu";

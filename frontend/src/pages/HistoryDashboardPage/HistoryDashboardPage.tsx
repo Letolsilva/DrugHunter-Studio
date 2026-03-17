@@ -13,6 +13,25 @@ export default function HistoryDashboardPage({
   historyUseCase,
   dashboardUseCase,
 }: HistoryDashboardPageProps) {
-  const props = useHistoryDashboardPage(historyUseCase, dashboardUseCase);
-  return <HistoryDashboardTemplate {...props} />;
+  const {
+    fase,
+    detalhe,
+    erroMsg,
+    voltarLista,
+    novaBusca,
+    handleLogout,
+    dashboard,
+  } = useHistoryDashboardPage(historyUseCase, dashboardUseCase);
+
+  return (
+    <HistoryDashboardTemplate
+      fase={fase}
+      detalhe={detalhe}
+      erroMsg={erroMsg}
+      voltarLista={voltarLista}
+      novaBusca={novaBusca}
+      handleLogout={handleLogout}
+      dashboard={dashboard}
+    />
+  );
 }

@@ -11,6 +11,7 @@ interface FormFieldProps {
   tabIndex?: number;
   disabled?: boolean;
   className?: string;
+  error?: string;
 }
 
 export function FormField({
@@ -23,6 +24,7 @@ export function FormField({
   tabIndex,
   disabled,
   className,
+  error,
 }: FormFieldProps) {
   return (
     <div className={`flex flex-col gap-1 ${className ?? ""}`}>
@@ -37,8 +39,11 @@ export function FormField({
         autoComplete={autoComplete}
         tabIndex={tabIndex}
         disabled={disabled}
-        className="w-full py-1.5 text-[13px]"
+        className={`w-full py-1.5 text-[13px] ${error ? "border-red-500/60 focus:border-red-500" : ""}`}
       />
+      {error && (
+        <span className="text-[11px] text-red-400 leading-snug">{error}</span>
+      )}
     </div>
   );
 }

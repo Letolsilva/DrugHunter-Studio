@@ -7,3 +7,18 @@ cd frontend
 npm run dev
 
 Acesse: `http://localhost:5173`
+
+
+Candida auris
+Candida albicans
+agglutinin-like protein
+Aspergillus fumigatus
+dihydroorotate dehydrogenase (*)
+trichodiene synthase (*)
+lanosterol 14-alpha demethylase (*)
+glucan synthase
+squalene epoxidase
+calcineurin
+thymidylate synthase
+glucan synthase
+lanosterol 14-alpha demethylase

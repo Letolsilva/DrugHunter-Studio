@@ -10,6 +10,31 @@ interface HistoryListPageProps {
 export default function HistoryListPage({
   historyUseCase,
 }: HistoryListPageProps) {
-  const props = useHistoryListPage(historyUseCase);
-  return <HistoryListTemplate {...props} />;
+  const {
+    fase,
+    historico,
+    erroMsg,
+    abrirDetalhe,
+    deletarItem,
+    handleLogout,
+    pagina,
+    paginas,
+    grupos,
+    setPagina,
+  } = useHistoryListPage(historyUseCase);
+
+  return (
+    <HistoryListTemplate
+      fase={fase}
+      historico={historico}
+      erroMsg={erroMsg}
+      abrirDetalhe={abrirDetalhe}
+      deletarItem={deletarItem}
+      handleLogout={handleLogout}
+      pagina={pagina}
+      paginas={paginas}
+      grupos={grupos}
+      setPagina={setPagina}
+    />
+  );
 }

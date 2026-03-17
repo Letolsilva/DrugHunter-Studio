@@ -1,6 +1,6 @@
-import type { ReactNode, RefObject } from "react";
+import type { JSX, ReactNode, RefObject } from "react";
 
-interface DropdownMenuProps {
+export interface DropdownMenuRootProps {
   isOpen: boolean;
   menuRef: RefObject<HTMLDivElement | null>;
   onToggle: () => void;
@@ -11,7 +11,7 @@ interface DropdownMenuProps {
   menuClassName?: string;
 }
 
-export function DropdownMenu({
+export function DropdownMenuRoot({
   isOpen,
   menuRef,
   onToggle,
@@ -20,7 +20,7 @@ export function DropdownMenu({
   buttonTitle = "Menu",
   buttonClassName = "",
   menuClassName = "",
-}: DropdownMenuProps) {
+}: DropdownMenuRootProps): JSX.Element {
   return (
     <div ref={menuRef} className="relative">
       <button

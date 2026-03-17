@@ -3,6 +3,26 @@ import { useAuthPage } from "./useAuthPage";
 import AuthTemplate from "../../templates/auth/AuthTemplate";
 
 export default function AuthPage() {
-  const props = useAuthPage();
-  return <AuthTemplate {...props} />;
+  const {
+    modo,
+    form,
+    erro,
+    fieldErrors,
+    loading,
+    setField,
+    trocarModo,
+    handleSubmit,
+  } = useAuthPage();
+  return (
+    <AuthTemplate
+      modo={modo}
+      form={form}
+      erro={erro}
+      fieldErrors={fieldErrors}
+      loading={loading}
+      setField={setField}
+      trocarModo={trocarModo}
+      handleSubmit={handleSubmit}
+    />
+  );
 }

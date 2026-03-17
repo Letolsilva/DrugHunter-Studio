@@ -8,14 +8,25 @@ export function AppLogoIcon({ size = 20, ...props }: IconProps) {
       height={size}
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.8"
+      strokeWidth="1.5"
+      strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
       {...props}
     >
-      <path d="M12 2.8 19.5 7v10L12 21.2 4.5 17V7L12 2.8Z" />
-      <path d="M12 2.8V11" />
-      <path d="M4.5 7 12 11l7.5-4" />
+      {/* ligações entre os círculos */}
+      <line x1="10.4" y1="6.2" x2="17" y2="4.7" />
+      <line x1="9" y1="9.9" x2="11.9" y2="13.9" />
+      <line x1="18.4" y1="6.4" x2="16" y2="13.4" />
+      {/* círculo esquerdo — médio */}
+      <circle cx="7" cy="7" r="3.5" />
+      <path d="M5.6 5.7 Q6.7 5.1 8 5.6" strokeWidth="1" />
+      {/* círculo superior-direito — pequeno */}
+      <circle cx="19.2" cy="4.2" r="2.3" />
+      <path d="M18.2 3.2 Q19 2.8 20 3.2" strokeWidth="1" />
+      {/* círculo inferior-direito — grande */}
+      <circle cx="14.5" cy="17.5" r="4.4" />
+      <path d="M12.6 15.7 Q14.2 15 16 15.6" strokeWidth="1" />
     </svg>
   );
 }
