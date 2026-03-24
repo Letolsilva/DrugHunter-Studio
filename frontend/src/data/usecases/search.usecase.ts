@@ -18,10 +18,12 @@ export class SearchUseCase extends ISearchUseCase {
     proteinas: string,
     token: string,
     forcarNovo = false,
+    limite: number | null = null,
   ): EventSource {
     const params = new URLSearchParams({ proteinas: proteinas.trim() });
     if (forcarNovo) params.set("forcar_novo", "true");
     if (token) params.set("token", token);
+    if (limite !== null) params.set("limite", String(limite));
     return new EventSource(`${API_BASE}/search/stream?${params}`);
   }
 

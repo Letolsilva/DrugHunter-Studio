@@ -20,7 +20,7 @@ import {
   type UseDashboardReturn,
 } from "../../hooks/useDashboard";
 
-type Fase = "idle" | "buscando" | "pausado" | "resultado";
+type Fase = "idle" | "buscando" | "resultado";
 
 export interface UseSearchPageReturn {
   user: UserModel | null;
@@ -30,7 +30,8 @@ export interface UseSearchPageReturn {
   resultados: PdbResultModel[];
   erroMsg: string;
   proteinas: string[];
-  pausado: boolean;
+  limiteEscolhido: number | null;
+  setLimiteEscolhido: (v: number | null) => void;
   barraRef: RefObject<HTMLDivElement | null>;
   pctTextoRef: RefObject<HTMLSpanElement | null>;
   contadorRef: RefObject<HTMLSpanElement | null>;
@@ -42,7 +43,7 @@ export interface UseSearchPageReturn {
   handleLogout: () => void;
   toggleMenu: () => void;
   irParaHistorico: () => void;
-  togglePausa: () => void;
+  pausar: () => void;
   cancelar: () => void;
   iniciarBusca: (forcarNovo?: boolean) => void;
   resetBusca: () => void;
@@ -61,12 +62,10 @@ export function useSearchPage(
   const [resultados, setResultados] = useState<PdbResultModel[]>([]);
   const [erroMsg, setErroMsg] = useState("");
   const [proteinas, setProteinas] = useState<string[]>([]);
-  const [pausado, setPausado] = useState(false);
+  const [limiteEscolhido, setLimiteEscolhido] = useState<number | null>(50);
   const [menuAberto, setMenuAberto] = useState(false);
 
   const esRef = useRef<EventSource | null>(null);
-  const pausadoRef = useRef(false);
-  const bufferRef = useRef<SearchEventModel[]>([]);
   const inputBuscaRef = useRef("");
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -121,7 +120,7 @@ export function useSearchPage(
       if (ev.tipo === "cache_hit") {
         atualizarBarra(ev.total ?? 0, ev.total ?? 0, "Carregando do cache...");
       } else if (ev.tipo === "lista_proteinas") {
-        setProteinas(ev.proteinas ?? []);
+        // proteinas já foram definidas a partir do input em iniciarBusca
       } else if (ev.tipo === "inicio_proteina") {
         if (protAtualRef.current)
           protAtualRef.current.textContent = ev.proteina ?? "";
@@ -146,9 +145,6 @@ export function useSearchPage(
           esRef.current.close();
           esRef.current = null;
         }
-        pausadoRef.current = false;
-        bufferRef.current = [];
-        setPausado(false);
         setFase("resultado");
       } else if (ev.tipo === "erro_proteina" || ev.tipo === "erro") {
         setErroMsg(ev.mensagem ?? "");
@@ -162,24 +158,19 @@ export function useSearchPage(
     [atualizarBarra],
   );
 
-  const togglePausa = useCallback(() => {
-    const novoPausado = !pausadoRef.current;
-    pausadoRef.current = novoPausado;
-    setPausado(novoPausado);
-    if (!novoPausado && bufferRef.current.length > 0) {
-      bufferRef.current.forEach(processar);
-      bufferRef.current = [];
+  const pausar = useCallback(() => {
+    if (esRef.current) {
+      esRef.current.close();
+      esRef.current = null;
     }
-  }, [processar]);
+    setFase("resultado");
+  }, []);
 
   const cancelar = useCallback(() => {
     if (esRef.current) {
       esRef.current.close();
       esRef.current = null;
     }
-    pausadoRef.current = false;
-    bufferRef.current = [];
-    setPausado(false);
     setFase("idle");
     setResultados([]);
     if (inputBuscaRef.current) {
@@ -199,34 +190,29 @@ export function useSearchPage(
       setFase("buscando");
       setResultados([]);
       setErroMsg("");
-      setProteinas([]);
-      setPausado(false);
-      pausadoRef.current = false;
-      bufferRef.current = [];
+      setProteinas(
+        input
+          .trim()
+          .split(/[,;\n]+/)
+          .map((s) => s.trim())
+          .filter(Boolean),
+      );
       inputBuscaRef.current = input.trim();
 
       const token = localStorage.getItem("access_token") ?? "";
-      const es = searchUseCase.createStream(input.trim(), token, forcarNovo);
+      const es = searchUseCase.createStream(
+        input.trim(),
+        token,
+        forcarNovo,
+        limiteEscolhido,
+      );
       esRef.current = es;
 
       es.onmessage = (e) => {
         const ev = searchUseCase.adaptEvent(
           JSON.parse(e.data) as SearchEventModel,
         );
-        if (pausadoRef.current) {
-          if (ev.tipo === "resultado") {
-            setResultados((prev) => {
-              const novo = [...prev, ev.dado!];
-              if (coletadasRef.current)
-                coletadasRef.current.textContent = String(novo.length);
-              return novo;
-            });
-          } else {
-            bufferRef.current.push(ev);
-          }
-        } else {
-          processar(ev);
-        }
+        processar(ev);
       };
 
       es.onerror = () => {
@@ -238,7 +224,7 @@ export function useSearchPage(
         setFase("idle");
       };
     },
-    [input, processar, searchUseCase],
+    [input, processar, searchUseCase, limiteEscolhido],
   );
 
   const resetBusca = useCallback(() => {
@@ -256,7 +242,8 @@ export function useSearchPage(
     resultados,
     erroMsg,
     proteinas,
-    pausado,
+    limiteEscolhido,
+    setLimiteEscolhido,
     barraRef,
     pctTextoRef,
     contadorRef,
@@ -268,7 +255,7 @@ export function useSearchPage(
     handleLogout,
     toggleMenu,
     irParaHistorico,
-    togglePausa,
+    pausar,
     cancelar,
     iniciarBusca,
     resetBusca,

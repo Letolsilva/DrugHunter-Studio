@@ -26,6 +26,7 @@ async def uc_buscar_stream(
     proteinas: str,
     forcar_novo: bool,
     usuario: Optional[User],
+    limite: Optional[int] = None,
 ) -> AsyncGenerator[str, None]:
     """
     Executa a busca emitindo eventos SSE com progresso.
@@ -39,7 +40,7 @@ async def uc_buscar_stream(
     proteinas_para_scrape = proteinas
 
     if not forcar_novo:
-        cached, pendentes = service.separar_cache_e_pendentes(db, proteinas)
+        cached, pendentes = service.separar_cache_e_pendentes(db, proteinas, limite)
 
         if cached:
             yield _sse({"tipo": "cache_hit", "total": len(cached)})
@@ -65,7 +66,11 @@ async def uc_buscar_stream(
 
         proteinas_para_scrape = ", ".join(pendentes)
 
-    async for evento in executar_scraping(proteinas_para_scrape):
+    ids_cache_ignorar = {p.pdb_id.upper() for p in cached} if cached else set()
+
+    async for evento in executar_scraping(
+        proteinas_para_scrape, limite, ids_cache_ignorar
+    ):
         if evento.get("tipo") == "fim":
             total_final = len(cached) + evento.get("total_coletados", 0)
             teve_erro = len(erros_proteinas) > 0

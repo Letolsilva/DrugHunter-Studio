@@ -23,11 +23,17 @@ def _ttl_dias(db: Session) -> int:
 
 
 def separar_cache_e_pendentes(
-    db: Session, proteinas_query: str
+    db: Session, proteinas_query: str, limite: Optional[int] = None
 ) -> tuple[List[Protein], List[str]]:
     """
     Verifica o cache proteína a proteína.
-    Retorna (resultados_em_cache, proteinas_sem_cache).
+    Retorna (resultados_em_cache, proteinas_para_scrape).
+
+    - Cache suficiente (len >= limite): usa só o cache, sem scrape.
+    - Cache insuficiente (len < limite) ou sem limite (None): serve o cache
+      e marca a proteína como pendente para o scraper buscar o restante.
+      O scraper deve ignorar os PDB IDs já servidos do cache.
+    - Sem cache: vai direto para o scraper.
     """
     from app.infra.external.rcsb_scraper import parsear_lista_proteinas
 
@@ -46,10 +52,21 @@ def separar_cache_e_pendentes(
             .all()
         )
         if hits:
-            for p in hits:
-                p.ultima_consulta = agora
-                p.total_consultas = (p.total_consultas or 0) + 1
-            resultados_cache.extend(hits)
+            cache_suficiente = limite is not None and len(hits) >= limite
+            if cache_suficiente:
+                # Cache tem tudo que o usuário pediu — respeita o limite
+                hits_retornados = hits[:limite]
+                for p in hits_retornados:
+                    p.ultima_consulta = agora
+                    p.total_consultas = (p.total_consultas or 0) + 1
+                resultados_cache.extend(hits_retornados)
+            else:
+                # Cache parcial ou "todas": serve o que tem e complementa com scrape
+                for p in hits:
+                    p.ultima_consulta = agora
+                    p.total_consultas = (p.total_consultas or 0) + 1
+                resultados_cache.extend(hits)
+                pendentes.append(proteina)
         else:
             pendentes.append(proteina)
 

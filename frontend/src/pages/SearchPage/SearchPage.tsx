@@ -21,7 +21,8 @@ export default function SearchPage({
     resultados,
     erroMsg,
     proteinas,
-    pausado,
+    limiteEscolhido,
+    setLimiteEscolhido,
     barraRef,
     pctTextoRef,
     contadorRef,
@@ -33,7 +34,7 @@ export default function SearchPage({
     handleLogout,
     toggleMenu,
     irParaHistorico,
-    togglePausa,
+    pausar,
     cancelar,
     iniciarBusca,
     resetBusca,
@@ -49,7 +50,8 @@ export default function SearchPage({
       resultados={resultados}
       erroMsg={erroMsg}
       proteinas={proteinas}
-      pausado={pausado}
+      limiteEscolhido={limiteEscolhido}
+      setLimiteEscolhido={setLimiteEscolhido}
       barraRef={barraRef}
       pctTextoRef={pctTextoRef}
       contadorRef={contadorRef}
@@ -61,7 +63,7 @@ export default function SearchPage({
       handleLogout={handleLogout}
       toggleMenu={toggleMenu}
       irParaHistorico={irParaHistorico}
-      togglePausa={togglePausa}
+      pausar={pausar}
       cancelar={cancelar}
       iniciarBusca={iniciarBusca}
       resetBusca={resetBusca}

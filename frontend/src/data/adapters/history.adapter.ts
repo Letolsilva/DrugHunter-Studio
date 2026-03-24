@@ -5,6 +5,8 @@ import type {
   SearchHistoryItem,
   SearchHistoryDetail,
 } from "../../domain/models/history.model";
+import type { PdbResultModel } from "../../domain/models/search.model";
+import { adaptSearchResult } from "./search.adapter";
 
 function isoParaDia(iso?: string): string {
   if (!iso) return "—";
@@ -38,6 +40,8 @@ export function adaptHistoryDetail(
 ): SearchHistoryDetail {
   return {
     ...adaptHistoryItem(raw),
-    proteinas: raw.proteinas,
+    proteinas: raw.proteinas.map((p) =>
+      adaptSearchResult(p as Partial<PdbResultModel> & Record<string, unknown>),
+    ),
   };
 }

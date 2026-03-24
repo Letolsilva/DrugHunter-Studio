@@ -6,6 +6,7 @@ export abstract class ISearchUseCase {
     proteinas: string,
     token: string,
     forcarNovo?: boolean,
+    limite?: number | null,
   ): EventSource;
   abstract adaptEvent(ev: SearchEventModel): SearchEventModel;
   abstract cancelarParcial(

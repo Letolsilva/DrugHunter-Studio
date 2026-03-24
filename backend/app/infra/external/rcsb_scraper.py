@@ -13,13 +13,12 @@ import re
 import asyncio
 import urllib.request
 import urllib.error
-from typing import List, AsyncGenerator
+from typing import List, AsyncGenerator, Optional
 
 SEARCH_URL = "https://search.rcsb.org/rcsbsearch/v2/query"
 ENTRY_URL = "https://data.rcsb.org/rest/v1/core/entry/{}"
 POLYMER_URL = "https://data.rcsb.org/rest/v1/core/polymer_entity/{}/1"
 
-MAX_POR_PROTEINA = 50  # máximo de resultados por proteína
 DELAY_ENTRE_IDS = 0.15  # respeitar rate limit da API RCSB
 
 
@@ -80,9 +79,31 @@ def _http_post(url: str, payload: dict, timeout: int = 15, retries: int = 3) -> 
 # ─────────────────────────────────────────────────────────────
 
 
-def _buscar_ids_por_proteina(nome: str) -> List[str]:
+def _buscar_ids_por_proteina(nome: str, limite: int = 50) -> List[str]:
     """Retorna lista de PDB IDs que correspondem ao nome da proteína."""
     nome = nome.strip()
+
+    # Se o input for um PDB ID (ex: "5ESG"), busca direto pelo entry_id
+    if re.match(r"^[0-9][A-Za-z0-9]{3}$", nome):
+        query = {
+            "query": {
+                "type": "terminal",
+                "service": "text",
+                "parameters": {
+                    "attribute": "rcsb_entry_container_identifiers.entry_id",
+                    "operator": "exact_match",
+                    "value": nome.upper(),
+                },
+            },
+            "return_type": "entry",
+            "request_options": {
+                "paginate": {"start": 0, "rows": 1},
+                "results_content_type": ["experimental"],
+            },
+        }
+        resultado = _http_post(SEARCH_URL, query)
+        return [r["identifier"] for r in resultado.get("result_set", [])]
+
     operador_titulo = "contains_phrase" if " " in nome else "contains_words"
 
     query = {
@@ -112,7 +133,7 @@ def _buscar_ids_por_proteina(nome: str) -> List[str]:
         },
         "return_type": "entry",
         "request_options": {
-            "paginate": {"start": 0, "rows": MAX_POR_PROTEINA},
+            "paginate": {"start": 0, "rows": limite},
             "results_content_type": ["experimental"],
             "sort": [{"sort_by": "score", "direction": "desc"}],
         },
@@ -240,7 +261,11 @@ def _extrair_campos(pdb_id: str, dados: dict, proteina_buscada: str) -> dict:
 # ─────────────────────────────────────────────────────────────
 
 
-async def executar_scraping(proteinas_input: str) -> AsyncGenerator[dict, None]:
+async def executar_scraping(
+    proteinas_input: str,
+    limite: Optional[int] = None,
+    ids_para_ignorar: Optional[set] = None,
+) -> AsyncGenerator[dict, None]:
     """
     Gerador assíncrono que processa uma lista de proteínas buscando na API RCSB.
 
@@ -270,6 +295,7 @@ async def executar_scraping(proteinas_input: str) -> AsyncGenerator[dict, None]:
     total_geral = 0
     por_proteina = {}
     ids_vistos: set = set()
+    _ignorar = {i.upper() for i in ids_para_ignorar} if ids_para_ignorar else set()
 
     for idx, proteina in enumerate(lista):
         yield {
@@ -280,13 +306,20 @@ async def executar_scraping(proteinas_input: str) -> AsyncGenerator[dict, None]:
         }
 
         try:
-            ids = await loop.run_in_executor(None, _buscar_ids_por_proteina, proteina)
+            ids = await loop.run_in_executor(
+                None,
+                _buscar_ids_por_proteina,
+                proteina,
+                limite if limite is not None else 9999,
+            )
         except Exception as exc:
             yield {"tipo": "erro_proteina", "proteina": proteina, "mensagem": str(exc)}
             por_proteina[proteina] = 0
             continue
 
-        ids_novos = [i for i in ids if i not in ids_vistos]
+        ids_novos = [
+            i for i in ids if i not in ids_vistos and i.upper() not in _ignorar
+        ]
         ids_vistos.update(ids_novos)
 
         yield {

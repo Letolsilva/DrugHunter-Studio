@@ -26,6 +26,9 @@ async def buscar_stream(
         ..., description="Uma ou mais proteínas separadas por vírgula"
     ),
     forcar_novo: bool = Query(False, description="Ignorar cache e buscar novamente"),
+    limite: Optional[int] = Query(
+        None, ge=1, description="Máximo de estruturas por proteína (None = todas)"
+    ),
     db: Session = Depends(get_db),
     usuario: Optional[User] = Depends(get_usuario_opcional),
 ):
@@ -34,7 +37,7 @@ async def buscar_stream(
     Funciona anônimo ou autenticado — quando logado, salva no histórico.
     """
     return StreamingResponse(
-        uc.uc_buscar_stream(db, proteinas, forcar_novo, usuario),
+        uc.uc_buscar_stream(db, proteinas, forcar_novo, usuario, limite),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )

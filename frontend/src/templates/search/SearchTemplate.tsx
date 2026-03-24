@@ -2,6 +2,7 @@
 import type { RefObject } from "react";
 import DashboardTemplate from "../dashboard/DashboardTemplate";
 import { Button } from "../../components/ui/Button";
+import { DropdownSelect } from "../../components/ui/DropdownSelect";
 import { SearchBox } from "../../components/ui/searchbox";
 import { ProgressCard } from "../../components/search/ProgressCard";
 import { DropdownMenu, Navbar } from "../../components/layout";
@@ -12,7 +13,6 @@ import {
   LogoutIcon,
   MenuIcon,
   PauseIcon,
-  PlayIcon,
   RefreshIcon,
   SearchIcon,
   WarningIcon,
@@ -25,11 +25,12 @@ interface SearchTemplateProps {
   user: UserModel | null;
   input: string;
   setInput: (v: string) => void;
-  fase: "idle" | "buscando" | "pausado" | "resultado";
+  fase: "idle" | "buscando" | "resultado";
   resultados: PdbResultModel[];
   erroMsg: string;
   proteinas: string[];
-  pausado: boolean;
+  limiteEscolhido: number | null;
+  setLimiteEscolhido: (v: number | null) => void;
   barraRef: RefObject<HTMLDivElement | null>;
   pctTextoRef: RefObject<HTMLSpanElement | null>;
   contadorRef: RefObject<HTMLSpanElement | null>;
@@ -41,7 +42,7 @@ interface SearchTemplateProps {
   handleLogout: () => void;
   toggleMenu: () => void;
   irParaHistorico: () => void;
-  togglePausa: () => void;
+  pausar: () => void;
   cancelar: () => void;
   iniciarBusca: (forcarNovo?: boolean) => void;
   resetBusca: () => void;
@@ -56,7 +57,8 @@ export default function SearchTemplate({
   resultados,
   erroMsg,
   proteinas,
-  pausado,
+  limiteEscolhido,
+  setLimiteEscolhido,
   barraRef,
   pctTextoRef,
   contadorRef,
@@ -68,7 +70,7 @@ export default function SearchTemplate({
   handleLogout,
   toggleMenu,
   irParaHistorico,
-  togglePausa,
+  pausar,
   cancelar,
   iniciarBusca,
   resetBusca,
@@ -118,6 +120,31 @@ export default function SearchTemplate({
               <p className="font-mono text-[14px] text-foreground-subtle">
                 Digite uma ou mais proteínas separadas por vírgula
               </p>
+              {fase === "idle" && (
+                <div className="mt-3 inline-flex items-center gap-2 text-[13px] text-foreground-subtle">
+                  <span>Máximo de estruturas por proteína:</span>
+                  <div className="w-28">
+                    <DropdownSelect
+                      value={
+                        limiteEscolhido === null
+                          ? "all"
+                          : String(limiteEscolhido)
+                      }
+                      onChange={(v) =>
+                        setLimiteEscolhido(v === "all" ? null : Number(v))
+                      }
+                      options={[
+                        { value: "10", label: "10" },
+                        { value: "25", label: "25" },
+                        { value: "50", label: "50" },
+                        { value: "100", label: "100" },
+                        { value: "200", label: "200" },
+                        { value: "all", label: "Todas" },
+                      ]}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Caixa de busca */}
@@ -127,7 +154,7 @@ export default function SearchTemplate({
                 onChange={setInput}
                 onSubmit={() => iniciarBusca()}
                 placeholder={"glucan synthase\nFKS1, ERG11, Candida auris"}
-                disabled={fase === "buscando" || fase === "pausado"}
+                disabled={fase === "buscando"}
               />
               <SearchBox.Footer>
                 {fase === "idle" && (
@@ -142,23 +169,15 @@ export default function SearchTemplate({
                     </span>
                   </Button>
                 )}
-                {(fase === "buscando" || fase === "pausado") && (
+                {fase === "buscando" && (
                   <>
                     <button
-                      onClick={togglePausa}
-                      className={`px-4 py-2 text-[13px] font-semibold rounded-lg cursor-pointer border transition-all ${
-                        pausado
-                          ? "bg-accent-15 border-accent-30 text-accent hover:bg-accent-25"
-                          : "bg-yellow-15 border-yellow-30 text-yellow hover:bg-yellow-25"
-                      }`}
+                      onClick={pausar}
+                      className="px-4 py-2 text-[13px] font-semibold rounded-lg cursor-pointer border transition-all bg-yellow-15 border-yellow-30 text-yellow hover:bg-yellow-25"
                     >
                       <span className="inline-flex items-center gap-1.5">
-                        {pausado ? (
-                          <PlayIcon size={12} />
-                        ) : (
-                          <PauseIcon size={12} />
-                        )}
-                        {pausado ? "Retomar" : "Pausar"}
+                        <PauseIcon size={12} />
+                        Pausar
                       </span>
                     </button>
                     <button
@@ -187,9 +206,9 @@ export default function SearchTemplate({
             </SearchBox>
 
             {/* Card de progresso */}
-            {(fase === "buscando" || fase === "pausado") && (
+            {fase === "buscando" && (
               <ProgressCard
-                pausado={pausado}
+                pausado={false}
                 proteinas={proteinas}
                 labelRef={labelRef}
                 contadorRef={contadorRef}
