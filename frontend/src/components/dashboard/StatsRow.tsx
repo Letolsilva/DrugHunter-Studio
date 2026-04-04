@@ -19,8 +19,9 @@ export function StatsRow({ dados, organismos }: StatsRowProps) {
         value: dados.filter((d) => d.tem_ligante).length,
       },
       {
-        label: "Excelente",
-        value: dados.filter((d) => d.qualidade === "Excelente").length,
+        label: "Alta res. (≤2Å)",
+        value: dados.filter((d) => d.resolucao != null && d.resolucao <= 2.0)
+          .length,
       },
       { label: "Organismos", value: organismos.length },
       {

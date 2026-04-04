@@ -20,11 +20,13 @@ class Protein(Base):
     resolucao = Column(Float)
     metodo = Column(String(100))
     tem_ligante = Column(Boolean, default=False)
-    num_cadeias = Column(Integer)
-    ramachandran = Column(Float)
     depositado_em = Column(String(20))
-    qualidade = Column(String(50))
     link_pdb = Column(String(200))
+
+    # Storage do arquivo .pdb — chave relativa usada pelo StorageService
+    pdb_file_cached = Column(Boolean, default=False, nullable=False)
+    pdb_storage_key = Column(String(50), nullable=True)  # ex: "5ESG.pdb"
+    pdb_file_size = Column(Integer, nullable=True)  # tamanho em bytes
 
     criado_em = Column(DateTime, default=datetime.utcnow, nullable=False)
     ultima_consulta = Column(DateTime, default=datetime.utcnow, nullable=False)

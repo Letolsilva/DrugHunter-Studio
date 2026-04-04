@@ -91,10 +91,7 @@ def salvar_proteina_no_cache(db: Session, dado: dict) -> Optional[Protein]:
         "resolucao",
         "metodo",
         "tem_ligante",
-        "num_cadeias",
-        "ramachandran",
         "depositado_em",
-        "qualidade",
         "link_pdb",
     ]
 

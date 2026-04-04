@@ -4,16 +4,16 @@ import type { PdbResultModel } from "./search.model";
 export interface DashboardFilters {
   filtroOrganismo: string;
   filtroProteina: string;
-  filtroQualidade: string;
+  filtroResolucaoMax: string;
   /** "" | "sim" | "nao" */
   filtroLigante: string;
   busca: string;
-  /** "resolucao" | "qualidade" | "data" */
+  /** "resolucao" | "data" */
   ordem: string;
 }
 
 export interface DashboardChartData {
-  qualidade: { name: string; value: number }[];
+  resolucao: { name: string; value: number }[];
   metodo: { name: string; value: number }[];
   proteina: { name: string; value: number }[];
 }

@@ -7,6 +7,7 @@ export { ClockIcon } from "./ClockIcon";
 export { CloseIcon } from "./CloseIcon";
 export { DotsVerticalIcon } from "./DotsVerticalIcon";
 export { DownloadIcon } from "./DownloadIcon";
+export { LoadingIcon } from "./LoadingIcon";
 export { ExternalLinkIcon } from "./ExternalLinkIcon";
 export { LogoutIcon } from "./LogoutIcon";
 export { MenuIcon } from "./MenuIcon";

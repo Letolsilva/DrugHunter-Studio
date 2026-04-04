@@ -91,3 +91,8 @@ export const search = {
     return fetchWithAuth(`/search/csv${qs ? "?" + qs : ""}`);
   },
 };
+
+// ── Download endpoints ─────────────────────────────────────
+export const download = {
+  pdbUrl: (pdbId: string) => `/api/download/pdb/${pdbId}`,
+};

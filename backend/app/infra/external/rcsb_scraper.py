@@ -177,41 +177,6 @@ def _buscar_detalhes(pdb_id: str) -> dict:
     return _http_get(ENTRY_URL.format(pdb_id.lower()))
 
 
-def _avaliar_qualidade(resolucao, metodo, tem_ligante, ramachandran) -> str:
-    score = 0
-    if isinstance(metodo, str) and "X-RAY" in metodo.upper():
-        score += 3
-    elif isinstance(metodo, str) and "NEUTRON" in metodo.upper():
-        score += 2
-    if resolucao is not None:
-        try:
-            r = float(resolucao)
-            if r <= 2.0:
-                score += 3
-            elif r <= 2.5:
-                score += 2
-            elif r <= 3.0:
-                score += 1
-        except Exception:
-            pass
-    if tem_ligante:
-        score += 2
-    if ramachandran not in (None, "N/A"):
-        try:
-            if float(ramachandran) <= 1.0:
-                score += 1
-        except Exception:
-            pass
-    if score >= 7:
-        return "Excelente"
-    elif score >= 5:
-        return "Boa"
-    elif score >= 3:
-        return "Razoável"
-    else:
-        return "Verificar"
-
-
 def _extrair_campos(pdb_id: str, dados: dict, proteina_buscada: str) -> dict:
     """
     Extrai todos os campos relevantes de uma entrada PDB.
@@ -231,13 +196,8 @@ def _extrair_campos(pdb_id: str, dados: dict, proteina_buscada: str) -> dict:
     titulo = dados.get("struct", {}).get("title", "N/A")
     n_ligantes = info.get("nonpolymer_entity_count", 0) or 0
     tem_ligante = int(n_ligantes) > 0
-    num_cadeias = info.get("polymer_entity_count", None)
-    ramachandran = dados.get("pdbx_vrpt_summary", {}).get(
-        "percent_ramachandran_outliers_full_length", None
-    )
     classificacao = dados.get("struct_keywords", {}).get("pdbx_keywords", "N/A")
     organismo = _buscar_organismo(pdb_id)
-    qualidade = _avaliar_qualidade(resolucao, metodo, tem_ligante, ramachandran)
 
     return {
         "pdb_id": pdb_id.upper(),
@@ -248,10 +208,7 @@ def _extrair_campos(pdb_id: str, dados: dict, proteina_buscada: str) -> dict:
         "resolucao": resolucao,
         "metodo": metodo,
         "tem_ligante": tem_ligante,
-        "num_cadeias": num_cadeias,
-        "ramachandran": ramachandran,
         "depositado_em": deposicao,
-        "qualidade": qualidade,
         "link_pdb": f"https://www.rcsb.org/structure/{pdb_id.upper()}",
     }
 

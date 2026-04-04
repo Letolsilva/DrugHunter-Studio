@@ -1,4 +1,4 @@
-// data/adapters/dashboard.adapter.ts
+﻿// data/adapters/dashboard.adapter.ts
 import type { PdbResultModel } from "../../domain/models/search.model";
 import type {
   DashboardChartData,
@@ -27,8 +27,10 @@ export function aplicarFiltros(
     r = r.filter((d) => d.organismo?.includes(filtros.filtroOrganismo));
   if (filtros.filtroProteina)
     r = r.filter((d) => d.proteina_buscada === filtros.filtroProteina);
-  if (filtros.filtroQualidade)
-    r = r.filter((d) => d.qualidade === filtros.filtroQualidade);
+  if (filtros.filtroResolucaoMax) {
+    const max = parseFloat(filtros.filtroResolucaoMax);
+    if (!isNaN(max)) r = r.filter((d) => d.resolucao != null && d.resolucao <= max);
+  }
   if (filtros.filtroLigante === "sim") r = r.filter((d) => d.tem_ligante);
   if (filtros.filtroLigante === "nao") r = r.filter((d) => !d.tem_ligante);
 
@@ -45,10 +47,6 @@ export function aplicarFiltros(
   return [...r].sort((a, b) => {
     if (filtros.ordem === "resolucao")
       return (a.resolucao ?? 99) - (b.resolucao ?? 99);
-    if (filtros.ordem === "qualidade") {
-      const ord = ["Excelente", "Boa", "Razoável", "Verificar"];
-      return ord.indexOf(a.qualidade) - ord.indexOf(b.qualidade);
-    }
     if (filtros.ordem === "data")
       return (b.depositado_em ?? "").localeCompare(a.depositado_em ?? "");
     return 0;
@@ -68,29 +66,49 @@ export function paginar(
   return { paginaAtual, paginas };
 }
 
+const RESOLUCAO_FAIXAS = [
+  { name: "< 1.5 Ã…",   min: 0,    max: 1.5  },
+  { name: "1.5â€“2.0 Ã…", min: 1.5,  max: 2.0  },
+  { name: "2.0â€“2.5 Ã…", min: 2.0,  max: 2.5  },
+  { name: "2.5â€“3.0 Ã…", min: 2.5,  max: 3.0  },
+  { name: "> 3.0 Ã…",   min: 3.0,  max: 9999 },
+  { name: "N/D",       min: -1,   max: -1   },
+];
+
 export function getChartData(filtrados: PdbResultModel[]): DashboardChartData {
-  const qualidadeMap: Record<string, number> = {};
   const metodoMap: Record<string, number> = {};
   const proteinaMap: Record<string, number> = {};
+  const resolucaoMap: Record<string, number> = Object.fromEntries(
+    RESOLUCAO_FAIXAS.map((f) => [f.name, 0]),
+  );
 
   filtrados.forEach((d) => {
-    qualidadeMap[d.qualidade] = (qualidadeMap[d.qualidade] ?? 0) + 1;
     if (d.metodo) metodoMap[d.metodo] = (metodoMap[d.metodo] ?? 0) + 1;
     if (d.proteina_buscada)
       proteinaMap[d.proteina_buscada] =
         (proteinaMap[d.proteina_buscada] ?? 0) + 1;
+
+    if (d.resolucao == null) {
+      resolucaoMap["N/D"]++;
+    } else {
+      const faixa = RESOLUCAO_FAIXAS.find(
+        (f) => f.min >= 0 && d.resolucao! > f.min && d.resolucao! <= f.max,
+      );
+      if (faixa) resolucaoMap[faixa.name]++;
+      else resolucaoMap["N/D"]++;
+    }
   });
 
   return {
-    qualidade: Object.entries(qualidadeMap).map(([name, value]) => ({
-      name,
-      value,
-    })),
+    resolucao: RESOLUCAO_FAIXAS.map((f) => ({
+      name: f.name,
+      value: resolucaoMap[f.name],
+    })).filter((f) => f.value > 0),
     metodo: Object.entries(metodoMap)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 6)
       .map(([name, value]) => ({
-        name: name.length > 18 ? name.slice(0, 16) + "…" : name,
+        name: name.length > 18 ? name.slice(0, 16) + "â€¦" : name,
         value,
       })),
     proteina: Object.entries(proteinaMap).map(([name, value]) => ({
@@ -109,10 +127,7 @@ const CSV_COLS: (keyof PdbResultModel)[] = [
   "resolucao",
   "metodo",
   "tem_ligante",
-  "num_cadeias",
-  "ramachandran",
   "depositado_em",
-  "qualidade",
   "link_pdb",
 ];
 
@@ -122,8 +137,8 @@ export function gerarCSVString(filtrados: PdbResultModel[]): string {
     rows.push(
       CSV_COLS.map((col) => {
         const v =
-          col === "tem_ligante" ? (d[col] ? "Sim" : "Não") : (d[col] ?? "");
-        return `"${String(v).replace(/"/g, '""')}"`;
+          col === "tem_ligante" ? (d[col] ? "Sim" : "NÃ£o") : (d[col] ?? "");
+        return `"${String(v).replace(/"/g, '\"\"')}"`;
       }).join(","),
     );
   });

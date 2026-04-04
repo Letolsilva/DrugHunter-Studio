@@ -47,11 +47,10 @@ async def buscar_stream(
 def download_csv(
     proteinas: str = Query(...),
     organismo: Optional[str] = Query(None),
-    qualidade: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
     """Retorna CSV dos resultados em cache com filtros opcionais."""
-    conteudo, nome = uc.uc_download_csv(db, proteinas, organismo, qualidade)
+    conteudo, nome = uc.uc_download_csv(db, proteinas, organismo)
     return StreamingResponse(
         iter([conteudo]),
         media_type="text/csv",

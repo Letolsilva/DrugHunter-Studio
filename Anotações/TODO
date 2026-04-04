@@ -1,17 +1,26 @@
-Semana do dia 17
-quantidade de estruturas que quer coletar  ok!
-normalizar os organismos   ok!
-pesquisar pelo codigo   ok!
-pausar pausa a quantidade que ele baixou   ok!
-fluxograma da meetodologia do trbalho ate dezembro  ok!
 drughunter consegue fazer deste a extração de dados ate a dinamica molecular o a limitação do hunter para usar ele voce tem que ser programador, meu trabalho e desenvolver uma arquitetura funcional  para usuariuos explorar ele de maneira funcional e como estudo de caso eu escokho um fungo e valido ele do inicio ao fim em cima do front end 
-la dentro da tese tem uma foto do biomol explores no caputulo 3 e tem uma figura explicando o biomol, hubnter o fluxagrama vai integrar os 3mostrando a integração no ambiente web 
 
-Semana do dia 24
-permitir o usuario bauxar o legacy,pdb,FASTA -> deixar definir onde vai salvar  -> abrir o segundo dowload ja abrir na pasta que ele selecionou o primeiro 
-remover Cadeias, Qualidade para adicionar os de donwload
-baixar csv deixar escolher a pasta 
-testar a limpeza em 30 dias
+Pensar sobre:
+- banco de dados
+- docker
+- o usuario tem que acessar
+
+- Feito somente para legacy depois de tudo pronto implementar para: pdb*,FASTA* -> deixar definir onde vai salvar  -> abrir o segundo dowload ja abrir na pasta que ele selecionou o primeiro 
+- testar a limpeza em 30 dias
+
+Tela nova:
+inicial todos os arquivos baixados
+clicou entra em modo de visualização do atm e hetatm que vai vim do arquivo pdb e pega todos os dados da linha e vai poder filtrar se quer ve um ou outro 
+ve, selecioanr pelo codigo e gerar arquivo final com todos selecionados
+o arquivo final deve ter PDB_CODE,LIGAND,RESNUM (cod residuo),CHAIN(cadeia),RESOLUTION 
+salvar na mesma pasta que foi salvo os pdbs -> pdb_codes.csv
+
+-> antes do scraper dos outros vai fazer o 
+PDB_CODE,LIGAND,RESNUM (cod residuo),CHAIN(cadeia),RESOLUTION
+
+
+
+criar uma pasta dataset para ele fazer o download
 
 Semana do dia 31
 fazer um menu com as opçoes
@@ -25,10 +34,6 @@ https://zinc.docking.org/
 https://www.ebi.ac.uk/chembl/explore/target/CHEMBL220
 
 
-
-
-- começa a implementação com o biomol
-clico no codigo no codigo vem no biomol
 
 
 

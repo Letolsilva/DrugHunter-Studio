@@ -68,7 +68,11 @@ def autenticar_usuario(db: Session, login: str, senha: str) -> User:
 
 def gerar_tokens(user: User) -> dict:
     """Gera par de access + refresh tokens para um usuário."""
-    payload = {"sub": str(user.id), "username": user.username, "is_admin": user.is_admin}
+    payload = {
+        "sub": str(user.id),
+        "username": user.username,
+        "is_admin": user.is_admin,
+    }
     return {
         "access_token": criar_access_token(payload),
         "refresh_token": criar_refresh_token(payload),
@@ -108,7 +112,9 @@ def historico_usuario(db: Session, user_id: int, limite: int = 50) -> list:
             "veio_do_cache": b.veio_do_cache,
             "teve_erro": b.teve_erro or False,
             "mensagem_erro": b.mensagem_erro,
-            "criado_em": b.criado_em.strftime("%Y-%m-%dT%H:%M:%SZ") if b.criado_em else None,
+            "criado_em": b.criado_em.strftime("%Y-%m-%dT%H:%M:%SZ")
+            if b.criado_em
+            else None,
         }
         for b in buscas
     ]
@@ -124,15 +130,15 @@ def _protein_to_dict(p: Protein) -> dict:
         "resolucao": p.resolucao,
         "metodo": p.metodo,
         "tem_ligante": p.tem_ligante,
-        "num_cadeias": p.num_cadeias,
-        "ramachandran": p.ramachandran,
         "depositado_em": p.depositado_em,
-        "qualidade": p.qualidade,
         "link_pdb": p.link_pdb,
+        "pdb_file_cached": p.pdb_file_cached,
     }
 
 
-def buscar_historico_detalhe(db: Session, user_id: int, search_id: int) -> Optional[dict]:
+def buscar_historico_detalhe(
+    db: Session, user_id: int, search_id: int
+) -> Optional[dict]:
     """Retorna proteínas de uma busca histórica específica do usuário."""
     busca = (
         db.query(Search)
@@ -148,7 +154,9 @@ def buscar_historico_detalhe(db: Session, user_id: int, search_id: int) -> Optio
         "organismo_query": busca.organismo_query,
         "total_resultados": busca.total_resultados,
         "veio_do_cache": busca.veio_do_cache,
-        "criado_em": busca.criado_em.strftime("%Y-%m-%dT%H:%M:%SZ") if busca.criado_em else None,
+        "criado_em": busca.criado_em.strftime("%Y-%m-%dT%H:%M:%SZ")
+        if busca.criado_em
+        else None,
         "proteinas": [_protein_to_dict(p) for p in proteinas],
     }
 

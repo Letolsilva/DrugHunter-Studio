@@ -19,3 +19,4 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     searches = relationship("Search", back_populates="user")
+    pdb_downloads = relationship("UserPdbDownload", back_populates="user")

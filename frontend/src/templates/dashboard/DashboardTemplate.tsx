@@ -1,11 +1,13 @@
-// templates/dashboard/DashboardTemplate.tsx
-import { QualityPieChart } from "../../components/charts/QualityPieChart";
+﻿// templates/dashboard/DashboardTemplate.tsx
+import { ResolutionBarChart } from "../../components/charts/ResolutionBarChart";
 import { MethodBarChart } from "../../components/charts/MethodBarChart";
 import { ProteinBarChart } from "../../components/charts/ProteinBarChart";
 import { StatsRow } from "../../components/dashboard/StatsRow";
 import { FiltersBar } from "../../components/dashboard/FiltersBar";
 import { ResultsTable } from "../../components/dashboard/ResultsTable";
 import { Pagination } from "../../components/dashboard/Pagination";
+import { DownloadProgressBar } from "../../components/dashboard/DownloadProgressBar";
+import { Toast } from "../../components/ui/Toast";
 import { Button } from "../../components/ui/Button";
 import { DownloadIcon } from "../../components/icons";
 import type { PdbResultModel } from "../../domain/models/search.model";
@@ -23,14 +25,14 @@ export default function DashboardTemplate({
   onNovaBusca,
   filtroOrganismo,
   filtroProteina,
-  filtroQualidade,
+  filtroResolucaoMax,
   filtroLigante,
   busca,
   ordem,
   pagina,
   setFiltroOrganismo,
   setFiltroProteina,
-  setFiltroQualidade,
+  setFiltroResolucaoMax,
   setFiltroLigante,
   setBusca,
   setOrdem,
@@ -41,11 +43,23 @@ export default function DashboardTemplate({
   filtrados,
   paginas,
   paginaAtual,
-  dadosQualidade,
+  dadosResolucao,
   dadosMetodo,
   dadosProteina,
   downloadCSV,
   limparFiltros,
+  selectedIds,
+  toggleSelected,
+  toggleSelectAll,
+  isAllSelected,
+  batchProgress,
+  downloadBatch,
+  downloadSingle,
+  downloadingIds,
+  recentlyDownloadedIds,
+  failedIds,
+  toast,
+  toastVariant,
 }: DashboardTemplateProps) {
   return (
     <div className="flex flex-col gap-5 w-full fade-in">
@@ -69,6 +83,18 @@ export default function DashboardTemplate({
               <DownloadIcon size={13} /> CSV
             </span>
           </Button>
+          {selectedIds.size > 0 && !batchProgress && (
+            <Button
+              variant="ghost"
+              onClick={downloadBatch}
+              style={{ fontSize: 13, padding: "8px 16px" }}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <DownloadIcon size={13} />
+                Baixar {selectedIds.size} .pdb{selectedIds.size > 1 ? "s" : ""}
+              </span>
+            </Button>
+          )}
           <Button
             variant="primary"
             onClick={onNovaBusca}
@@ -82,16 +108,16 @@ export default function DashboardTemplate({
       {/* Stats */}
       <StatsRow dados={dados} organismos={organismos} />
 
-      {/* Gráficos */}
+      {/* GrÃ¡ficos */}
       <div
         className="grid gap-4"
         style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}
       >
         <div className="bg-panel border border-outline rounded-xl p-5">
           <h3 className="text-[13px] font-bold text-foreground-muted uppercase tracking-[0.5px] mb-3">
-            Distribuição de Qualidade
+            Distribuição de Resolução
           </h3>
-          <QualityPieChart data={dadosQualidade} />
+          <ResolutionBarChart data={dadosResolucao} />
         </div>
         <div className="bg-panel border border-outline rounded-xl p-5">
           <h3 className="text-[13px] font-bold text-foreground-muted uppercase tracking-[0.5px] mb-3">
@@ -102,7 +128,7 @@ export default function DashboardTemplate({
         {proteinas.length > 1 && (
           <div className="bg-panel border border-outline rounded-xl p-5">
             <h3 className="text-[13px] font-bold text-foreground-muted uppercase tracking-[0.5px] mb-3">
-              Estruturas por Proteína
+              Estruturas por ProteÃ­na
             </h3>
             <ProteinBarChart data={dadosProteina} />
           </div>
@@ -117,8 +143,8 @@ export default function DashboardTemplate({
         setFiltroOrganismo={setFiltroOrganismo}
         filtroProteina={filtroProteina}
         setFiltroProteina={setFiltroProteina}
-        filtroQualidade={filtroQualidade}
-        setFiltroQualidade={setFiltroQualidade}
+        filtroResolucaoMax={filtroResolucaoMax}
+        setFiltroResolucaoMax={setFiltroResolucaoMax}
         filtroLigante={filtroLigante}
         setFiltroLigante={setFiltroLigante}
         ordem={ordem}
@@ -129,12 +155,38 @@ export default function DashboardTemplate({
         onLimpar={limparFiltros}
       />
 
-      <p className="text-[12px] text-foreground-subtle font-mono">
-        Exibindo <b className="text-foreground-muted">{filtrados.length}</b> de{" "}
-        <b className="text-foreground-muted">{dados.length}</b> estruturas
-      </p>
+      {/* Barra de seleção + progresso */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <p className="text-[12px] text-foreground-subtle font-mono">
+          Exibindo <b className="text-foreground-muted">{filtrados.length}</b>{" "}
+          de <b className="text-foreground-muted">{dados.length}</b> estruturas
+          {selectedIds.size > 0 && (
+            <span className="ml-2 text-accent font-bold">
+              · {selectedIds.size} selecionado{selectedIds.size > 1 ? "s" : ""}
+            </span>
+          )}
+        </p>
+      </div>
 
-      <ResultsTable rows={paginaAtual} />
+      {/* Progresso do download em lote */}
+      {batchProgress && (
+        <DownloadProgressBar
+          atual={batchProgress.atual}
+          total={batchProgress.total}
+        />
+      )}
+
+      <ResultsTable
+        rows={paginaAtual}
+        selectedIds={selectedIds}
+        isAllSelected={isAllSelected}
+        onToggleSelected={toggleSelected}
+        onToggleSelectAll={toggleSelectAll}
+        onDownloadSingle={downloadSingle}
+        downloadingIds={downloadingIds}
+        recentlyDownloadedIds={recentlyDownloadedIds}
+        failedIds={failedIds}
+      />
 
       <Pagination
         pagina={pagina}
@@ -142,6 +194,8 @@ export default function DashboardTemplate({
         onPrev={onPrevPage}
         onNext={onNextPage}
       />
+
+      <Toast message={toast} variant={toastVariant} />
     </div>
   );
 }

@@ -22,6 +22,7 @@ from app.infra.db.database import criar_tabelas, SessionLocal, get_config
 from app.routes.auth import router as auth_router
 from app.routes.search import router as search_router
 from app.routes.admin import router as admin_router
+from app.routes.download import router as download_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("pdb_explorer")
@@ -30,7 +31,10 @@ logger = logging.getLogger("pdb_explorer")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     criar_tabelas()
-    logger.info("✅ Banco de dados inicializado")
+    from pathlib import Path
+
+    Path("pdb_files").mkdir(exist_ok=True)
+    logger.info("✅ Banco de dados inicializado | pasta pdb_files/ garantida")
 
     db = SessionLocal()
     try:
@@ -68,6 +72,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(search_router)
 app.include_router(admin_router)
+app.include_router(download_router)
 
 
 @app.get("/health")

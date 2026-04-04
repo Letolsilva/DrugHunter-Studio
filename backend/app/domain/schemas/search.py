@@ -13,11 +13,9 @@ class ProteinSchema(BaseModel):
     resolucao: Optional[float] = None
     metodo: Optional[str] = None
     tem_ligante: Optional[bool] = None
-    num_cadeias: Optional[int] = None
-    ramachandran: Optional[float] = None
     depositado_em: Optional[str] = None
-    qualidade: Optional[str] = None
     link_pdb: Optional[str] = None
+    pdb_file_cached: Optional[bool] = None
 
     class Config:
         from_attributes = True

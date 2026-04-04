@@ -21,7 +21,6 @@ export function adaptSearchResult(
     ...(raw as PdbResultModel),
     organismo: normalizarOrganismo(raw.organismo),
     resolucao: raw.resolucao != null ? Number(raw.resolucao) : null,
-    num_cadeias: raw.num_cadeias != null ? Number(raw.num_cadeias) : null,
     tem_ligante: Boolean(raw.tem_ligante),
   };
 }

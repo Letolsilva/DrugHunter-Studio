@@ -38,74 +38,105 @@ async def uc_buscar_stream(
     erros_proteinas: list[str] = []
     cached: list = []
     proteinas_para_scrape = proteinas
+    busca_registrada = False
 
-    if not forcar_novo:
-        cached, pendentes = service.separar_cache_e_pendentes(db, proteinas, limite)
+    try:
+        if not forcar_novo:
+            cached, pendentes = service.separar_cache_e_pendentes(db, proteinas, limite)
 
-        if cached:
-            yield _sse({"tipo": "cache_hit", "total": len(cached)})
-            for p in cached:
+            if cached:
+                yield _sse({"tipo": "cache_hit", "total": len(cached)})
+                for p in cached:
+                    yield _sse(
+                        {"tipo": "resultado", "dado": _proteina_dict(p), "cache": True}
+                    )
+
+            if not pendentes:
                 yield _sse(
-                    {"tipo": "resultado", "dado": _proteina_dict(p), "cache": True}
+                    {
+                        "tipo": "fim",
+                        "total_coletados": len(cached),
+                        "veio_do_cache": True,
+                    }
                 )
+                service.registrar_busca(
+                    db,
+                    user_id,
+                    proteinas,
+                    None,
+                    len(cached),
+                    veio_do_cache=True,
+                    protein_ids=[p.id for p in cached],
+                )
+                busca_registrada = True
+                return
 
-        if not pendentes:
-            yield _sse(
-                {"tipo": "fim", "total_coletados": len(cached), "veio_do_cache": True}
-            )
-            service.registrar_busca(
-                db,
-                user_id,
-                proteinas,
-                None,
-                len(cached),
-                veio_do_cache=True,
-                protein_ids=[p.id for p in cached],
-            )
-            return
+            proteinas_para_scrape = ", ".join(pendentes)
 
-        proteinas_para_scrape = ", ".join(pendentes)
+        ids_cache_ignorar = {p.pdb_id.upper() for p in cached} if cached else set()
 
-    ids_cache_ignorar = {p.pdb_id.upper() for p in cached} if cached else set()
-
-    async for evento in executar_scraping(
-        proteinas_para_scrape, limite, ids_cache_ignorar
-    ):
-        if evento.get("tipo") == "fim":
-            total_final = len(cached) + evento.get("total_coletados", 0)
+        async for evento in executar_scraping(
+            proteinas_para_scrape, limite, ids_cache_ignorar
+        ):
+            if evento.get("tipo") == "fim":
+                total_final = len(cached) + evento.get("total_coletados", 0)
+                teve_erro = len(erros_proteinas) > 0
+                mensagem_erro = " | ".join(erros_proteinas) if teve_erro else None
+                yield _sse(
+                    {
+                        "tipo": "fim",
+                        "total_coletados": total_final,
+                        "veio_do_cache": False,
+                    }
+                )
+                service.registrar_busca(
+                    db=db,
+                    user_id=user_id,
+                    proteina_query=proteinas,
+                    organismo_query=None,
+                    total_resultados=total_final,
+                    veio_do_cache=False,
+                    protein_ids=[p.id for p in cached] + protein_ids_salvos,
+                    teve_erro=teve_erro,
+                    mensagem_erro=mensagem_erro,
+                )
+                busca_registrada = True
+            else:
+                yield _sse(evento)
+                if evento.get("tipo") == "resultado":
+                    p = service.salvar_proteina_no_cache(db, evento["dado"])
+                    if p:
+                        protein_ids_salvos.append(p.id)
+                elif evento.get("tipo") == "erro_proteina":
+                    erros_proteinas.append(
+                        f"{evento.get('proteina', '')}: {evento.get('mensagem', 'erro desconhecido')}"
+                    )
+    finally:
+        # Registra resultado parcial quando o cliente pausar/desconectar antes do evento "fim"
+        if not busca_registrada and user_id and (protein_ids_salvos or cached):
+            total_parcial = len(cached) + len(protein_ids_salvos)
             teve_erro = len(erros_proteinas) > 0
             mensagem_erro = " | ".join(erros_proteinas) if teve_erro else None
-            yield _sse(
-                {"tipo": "fim", "total_coletados": total_final, "veio_do_cache": False}
-            )
-            service.registrar_busca(
-                db=db,
-                user_id=user_id,
-                proteina_query=proteinas,
-                organismo_query=None,
-                total_resultados=total_final,
-                veio_do_cache=False,
-                protein_ids=[p.id for p in cached] + protein_ids_salvos,
-                teve_erro=teve_erro,
-                mensagem_erro=mensagem_erro,
-            )
-        else:
-            yield _sse(evento)
-            if evento.get("tipo") == "resultado":
-                p = service.salvar_proteina_no_cache(db, evento["dado"])
-                if p:
-                    protein_ids_salvos.append(p.id)
-            elif evento.get("tipo") == "erro_proteina":
-                erros_proteinas.append(
-                    f"{evento.get('proteina', '')}: {evento.get('mensagem', 'erro desconhecido')}"
+            try:
+                service.registrar_busca(
+                    db=db,
+                    user_id=user_id,
+                    proteina_query=proteinas,
+                    organismo_query=None,
+                    total_resultados=total_parcial,
+                    veio_do_cache=False,
+                    protein_ids=[p.id for p in cached] + protein_ids_salvos,
+                    teve_erro=teve_erro,
+                    mensagem_erro=mensagem_erro,
                 )
+            except Exception:
+                pass  # sessão pode estar fechada; ignora silenciosamente
 
 
 def uc_download_csv(
     db: Session,
     proteinas: str,
     organismo: Optional[str],
-    qualidade: Optional[str],
 ) -> tuple[str, str]:
     """Gera CSV dos resultados em cache com filtros. Retorna (conteudo, nome_arquivo)."""
     lista = parsear_lista_proteinas(proteinas)
@@ -118,8 +149,6 @@ def uc_download_csv(
             query = query.filter(
                 or_(*[Protein.organismo.ilike(f"%{o}%") for o in orgs])
             )
-    if qualidade:
-        query = query.filter(Protein.qualidade == qualidade)
 
     resultados = query.all()
 
@@ -133,10 +162,7 @@ def uc_download_csv(
         "resolucao",
         "metodo",
         "tem_ligante",
-        "num_cadeias",
-        "ramachandran",
         "depositado_em",
-        "qualidade",
         "link_pdb",
     ]
     writer = csv.DictWriter(output, fieldnames=campos, extrasaction="ignore")
@@ -170,9 +196,7 @@ def _proteina_dict(p: Protein) -> dict:
         "resolucao": p.resolucao,
         "metodo": p.metodo,
         "tem_ligante": p.tem_ligante,
-        "num_cadeias": p.num_cadeias,
-        "ramachandran": p.ramachandran,
         "depositado_em": p.depositado_em,
-        "qualidade": p.qualidade,
         "link_pdb": p.link_pdb,
+        "pdb_file_cached": p.pdb_file_cached,
     }

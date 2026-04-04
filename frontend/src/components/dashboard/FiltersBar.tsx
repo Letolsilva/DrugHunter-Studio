@@ -11,8 +11,8 @@ interface FiltersBarProps {
   setFiltroOrganismo: (v: string) => void;
   filtroProteina: string;
   setFiltroProteina: (v: string) => void;
-  filtroQualidade: string;
-  setFiltroQualidade: (v: string) => void;
+  filtroResolucaoMax: string;
+  setFiltroResolucaoMax: (v: string) => void;
   filtroLigante: string;
   setFiltroLigante: (v: string) => void;
   ordem: string;
@@ -30,8 +30,8 @@ export function FiltersBar({
   setFiltroOrganismo,
   filtroProteina,
   setFiltroProteina,
-  filtroQualidade,
-  setFiltroQualidade,
+  filtroResolucaoMax,
+  setFiltroResolucaoMax,
   filtroLigante,
   setFiltroLigante,
   ordem,
@@ -44,7 +44,7 @@ export function FiltersBar({
   const hasFiltros =
     filtroOrganismo ||
     filtroProteina ||
-    filtroQualidade ||
+    filtroResolucaoMax ||
     filtroLigante ||
     busca;
 
@@ -94,22 +94,22 @@ export function FiltersBar({
         </div>
       )}
 
-      {/* Dropdown de qualidade */}
-      <div className="min-w-32.5">
-        <DropdownSelect
-          value={filtroQualidade}
-          onChange={(v) => {
-            setFiltroQualidade(v);
-            onChangePage(1);
-          }}
-          options={[
-            { value: "", label: "Toda qualidade" },
-            ...["Excelente", "Boa", "Razoavel", "Verificar"].map((q) => ({
-              value: q,
-              label: q,
-            })),
-          ]}
-        />
+      {/* Input de resolução máxima */}
+      <div className="min-w-36 flex-none">
+        <div className="relative flex items-center">
+          <input
+            type="number"
+            min="0"
+            step="0.1"
+            value={filtroResolucaoMax}
+            onChange={(e) => {
+              setFiltroResolucaoMax(e.target.value);
+              onChangePage(1);
+            }}
+            placeholder="Res. máx. (Å)"
+            className="w-full rounded-lg border border-outline bg-surface px-3 py-2 text-[13px] text-foreground placeholder:text-foreground-subtle focus:border-accent focus:outline-none"
+          />
+        </div>
       </div>
 
       {/* Dropdown de ligante */}
@@ -135,7 +135,6 @@ export function FiltersBar({
           onChange={setOrdem}
           options={[
             { value: "resolucao", label: "Resolucao (crescente)" },
-            { value: "qualidade", label: "Qualidade (melhor primeiro)" },
             { value: "data", label: "Data (mais recente)" },
           ]}
         />

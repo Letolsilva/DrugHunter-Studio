@@ -9,11 +9,9 @@ export interface PdbResultModel {
   resolucao: number | null;
   metodo?: string;
   tem_ligante: boolean;
-  num_cadeias: number | null;
-  ramachandran?: number;
   depositado_em?: string;
-  qualidade: "Excelente" | "Boa" | "Razoável" | "Verificar";
   link_pdb?: string;
+  pdb_file_cached?: boolean;
 }
 
 export type SearchEventType =

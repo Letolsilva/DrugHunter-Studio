@@ -29,7 +29,7 @@ export class SearchUseCase extends ISearchUseCase {
 
   adaptEvent(ev: SearchEventModel): SearchEventModel {
     if (ev.tipo === "resultado" && ev.dado) {
-      return { ...ev, dado: adaptSearchResult(ev.dado) };
+      return { ...ev, dado: adaptSearchResult(ev.dado as any) };
     }
     return ev;
   }
