@@ -20,6 +20,7 @@ export default function HistoryDashboardPage({
     voltarLista,
     novaBusca,
     handleLogout,
+    irParaMeusPdbs,
     dashboard,
   } = useHistoryDashboardPage(historyUseCase, dashboardUseCase);
 
@@ -31,6 +32,7 @@ export default function HistoryDashboardPage({
       voltarLista={voltarLista}
       novaBusca={novaBusca}
       handleLogout={handleLogout}
+      irParaMeusPdbs={irParaMeusPdbs}
       dashboard={dashboard}
     />
   );

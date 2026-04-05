@@ -17,6 +17,7 @@ export default function HistoryListPage({
     abrirDetalhe,
     deletarItem,
     handleLogout,
+    irParaMeusPdbs,
     pagina,
     paginas,
     grupos,
@@ -31,6 +32,7 @@ export default function HistoryListPage({
       abrirDetalhe={abrirDetalhe}
       deletarItem={deletarItem}
       handleLogout={handleLogout}
+      irParaMeusPdbs={irParaMeusPdbs}
       pagina={pagina}
       paginas={paginas}
       grupos={grupos}

@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 
 from app.infra.db.database import get_db
 from app.infra.storage.storage_service import LocalStorageService, get_storage
-from app.core.deps import get_usuario_opcional
+from app.core.deps import get_usuario_opcional, get_usuario_atual
 from app.domain.models import User, Protein, UserPdbDownload
 
 RCSB_PDB_URL = "https://files.rcsb.org/download/{}.pdb"
@@ -104,3 +104,79 @@ def download_pdb(
             "Content-Length": str(len(file_data)),
         },
     )
+
+
+@router.get("/meus-pdbs")
+def listar_meus_pdbs(
+    db: Session = Depends(get_db),
+    usuario: User = Depends(get_usuario_atual),
+):
+    """Retorna todos os arquivos PDB baixados pelo usuário autenticado."""
+    from app.usecases import download as uc
+
+    return uc.uc_listar_meus_pdbs(db, usuario)
+
+
+@router.delete("/meus-pdbs/{pdb_id}", status_code=204)
+def remover_meu_pdb(
+    pdb_id: str,
+    db: Session = Depends(get_db),
+    usuario: User = Depends(get_usuario_atual),
+):
+    """Remove o vínculo entre o usuário e o PDB baixado."""
+    from app.usecases import download as uc
+
+    try:
+        uc.uc_remover_meu_pdb(db, usuario, pdb_id)
+    except KeyError:
+        raise HTTPException(
+            status_code=404,
+            detail=f"PDB {pdb_id} não encontrado nos seus downloads.",
+        )
+
+
+@router.get("/visualizar/{pdb_id}")
+def visualizar_pdb(
+    pdb_id: str,
+    db: Session = Depends(get_db),
+    storage: LocalStorageService = Depends(get_storage),
+    usuario: User = Depends(get_usuario_atual),
+):
+    """Retorna a árvore de grupos (ATOM/HETATM) do arquivo PDB para visualização."""
+    from app.usecases import visualizador as vc
+
+    try:
+        return vc.uc_arvore(db, storage, pdb_id, usuario)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/visualizar/{pdb_id}/linhas")
+def linhas_grupo(
+    pdb_id: str,
+    tipo: str,
+    resname: str,
+    chain: str,
+    resnum: str,
+    db: Session = Depends(get_db),
+    storage: LocalStorageService = Depends(get_storage),
+    usuario: User = Depends(get_usuario_atual),
+):
+    """Retorna as linhas raw de um grupo específico (lazy load ao expandir nó folha)."""
+    from app.usecases import visualizador as vc
+
+    try:
+        linhas = vc.uc_linhas_grupo(
+            db, storage, pdb_id, tipo, resname, chain, resnum, usuario
+        )
+        return {"linhas": linhas}
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))

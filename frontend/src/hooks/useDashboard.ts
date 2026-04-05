@@ -58,7 +58,11 @@ async function _fetchAndSaveFile(
   pdbId: string,
   dirHandle: FileSystemDirectoryHandle,
 ): Promise<void> {
-  const res = await fetch(PDB_DOWNLOAD_URL(pdbId));
+  const token = localStorage.getItem("access_token");
+  const headers: HeadersInit = token
+    ? { Authorization: `Bearer ${token}` }
+    : {};
+  const res = await fetch(PDB_DOWNLOAD_URL(pdbId), { headers });
   if (!res.ok) throw new Error(`Erro ao baixar ${pdbId}: ${res.status}`);
   const blob = await res.blob();
   const fileHandle = await dirHandle.getFileHandle(`${pdbId}.pdb`, {

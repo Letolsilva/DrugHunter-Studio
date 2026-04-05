@@ -19,6 +19,7 @@ export interface UseHistoryDashboardPageReturn {
   voltarLista: () => void;
   novaBusca: () => void;
   handleLogout: () => void;
+  irParaMeusPdbs: () => void;
   dashboard: UseDashboardReturn;
 }
 
@@ -45,6 +46,10 @@ export function useHistoryDashboardPage(
 
   const novaBusca = () => {
     navigate("/search");
+  };
+
+  const irParaMeusPdbs = () => {
+    navigate("/meus-pdbs");
   };
 
   const dashboard = useDashboard(detalhe?.proteinas ?? [], dashboardUseCase);
@@ -77,6 +82,7 @@ export function useHistoryDashboardPage(
     voltarLista,
     novaBusca,
     handleLogout,
+    irParaMeusPdbs,
     dashboard,
   };
 }

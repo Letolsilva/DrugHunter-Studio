@@ -20,6 +20,7 @@ export default function HistoryDashboardTemplate({
   voltarLista,
   novaBusca,
   handleLogout,
+  irParaMeusPdbs,
   dashboard,
 }: UseHistoryDashboardPageReturn) {
   return (
@@ -44,6 +45,13 @@ export default function HistoryDashboardTemplate({
         </Navbar.Left>
 
         <Navbar.Right>
+          <button
+            type="button"
+            onClick={irParaMeusPdbs}
+            className="cursor-pointer rounded border-none bg-transparent px-3 py-1.5 font-mono text-[12px] text-foreground-subtle transition-colors hover:text-foreground"
+          >
+            Meus PDBs
+          </button>
           <Button
             variant="ghost"
             onClick={handleLogout}

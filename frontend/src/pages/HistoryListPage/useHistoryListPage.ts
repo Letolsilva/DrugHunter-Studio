@@ -16,6 +16,7 @@ export interface UseHistoryListPageReturn {
   abrirDetalhe: (item: SearchHistoryItem) => void;
   deletarItem: (id: number) => void;
   handleLogout: () => void;
+  irParaMeusPdbs: () => void;
   pagina: number;
   paginas: number;
   grupos: Record<string, SearchHistoryItem[]>;
@@ -45,6 +46,10 @@ export function useHistoryListPage(
   const handleLogout = () => {
     logout();
     navigate("/");
+  };
+
+  const irParaMeusPdbs = () => {
+    navigate("/meus-pdbs");
   };
 
   useEffect(() => {
@@ -81,6 +86,7 @@ export function useHistoryListPage(
     abrirDetalhe,
     deletarItem,
     handleLogout,
+    irParaMeusPdbs,
     pagina,
     paginas,
     grupos,

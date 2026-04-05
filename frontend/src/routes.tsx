@@ -5,9 +5,13 @@ import AuthPage from "./pages/AuthPage/AuthPage";
 import SearchPage from "./pages/SearchPage/SearchPage";
 import HistoryListPage from "./pages/HistoryListPage/HistoryListPage";
 import HistoryDashboardPage from "./pages/HistoryDashboardPage/HistoryDashboardPage";
+import PdbFilesPage from "./pages/PdbFilesPage/PdbFilesPage";
+import VisualizadorPage from "./pages/VisualizadorPage/VisualizadorPage";
 import type { SearchUseCase } from "./data/usecases/search.usecase";
 import type { HistoryUseCase } from "./data/usecases/history.usecase";
 import type { DashboardUseCase } from "./data/usecases/dashboard.usecase";
+import type { PdbFilesUseCase } from "./data/usecases/pdb_files.usecase";
+import type { VisualizadorUseCase } from "./data/usecases/visualizador.usecase";
 
 interface RotaProtegidaProps {
   children: ReactNode;
@@ -47,12 +51,16 @@ interface AppRoutesProps {
   searchUseCase: SearchUseCase;
   historyUseCase: HistoryUseCase;
   dashboardUseCase: DashboardUseCase;
+  pdbFilesUseCase: PdbFilesUseCase;
+  visualizadorUseCase: VisualizadorUseCase;
 }
 
 export default function AppRoutes({
   searchUseCase,
   historyUseCase,
   dashboardUseCase,
+  pdbFilesUseCase,
+  visualizadorUseCase,
 }: AppRoutesProps) {
   const { user, loading } = useAuth();
 
@@ -95,6 +103,22 @@ export default function AppRoutes({
               historyUseCase={historyUseCase}
               dashboardUseCase={dashboardUseCase}
             />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/meus-pdbs"
+        element={
+          <RotaProtegida>
+            <PdbFilesPage pdbFilesUseCase={pdbFilesUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/visualizador/:pdb_id"
+        element={
+          <RotaProtegida>
+            <VisualizadorPage visualizadorUseCase={visualizadorUseCase} />
           </RotaProtegida>
         }
       />

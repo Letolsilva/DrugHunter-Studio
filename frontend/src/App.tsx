@@ -1,13 +1,26 @@
 // App.tsx
 import AppRoutes from "./routes";
-import { searchUseCase, historyUseCase, dashboardUseCase } from "./container";
+import { VisualizadorProvider } from "./contexts/VisualizadorContext";
+import { GlobalAccumulatedPanel } from "./components/visualizador/GlobalAccumulatedPanel";
+import {
+  searchUseCase,
+  historyUseCase,
+  dashboardUseCase,
+  pdbFilesUseCase,
+  visualizadorUseCase,
+} from "./container";
 
 export default function App() {
   return (
-    <AppRoutes
-      searchUseCase={searchUseCase}
-      historyUseCase={historyUseCase}
-      dashboardUseCase={dashboardUseCase}
-    />
+    <VisualizadorProvider>
+      <AppRoutes
+        searchUseCase={searchUseCase}
+        historyUseCase={historyUseCase}
+        dashboardUseCase={dashboardUseCase}
+        pdbFilesUseCase={pdbFilesUseCase}
+        visualizadorUseCase={visualizadorUseCase}
+      />
+      <GlobalAccumulatedPanel />
+    </VisualizadorProvider>
   );
 }

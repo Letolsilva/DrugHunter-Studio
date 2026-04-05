@@ -43,6 +43,7 @@ export interface UseSearchPageReturn {
   handleLogout: () => void;
   toggleMenu: () => void;
   irParaHistorico: () => void;
+  irParaMeusPdbs: () => void;
   pausar: () => void;
   cancelar: () => void;
   iniciarBusca: (forcarNovo?: boolean) => void;
@@ -100,6 +101,11 @@ export function useSearchPage(
   const irParaHistorico = useCallback(() => {
     setMenuAberto(false);
     navigate("/historico");
+  }, [navigate]);
+
+  const irParaMeusPdbs = useCallback(() => {
+    setMenuAberto(false);
+    navigate("/meus-pdbs");
   }, [navigate]);
 
   const atualizarBarra = useCallback(
@@ -255,6 +261,7 @@ export function useSearchPage(
     handleLogout,
     toggleMenu,
     irParaHistorico,
+    irParaMeusPdbs,
     pausar,
     cancelar,
     iniciarBusca,

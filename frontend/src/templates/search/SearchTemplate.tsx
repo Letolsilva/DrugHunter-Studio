@@ -10,6 +10,7 @@ import {
   AppLogoIcon,
   ClockIcon,
   CloseIcon,
+  DownloadIcon,
   LogoutIcon,
   MenuIcon,
   PauseIcon,
@@ -42,6 +43,7 @@ interface SearchTemplateProps {
   handleLogout: () => void;
   toggleMenu: () => void;
   irParaHistorico: () => void;
+  irParaMeusPdbs: () => void;
   pausar: () => void;
   cancelar: () => void;
   iniciarBusca: (forcarNovo?: boolean) => void;
@@ -70,6 +72,7 @@ export default function SearchTemplate({
   handleLogout,
   toggleMenu,
   irParaHistorico,
+  irParaMeusPdbs,
   pausar,
   cancelar,
   iniciarBusca,
@@ -98,6 +101,12 @@ export default function SearchTemplate({
               icon={<ClockIcon size={14} />}
               label="Histórico"
               onClick={irParaHistorico}
+              divider
+            />
+            <DropdownMenu.Item
+              icon={<DownloadIcon size={14} />}
+              label="Meus PDBs"
+              onClick={irParaMeusPdbs}
               divider
             />
             <DropdownMenu.Item

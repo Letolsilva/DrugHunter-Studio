@@ -34,6 +34,7 @@ export default function SearchPage({
     handleLogout,
     toggleMenu,
     irParaHistorico,
+    irParaMeusPdbs,
     pausar,
     cancelar,
     iniciarBusca,
@@ -63,6 +64,7 @@ export default function SearchPage({
       handleLogout={handleLogout}
       toggleMenu={toggleMenu}
       irParaHistorico={irParaHistorico}
+      irParaMeusPdbs={irParaMeusPdbs}
       pausar={pausar}
       cancelar={cancelar}
       iniciarBusca={iniciarBusca}

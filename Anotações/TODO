@@ -8,6 +8,15 @@ Pensar sobre:
 - Feito somente para legacy depois de tudo pronto implementar para: pdb*,FASTA* -> deixar definir onde vai salvar  -> abrir o segundo dowload ja abrir na pasta que ele selecionou o primeiro 
 - testar a limpeza em 30 dias
 
+PERGUNTA ORIENTADOR — HOH (água):
+  Na tela do visualizador, HOH representa moléculas de água presentes na estrutura cristalográfica.
+  Elas são ruído para docking/drughunter — não são ligantes farmacológicos.
+  Pergunta: confirmar se HOH deve ser excluído por padrão da visualização e do CSV gerado,
+  ou se existe algum caso de uso em que água estrutural seja relevante no pipeline.
+
+
+- entender porque pela cadaeia e pelo res, verificar sobre chamar os arquivos no S3, implementar um banco de dados e pesquisar sobre o servidor.
+
 Tela nova:
 inicial todos os arquivos baixados
 clicou entra em modo de visualização do atm e hetatm que vai vim do arquivo pdb e pega todos os dados da linha e vai poder filtrar se quer ve um ou outro 

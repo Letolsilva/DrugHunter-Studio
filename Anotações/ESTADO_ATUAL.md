@@ -1,7 +1,7 @@
 # Estado Atual — PDB Explorer
 
 > Atualize este arquivo sempre que pausar ou retomar o desenvolvimento.  
-> Última atualização: 04/04/2026
+> Última atualização: 04/04/2026 (Visualizador PDB implementado)
 
 ---
 
@@ -31,19 +31,14 @@
 
 ## Em andamento
 
+- [x] Tela "Meus PDBs" (`/meus-pdbs`) — grid de cards, exclusão com confirmação, nav no menu de todas as telas
+- [x] Visualizador de estruturas PDB (`/visualizador/:pdb_id`) — árvore tri-state ATOM/HETATM, lazy load de linhas raw, seleção acumulada multi-PDB, gera `pdb_codes.csv`
 
 ---
 
 ## Próximos passos (backlog priorizado)
 
-1. **Tela de visualização de arquivos PDB baixados**
-   - Lista inicial: todos os arquivos baixados
-   - Clicou → modo de visualização de `ATOM` e `HETATM` com filtros
-   - Seleção de registros → gera arquivo `pdb_codes.csv` com colunas:
-     `PDB_CODE, LIGAND, RESNUM, CHAIN, RESOLUTION`
-   - Salvar CSV na mesma pasta dos `.pdb`
-
-2. **Pasta `dataset/`** para organizar downloads
+1. **Pasta `dataset/`** para organizar downloads
 
 3. **Menu principal** com as opções de módulos
 

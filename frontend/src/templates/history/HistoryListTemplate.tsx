@@ -22,6 +22,7 @@ export default function HistoryListTemplate({
   abrirDetalhe,
   deletarItem,
   handleLogout,
+  irParaMeusPdbs,
   pagina,
   paginas,
   grupos,
@@ -51,6 +52,13 @@ export default function HistoryListTemplate({
         </Navbar.Left>
 
         <Navbar.Right>
+          <button
+            type="button"
+            onClick={irParaMeusPdbs}
+            className="cursor-pointer rounded border-none bg-transparent px-3 py-1.5 font-mono text-[12px] text-foreground-subtle transition-colors hover:text-foreground"
+          >
+            Meus PDBs
+          </button>
           <Button
             variant="ghost"
             onClick={handleLogout}
