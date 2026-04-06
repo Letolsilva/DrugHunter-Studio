@@ -93,6 +93,8 @@ def salvar_proteina_no_cache(db: Session, dado: dict) -> Optional[Protein]:
         "tem_ligante",
         "depositado_em",
         "link_pdb",
+        "tem_legacy",
+        "tem_cif",
     ]
 
     if existente:

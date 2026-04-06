@@ -9,6 +9,9 @@ interface PdbFileRaw {
   metodo: string | null;
   pdb_file_size: number | null;
   downloaded_at: string;
+  formato?: string;
+  tem_legacy?: boolean;
+  tem_cif?: boolean;
 }
 
 export function adaptPdbFile(raw: PdbFileRaw): PdbFileModel {
@@ -20,5 +23,8 @@ export function adaptPdbFile(raw: PdbFileRaw): PdbFileModel {
     metodo: raw.metodo ?? null,
     pdb_file_size: raw.pdb_file_size ?? null,
     downloaded_at: raw.downloaded_at,
+    formato: (raw.formato === "cif" ? "cif" : "legacy") as "legacy" | "cif",
+    tem_legacy: raw.tem_legacy ?? true,
+    tem_cif: raw.tem_cif ?? true,
   };
 }

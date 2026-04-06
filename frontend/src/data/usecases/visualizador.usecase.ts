@@ -4,7 +4,7 @@ import type { IHTTPClient } from "../../infra/interfaces/httpClient.interface";
 import type { PdbArvore } from "../../domain/models/visualizador.model";
 
 export class VisualizadorUseCase extends IVisualizadorUseCase {
-  private httpClient: IHTTPClient;
+  protected httpClient: IHTTPClient;
 
   constructor(httpClient: IHTTPClient) {
     super();

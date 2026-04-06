@@ -173,6 +173,17 @@ def _buscar_organismo(pdb_id: str) -> str:
 # ─────────────────────────────────────────────────────────────
 
 
+def _verificar_formato(pdb_id: str, extensao: str) -> bool:
+    """Faz um HEAD request para verificar se o formato existe no RCSB."""
+    url = f"https://files.rcsb.org/download/{pdb_id.upper()}.{extensao}"
+    req = urllib.request.Request(url, method="HEAD")
+    try:
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            return resp.status == 200
+    except Exception:
+        return False
+
+
 def _buscar_detalhes(pdb_id: str) -> dict:
     return _http_get(ENTRY_URL.format(pdb_id.lower()))
 
@@ -199,6 +210,9 @@ def _extrair_campos(pdb_id: str, dados: dict, proteina_buscada: str) -> dict:
     classificacao = dados.get("struct_keywords", {}).get("pdbx_keywords", "N/A")
     organismo = _buscar_organismo(pdb_id)
 
+    tem_legacy = _verificar_formato(pdb_id, "pdb")
+    tem_cif = _verificar_formato(pdb_id, "cif")
+
     return {
         "pdb_id": pdb_id.upper(),
         "proteina_buscada": proteina_buscada,
@@ -210,6 +224,8 @@ def _extrair_campos(pdb_id: str, dados: dict, proteina_buscada: str) -> dict:
         "tem_ligante": tem_ligante,
         "depositado_em": deposicao,
         "link_pdb": f"https://www.rcsb.org/structure/{pdb_id.upper()}",
+        "tem_legacy": tem_legacy,
+        "tem_cif": tem_cif,
     }
 
 

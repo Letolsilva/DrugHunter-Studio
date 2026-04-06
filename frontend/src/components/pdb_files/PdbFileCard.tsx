@@ -4,8 +4,8 @@ import { TrashIcon } from "../icons";
 
 interface PdbFileCardProps {
   arquivo: PdbFileModel;
-  onExcluir: (pdb_id: string) => void;
-  onAbrir: (pdb_id: string) => void;
+  onExcluir: (pdb_id: string, formato: "legacy" | "cif") => void;
+  onAbrir: (pdb_id: string, formato: "legacy" | "cif") => void;
 }
 
 function formatarTamanho(bytes: number | null): string {
@@ -25,19 +25,36 @@ function formatarData(iso: string): string {
 }
 
 export function PdbFileCard({ arquivo, onExcluir, onAbrir }: PdbFileCardProps) {
+  const isCif = arquivo.formato === "cif";
+
   return (
     <div
       className="group relative flex flex-col gap-3 rounded-xl border border-outline bg-panel p-4 transition-colors hover:border-outline-strong hover:bg-panel-hover cursor-pointer"
-      onClick={() => onAbrir(arquivo.pdb_id)}
+      onClick={() => onAbrir(arquivo.pdb_id, arquivo.formato)}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === "Enter" && onAbrir(arquivo.pdb_id)}
+      onKeyDown={(e) =>
+        e.key === "Enter" && onAbrir(arquivo.pdb_id, arquivo.formato)
+      }
     >
       {/* Cabeçalho */}
       <div className="flex items-start justify-between gap-2">
-        <span className="font-mono text-[18px] font-extrabold text-accent tracking-wide">
-          {arquivo.pdb_id}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[18px] font-extrabold text-accent tracking-wide">
+            {arquivo.pdb_id}
+          </span>
+          {/* Badge de formato */}
+          <span
+            className={[
+              "font-mono text-[10px] font-bold px-1.5 py-0.5 rounded border",
+              isCif
+                ? "border-blue-30 bg-blue-12 text-blue"
+                : "border-accent-30 bg-accent-12 text-accent",
+            ].join(" ")}
+          >
+            {isCif ? "mmCIF" : "legacy"}
+          </span>
+        </div>
 
         <button
           type="button"
@@ -45,7 +62,7 @@ export function PdbFileCard({ arquivo, onExcluir, onAbrir }: PdbFileCardProps) {
           title="Remover"
           onClick={(e) => {
             e.stopPropagation();
-            onExcluir(arquivo.pdb_id);
+            onExcluir(arquivo.pdb_id, arquivo.formato);
           }}
         >
           <TrashIcon size={15} />

@@ -5,13 +5,25 @@ import { Button } from "../../components/ui/Button";
 import { Spinner } from "../../components/ui/Spinner";
 import { AppLogoIcon, DownloadIcon, WarningIcon } from "../../components/icons";
 import { PdbFileCard } from "../../components/pdb_files/PdbFileCard";
-import type { UsePdbFilesPageReturn } from "../../pages/PdbFilesPage/usePdbFilesPage";
+import type {
+  UsePdbFilesPageReturn,
+  FiltroFormato,
+} from "../../pages/PdbFilesPage/usePdbFilesPage";
+
+const OPCOES_FORMATO: { value: FiltroFormato; label: string }[] = [
+  { value: "todos", label: "Todos" },
+  { value: "legacy", label: "Legacy PDB (.pdb)" },
+  { value: "cif", label: "PDBx/mmCIF (.cif)" },
+];
 
 export default function PdbFilesTemplate({
   fase,
   arquivos,
+  arquivosFiltrados,
   erroMsg,
   confirmandoExclusao,
+  filtroFormato,
+  setFiltroFormato,
   handleExcluir,
   confirmarExclusao,
   cancelarExclusao,
@@ -59,16 +71,43 @@ export default function PdbFilesTemplate({
       </Navbar>
 
       <main className="flex-1 max-w-[1400px] w-full mx-auto px-8 py-10">
-        {/* Cabeçalho */}
+        {/* Cabeçalho + filtro de formato */}
         {fase === "ok" && (
-          <div className="flex items-center gap-3 mb-8">
-            <DownloadIcon size={20} className="text-accent" />
-            <h1 className="text-[22px] font-extrabold text-foreground tracking-tight">
-              Meus PDBs
-            </h1>
-            <span className="font-mono text-[12px] text-foreground-subtle border border-outline rounded px-2 py-0.5">
-              {arquivos.length} {arquivos.length === 1 ? "arquivo" : "arquivos"}
-            </span>
+          <div className="flex items-center justify-between gap-4 mb-8 flex-wrap">
+            <div className="flex items-center gap-3">
+              <DownloadIcon size={20} className="text-accent" />
+              <h1 className="text-[22px] font-extrabold text-foreground tracking-tight">
+                Meus PDBs
+              </h1>
+              <span className="font-mono text-[12px] text-foreground-subtle border border-outline rounded px-2 py-0.5">
+                {arquivosFiltrados.length}{" "}
+                {arquivosFiltrados.length === 1 ? "arquivo" : "arquivos"}
+                {filtroFormato !== "todos" && (
+                  <span className="ml-1 text-accent">
+                    · {arquivos.length} total
+                  </span>
+                )}
+              </span>
+            </div>
+
+            {/* Filtro por formato */}
+            <div className="flex gap-1">
+              {OPCOES_FORMATO.map((op) => (
+                <button
+                  key={op.value}
+                  type="button"
+                  onClick={() => setFiltroFormato(op.value)}
+                  className={[
+                    "cursor-pointer rounded border px-3 py-1.5 font-mono text-[11px] transition-colors",
+                    filtroFormato === op.value
+                      ? "border-accent bg-accent-12 text-accent"
+                      : "border-outline bg-transparent text-foreground-subtle hover:border-outline-strong hover:text-foreground",
+                  ].join(" ")}
+                >
+                  {op.label}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -127,16 +166,33 @@ export default function PdbFilesTemplate({
 
         {/* Grid de cards */}
         {fase === "ok" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {arquivos.map((arquivo) => (
-              <PdbFileCard
-                key={arquivo.pdb_id}
-                arquivo={arquivo}
-                onExcluir={handleExcluir}
-                onAbrir={handleAbrirVisualizador}
-              />
-            ))}
-          </div>
+          <>
+            {arquivosFiltrados.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-3 py-20">
+                <p className="font-mono text-[13px] text-foreground-subtle">
+                  Nenhum arquivo no formato selecionado.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setFiltroFormato("todos")}
+                  className="cursor-pointer font-mono text-[12px] text-accent hover:underline"
+                >
+                  Ver todos
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {arquivosFiltrados.map((arquivo) => (
+                  <PdbFileCard
+                    key={`${arquivo.pdb_id}-${arquivo.formato}`}
+                    arquivo={arquivo}
+                    onExcluir={handleExcluir}
+                    onAbrir={handleAbrirVisualizador}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </main>
 
@@ -154,7 +210,10 @@ export default function PdbFilesTemplate({
             <h2 className="text-[16px] font-bold text-foreground">
               Remover{" "}
               <span className="font-mono text-accent">
-                {confirmandoExclusao}
+                {confirmandoExclusao.pdb_id}
+              </span>{" "}
+              <span className="font-mono text-[13px] text-foreground-subtle">
+                ({confirmandoExclusao.formato === "cif" ? "mmCIF" : "legacy"})
               </span>
               ?
             </h2>

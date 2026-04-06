@@ -1,17 +1,19 @@
 """
-routes/download.py — Download de arquivos .pdb do RCSB
+routes/download.py — Download de arquivos .pdb (legacy) e .cif (PDBx/mmCIF) do RCSB
 
 GET /api/download/pdb/{pdb_id}
+GET /api/download/cif/{pdb_id}
   - Verifica se o arquivo já existe no storage local
   - Se não: faz fetch em files.rcsb.org, salva no storage e atualiza o banco
-  - Registra o download em user_pdb_downloads (apenas usuários logados)
+  - Registra o download em user_pdb_downloads com o formato correto
   - Retorna o arquivo como stream com Content-Disposition: attachment
 """
 
 import urllib.request
+from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -21,12 +23,13 @@ from app.core.deps import get_usuario_opcional, get_usuario_atual
 from app.domain.models import User, Protein, UserPdbDownload
 
 RCSB_PDB_URL = "https://files.rcsb.org/download/{}.pdb"
+RCSB_CIF_URL = "https://files.rcsb.org/download/{}.cif"
 
 router = APIRouter(prefix="/api/download", tags=["Download"])
 
 
-def _fetch_pdb_from_rcsb(pdb_id: str) -> bytes:
-    url = RCSB_PDB_URL.format(pdb_id.upper())
+def _fetch_from_rcsb(url_template: str, pdb_id: str) -> bytes:
+    url = url_template.format(pdb_id.upper())
     try:
         with urllib.request.urlopen(url, timeout=30) as resp:
             return resp.read()
@@ -37,6 +40,29 @@ def _fetch_pdb_from_rcsb(pdb_id: str) -> bytes:
         )
 
 
+def _registrar_download(
+    db: Session,
+    usuario: Optional[User],
+    protein: Optional[Protein],
+    formato: str,
+) -> None:
+    """Cria ou atualiza o registro UserPdbDownload para o formato informado."""
+    if not usuario or not protein:
+        return
+    existing = (
+        db.query(UserPdbDownload)
+        .filter_by(user_id=usuario.id, protein_id=protein.id, formato=formato)
+        .first()
+    )
+    if existing:
+        existing.downloaded_at = datetime.utcnow()
+    else:
+        db.add(
+            UserPdbDownload(user_id=usuario.id, protein_id=protein.id, formato=formato)
+        )
+    db.commit()
+
+
 @router.get("/pdb/{pdb_id}")
 def download_pdb(
     pdb_id: str,
@@ -45,52 +71,32 @@ def download_pdb(
     usuario: Optional[User] = Depends(get_usuario_opcional),
 ):
     """
-    Baixa o arquivo .pdb legado de uma estrutura do RCSB.
-    Cacheia no servidor para servir na fase seguinte (visualizador no site).
-    Registra o download para o usuário logado.
+    Baixa o arquivo .pdb legacy de uma estrutura do RCSB.
+    Cacheia no servidor. Registra o download com formato='legacy'.
     """
     pdb_id = pdb_id.upper().strip()
     if not pdb_id or len(pdb_id) > 10:
         raise HTTPException(status_code=400, detail="PDB ID inválido.")
 
     key = f"{pdb_id}.pdb"
-
-    # Busca o registro no banco para atualizar depois
     protein = db.query(Protein).filter(Protein.pdb_id == pdb_id).first()
 
-    # Cacheia o arquivo se ainda não existe no storage
     if not storage.exists(key):
-        data = _fetch_pdb_from_rcsb(pdb_id)
+        data = _fetch_from_rcsb(RCSB_PDB_URL, pdb_id)
         storage.save(key, data)
-
         if protein:
             protein.pdb_file_cached = True
             protein.pdb_storage_key = key
             protein.pdb_file_size = len(data)
             db.commit()
     else:
-        # Garante que o banco reflete o estado real do storage
         if protein and not protein.pdb_file_cached:
             protein.pdb_file_cached = True
             protein.pdb_storage_key = key
             db.commit()
 
-    # Registra o download para o usuário logado
-    if usuario and protein:
-        existing = (
-            db.query(UserPdbDownload)
-            .filter_by(user_id=usuario.id, protein_id=protein.id)
-            .first()
-        )
-        if existing:
-            from datetime import datetime
+    _registrar_download(db, usuario, protein, "legacy")
 
-            existing.downloaded_at = datetime.utcnow()
-        else:
-            db.add(UserPdbDownload(user_id=usuario.id, protein_id=protein.id))
-        db.commit()
-
-    # Serve o arquivo
     file_data = storage.read(key)
 
     def iterfile():
@@ -99,6 +105,55 @@ def download_pdb(
     return StreamingResponse(
         iterfile(),
         media_type="chemical/x-pdb",
+        headers={
+            "Content-Disposition": f"attachment; filename={key}",
+            "Content-Length": str(len(file_data)),
+        },
+    )
+
+
+@router.get("/cif/{pdb_id}")
+def download_cif(
+    pdb_id: str,
+    db: Session = Depends(get_db),
+    storage: LocalStorageService = Depends(get_storage),
+    usuario: Optional[User] = Depends(get_usuario_opcional),
+):
+    """
+    Baixa o arquivo .cif (PDBx/mmCIF) de uma estrutura do RCSB.
+    Cacheia no servidor. Registra o download com formato='cif'.
+    """
+    pdb_id = pdb_id.upper().strip()
+    if not pdb_id or len(pdb_id) > 10:
+        raise HTTPException(status_code=400, detail="PDB ID inválido.")
+
+    key = f"{pdb_id}.cif"
+    protein = db.query(Protein).filter(Protein.pdb_id == pdb_id).first()
+
+    if not storage.exists(key):
+        data = _fetch_from_rcsb(RCSB_CIF_URL, pdb_id)
+        storage.save(key, data)
+        if protein:
+            protein.cif_file_cached = True
+            protein.cif_storage_key = key
+            protein.cif_file_size = len(data)
+            db.commit()
+    else:
+        if protein and not protein.cif_file_cached:
+            protein.cif_file_cached = True
+            protein.cif_storage_key = key
+            db.commit()
+
+    _registrar_download(db, usuario, protein, "cif")
+
+    file_data = storage.read(key)
+
+    def iterfile():
+        yield file_data
+
+    return StreamingResponse(
+        iterfile(),
+        media_type="chemical/x-cif",
         headers={
             "Content-Disposition": f"attachment; filename={key}",
             "Content-Length": str(len(file_data)),
@@ -120,18 +175,19 @@ def listar_meus_pdbs(
 @router.delete("/meus-pdbs/{pdb_id}", status_code=204)
 def remover_meu_pdb(
     pdb_id: str,
+    formato: str = Query(default="legacy"),
     db: Session = Depends(get_db),
     usuario: User = Depends(get_usuario_atual),
 ):
-    """Remove o vínculo entre o usuário e o PDB baixado."""
+    """Remove o vínculo entre o usuário e o PDB baixado no formato informado."""
     from app.usecases import download as uc
 
     try:
-        uc.uc_remover_meu_pdb(db, usuario, pdb_id)
+        uc.uc_remover_meu_pdb(db, usuario, pdb_id, formato)
     except KeyError:
         raise HTTPException(
             status_code=404,
-            detail=f"PDB {pdb_id} não encontrado nos seus downloads.",
+            detail=f"PDB {pdb_id} ({formato}) não encontrado nos seus downloads.",
         )
 
 
@@ -171,6 +227,53 @@ def linhas_grupo(
 
     try:
         linhas = vc.uc_linhas_grupo(
+            db, storage, pdb_id, tipo, resname, chain, resnum, usuario
+        )
+        return {"linhas": linhas}
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/visualizar-cif/{pdb_id}")
+def visualizar_cif(
+    pdb_id: str,
+    db: Session = Depends(get_db),
+    storage: LocalStorageService = Depends(get_storage),
+    usuario: User = Depends(get_usuario_atual),
+):
+    """Retorna a árvore de grupos (ATOM/HETATM) do arquivo CIF para visualização."""
+    from app.usecases import visualizador_cif as vc_cif
+
+    try:
+        return vc_cif.uc_arvore_cif(db, storage, pdb_id, usuario)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/visualizar-cif/{pdb_id}/linhas")
+def linhas_grupo_cif(
+    pdb_id: str,
+    tipo: str,
+    resname: str,
+    chain: str,
+    resnum: str,
+    db: Session = Depends(get_db),
+    storage: LocalStorageService = Depends(get_storage),
+    usuario: User = Depends(get_usuario_atual),
+):
+    """Retorna as linhas raw CIF de um grupo específico (lazy load)."""
+    from app.usecases import visualizador_cif as vc_cif
+
+    try:
+        linhas = vc_cif.uc_linhas_grupo_cif(
             db, storage, pdb_id, tipo, resname, chain, resnum, usuario
         )
         return {"linhas": linhas}

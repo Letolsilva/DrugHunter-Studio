@@ -3,12 +3,17 @@ import { useState, useMemo, useCallback, useRef } from "react";
 import type { PdbResultModel } from "../domain/models/search.model";
 import type { DashboardUseCase } from "../data/usecases/dashboard.usecase";
 
-const PDB_DOWNLOAD_URL = (pdbId: string) => `/api/download/pdb/${pdbId}`;
 const BATCH_DELAY_MS = 150;
 
 export interface BatchProgress {
   atual: number;
   total: number;
+}
+
+export interface ModalDownloadState {
+  pdbIds: string[];
+  temLegacy: boolean;
+  temCif: boolean;
 }
 
 export interface UseDashboardReturn {
@@ -37,14 +42,14 @@ export interface UseDashboardReturn {
   dadosProteina: { name: string; value: number }[];
   downloadCSV: () => Promise<void>;
   limparFiltros: () => void;
-  // SeleÃ§Ã£o e download em lote
+  // Seleção e download em lote
   selectedIds: Set<string>;
   toggleSelected: (pdbId: string) => void;
   toggleSelectAll: () => void;
   isAllSelected: boolean;
   batchProgress: BatchProgress | null;
-  downloadBatch: () => Promise<void>;
-  downloadSingle: (pdbId: string) => Promise<void>;
+  downloadBatch: () => void;
+  downloadSingle: (pdbId: string) => void;
   downloadingIds: Set<string>;
   recentlyDownloadedIds: Set<string>;
   failedIds: Set<string>;
@@ -52,20 +57,30 @@ export interface UseDashboardReturn {
   pickFolder: () => Promise<void>;
   toast: string | null;
   toastVariant: "success" | "error";
+  // Modal de seleção de formato
+  modalDownload: ModalDownloadState | null;
+  fecharModalDownload: () => void;
+  confirmarFormato: (formato: "legacy" | "cif") => Promise<void>;
 }
 
 async function _fetchAndSaveFile(
   pdbId: string,
+  formato: "legacy" | "cif",
   dirHandle: FileSystemDirectoryHandle,
 ): Promise<void> {
+  const ext = formato === "cif" ? "cif" : "pdb";
+  const url =
+    formato === "cif"
+      ? `/api/download/cif/${pdbId}`
+      : `/api/download/pdb/${pdbId}`;
   const token = localStorage.getItem("access_token");
   const headers: HeadersInit = token
     ? { Authorization: `Bearer ${token}` }
     : {};
-  const res = await fetch(PDB_DOWNLOAD_URL(pdbId), { headers });
+  const res = await fetch(url, { headers });
   if (!res.ok) throw new Error(`Erro ao baixar ${pdbId}: ${res.status}`);
   const blob = await res.blob();
-  const fileHandle = await dirHandle.getFileHandle(`${pdbId}.pdb`, {
+  const fileHandle = await dirHandle.getFileHandle(`${pdbId}.${ext}`, {
     create: true,
   });
   const writable = await fileHandle.createWritable();
@@ -102,6 +117,11 @@ export function useDashboard(
   );
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [failedIds, setFailedIds] = useState<Set<string>>(new Set());
+  const [modalDownload, setModalDownload] = useState<ModalDownloadState | null>(
+    null,
+  );
+  // guarda pendências ao confirmar formato (closure sobre pdbIds)
+  const pendingFormatoRef = useRef<string[]>([]);
 
   const showToast = useCallback(
     (message: string, variant: "success" | "error" = "success") => {
@@ -172,82 +192,118 @@ export function useDashboard(
     }, []);
 
   const downloadSingle = useCallback(
-    async (pdbId: string) => {
+    (pdbId: string) => {
+      const item = dados.find((d) => d.pdb_id === pdbId);
+      const temLegacy = item?.tem_legacy !== false;
+      const temCif = item?.tem_cif !== false;
+      pendingFormatoRef.current = [pdbId];
+      setModalDownload({ pdbIds: [pdbId], temLegacy, temCif });
+    },
+    [dados],
+  );
+
+  const downloadBatch = useCallback(() => {
+    if (selectedIds.size === 0) return;
+    const ids = [...selectedIds];
+    const temLegacy = ids.some((id) => {
+      const item = dados.find((d) => d.pdb_id === id);
+      return item?.tem_legacy !== false;
+    });
+    const temCif = ids.some((id) => {
+      const item = dados.find((d) => d.pdb_id === id);
+      return item?.tem_cif !== false;
+    });
+    pendingFormatoRef.current = ids;
+    setModalDownload({ pdbIds: ids, temLegacy, temCif });
+  }, [selectedIds, dados]);
+
+  const fecharModalDownload = useCallback(() => {
+    setModalDownload(null);
+    pendingFormatoRef.current = [];
+  }, []);
+
+  const confirmarFormato = useCallback(
+    async (formato: "legacy" | "cif") => {
+      const ids = pendingFormatoRef.current;
+      setModalDownload(null);
+      pendingFormatoRef.current = [];
+      if (ids.length === 0) return;
+
       const handle = await _ensureFolder();
       if (!handle) return;
-      setDownloadingIds((prev) => new Set(prev).add(pdbId));
-      let success = false;
-      try {
-        await _fetchAndSaveFile(pdbId, handle);
-        success = true;
-      } catch {
-        setFailedIds((prev) => new Set(prev).add(pdbId));
-        showToast(`${pdbId} não possui arquivo legacy disponível`, "error");
-        setTimeout(() => {
-          setFailedIds((prev) => {
+
+      if (ids.length === 1) {
+        const pdbId = ids[0];
+        setDownloadingIds((prev) => new Set(prev).add(pdbId));
+        let success = false;
+        try {
+          await _fetchAndSaveFile(pdbId, formato, handle);
+          success = true;
+        } catch {
+          setFailedIds((prev) => new Set(prev).add(pdbId));
+          showToast(
+            `${pdbId} não possui arquivo ${formato} disponível`,
+            "error",
+          );
+          setTimeout(() => {
+            setFailedIds((prev) => {
+              const next = new Set(prev);
+              next.delete(pdbId);
+              return next;
+            });
+          }, 3000);
+        } finally {
+          setDownloadingIds((prev) => {
             const next = new Set(prev);
             next.delete(pdbId);
             return next;
           });
-        }, 3000);
-      } finally {
-        setDownloadingIds((prev) => {
-          const next = new Set(prev);
-          next.delete(pdbId);
-          return next;
-        });
-      }
-      if (success) {
-        setRecentlyDownloadedIds((prev) => new Set(prev).add(pdbId));
-        showToast(`${pdbId}.pdb baixado com sucesso`, "success");
-        setTimeout(() => {
-          setRecentlyDownloadedIds((prev) => {
-            const next = new Set(prev);
-            next.delete(pdbId);
-            return next;
-          });
-        }, 2000);
+        }
+        if (success) {
+          setRecentlyDownloadedIds((prev) => new Set(prev).add(pdbId));
+          const ext = formato === "cif" ? ".cif" : ".pdb";
+          showToast(`${pdbId}${ext} baixado com sucesso`, "success");
+          setTimeout(() => {
+            setRecentlyDownloadedIds((prev) => {
+              const next = new Set(prev);
+              next.delete(pdbId);
+              return next;
+            });
+          }, 2000);
+        }
+      } else {
+        setBatchProgress({ atual: 0, total: ids.length });
+        let falhas = 0;
+        for (let i = 0; i < ids.length; i++) {
+          try {
+            await _fetchAndSaveFile(ids[i], formato, handle);
+          } catch {
+            falhas++;
+          }
+          setBatchProgress({ atual: i + 1, total: ids.length });
+          if (i < ids.length - 1) await _sleep(BATCH_DELAY_MS);
+        }
+        setBatchProgress(null);
+        setSelectedIds(new Set());
+        const sucessos = ids.length - falhas;
+        const ext = formato === "cif" ? ".cif" : ".pdb";
+        if (falhas === 0) {
+          showToast(
+            `${ids.length} arquivo${ids.length > 1 ? "s" : ""}${ext} baixado${ids.length > 1 ? "s" : ""} com sucesso`,
+            "success",
+          );
+        } else if (sucessos === 0) {
+          showToast(`Nenhum arquivo ${formato} estava disponível`, "error");
+        } else {
+          showToast(
+            `${sucessos} baixado${sucessos > 1 ? "s" : ""}, ${falhas} sem arquivo ${formato}`,
+            "error",
+          );
+        }
       }
     },
     [_ensureFolder, showToast],
   );
-
-  const downloadBatch = useCallback(async () => {
-    if (selectedIds.size === 0) return;
-    const handle = await _ensureFolder();
-    if (!handle) return;
-
-    const ids = [...selectedIds];
-    setBatchProgress({ atual: 0, total: ids.length });
-    let falhas = 0;
-
-    for (let i = 0; i < ids.length; i++) {
-      try {
-        await _fetchAndSaveFile(ids[i], handle);
-      } catch {
-        falhas++;
-      }
-      setBatchProgress({ atual: i + 1, total: ids.length });
-      if (i < ids.length - 1) await _sleep(BATCH_DELAY_MS);
-    }
-
-    setBatchProgress(null);
-    setSelectedIds(new Set());
-    const sucessos = ids.length - falhas;
-    if (falhas === 0) {
-      showToast(
-        `${ids.length} arquivo${ids.length > 1 ? "s" : ""} baixado${ids.length > 1 ? "s" : ""} com sucesso`,
-        "success",
-      );
-    } else if (sucessos === 0) {
-      showToast(`Nenhum arquivo legacy estava disponível`, "error");
-    } else {
-      showToast(
-        `${sucessos} baixado${sucessos > 1 ? "s" : ""}, ${falhas} sem arquivo legacy`,
-        "error",
-      );
-    }
-  }, [selectedIds, _ensureFolder, showToast]);
 
   const downloadCSV = useCallback(async () => {
     const csv = dashboardUseCase.gerarCSV(result.filtrados);
@@ -353,5 +409,8 @@ export function useDashboard(
     pickFolder,
     toast,
     toastVariant,
+    modalDownload,
+    fecharModalDownload,
+    confirmarFormato,
   };
 }

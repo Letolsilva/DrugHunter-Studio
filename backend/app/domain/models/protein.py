@@ -23,10 +23,19 @@ class Protein(Base):
     depositado_em = Column(String(20))
     link_pdb = Column(String(200))
 
-    # Storage do arquivo .pdb — chave relativa usada pelo StorageService
+    # Storage do arquivo .pdb legacy — chave relativa usada pelo StorageService
     pdb_file_cached = Column(Boolean, default=False, nullable=False)
     pdb_storage_key = Column(String(50), nullable=True)  # ex: "5ESG.pdb"
     pdb_file_size = Column(Integer, nullable=True)  # tamanho em bytes
+
+    # Storage do arquivo .cif (PDBx/mmCIF)
+    cif_file_cached = Column(Boolean, default=False, nullable=False)
+    cif_storage_key = Column(String(50), nullable=True)  # ex: "5ESG.cif"
+    cif_file_size = Column(Integer, nullable=True)  # tamanho em bytes
+
+    # Disponibilidade de formatos no RCSB (verificado no scraping)
+    tem_legacy = Column(Boolean, default=True, nullable=False)
+    tem_cif = Column(Boolean, default=True, nullable=False)
 
     criado_em = Column(DateTime, default=datetime.utcnow, nullable=False)
     ultima_consulta = Column(DateTime, default=datetime.utcnow, nullable=False)

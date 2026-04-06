@@ -1,7 +1,7 @@
 # Estado Atual — PDB Explorer
 
 > Atualize este arquivo sempre que pausar ou retomar o desenvolvimento.  
-> Última atualização: 04/04/2026 (Visualizador PDB implementado)
+> Última atualização: 06/04/2026 (Suporte PDBx/mmCIF concluído — Fase 1 e Fase 2)
 
 ---
 
@@ -33,6 +33,9 @@
 
 - [x] Tela "Meus PDBs" (`/meus-pdbs`) — grid de cards, exclusão com confirmação, nav no menu de todas as telas
 - [x] Visualizador de estruturas PDB (`/visualizador/:pdb_id`) — árvore tri-state ATOM/HETATM, lazy load de linhas raw, seleção acumulada multi-PDB, gera `pdb_codes.csv`
+- [x] **Suporte PDBx/mmCIF** — veja `Plans_executados/PLAN_cif_format.md`
+  - Fase 1 (download): modal de seleção de formato, rota `/cif/{pdb_id}`, campos CIF no modelo Protein, campo `formato` em UserPdbDownload, filtro por formato na página Meus PDBs
+  - Fase 2 (visualizador): parser CIF, rota `/visualizador-cif/:pdb_id`, template idêntico ao legacy
 
 ---
 
@@ -40,7 +43,7 @@
 
 1. **Pasta `dataset/`** para organizar downloads
 
-3. **Menu principal** com as opções de módulos
+2. **Menu principal** com as opções de módulos
 
 4. **Scraper ChEMBL** (`https://www.ebi.ac.uk/chembl/`) — mesmas informações do PDB
 
@@ -64,7 +67,8 @@
 | `frontend/src/container.ts` | Composição de dependências (único `new`) |
 | `frontend/src/routes.tsx` | Todas as rotas do frontend |
 | `backend/app/infra/db/database.py` | Engine, sessão, `get_db()` |
-| `backend/pdb_files/` | Arquivos `.pdb` salvos no servidor |
+| `backend/pdb_files/` | Arquivos `.pdb` e `.cif` salvos no servidor |
+| `Plans_executados/PLAN_cif_format.md` | Plano detalhado do suporte PDBx/mmCIF |
 
 ---
 

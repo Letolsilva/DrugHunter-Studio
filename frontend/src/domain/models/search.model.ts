@@ -12,6 +12,9 @@ export interface PdbResultModel {
   depositado_em?: string;
   link_pdb?: string;
   pdb_file_cached?: boolean;
+  tem_legacy?: boolean;
+  tem_cif?: boolean;
+  cif_file_cached?: boolean;
 }
 
 export type SearchEventType =

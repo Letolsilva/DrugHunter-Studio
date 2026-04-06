@@ -16,6 +16,9 @@ class ProteinSchema(BaseModel):
     depositado_em: Optional[str] = None
     link_pdb: Optional[str] = None
     pdb_file_cached: Optional[bool] = None
+    tem_legacy: Optional[bool] = True
+    tem_cif: Optional[bool] = True
+    cif_file_cached: Optional[bool] = None
 
     class Config:
         from_attributes = True

@@ -16,8 +16,12 @@ def uc_listar_meus_pdbs(db: Session, usuario: User) -> List[dict]:
     return svc.listar_downloads_usuario(db, usuario.id)
 
 
-def uc_remover_meu_pdb(db: Session, usuario: User, pdb_id: str) -> None:
-    """Remove o vínculo entre o usuário e o PDB. Lança KeyError se não encontrado."""
-    encontrado = svc.remover_download_usuario(db, usuario.id, pdb_id)
+def uc_remover_meu_pdb(
+    db: Session, usuario: User, pdb_id: str, formato: str = "legacy"
+) -> None:
+    """Remove o vínculo entre o usuário e o PDB no formato. Lança KeyError se não encontrado."""
+    encontrado = svc.remover_download_usuario(db, usuario.id, pdb_id, formato)
     if not encontrado:
-        raise KeyError(f"PDB {pdb_id} não encontrado nos downloads do usuário.")
+        raise KeyError(
+            f"PDB {pdb_id} ({formato}) não encontrado nos downloads do usuário."
+        )

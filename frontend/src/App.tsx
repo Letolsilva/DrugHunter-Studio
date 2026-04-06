@@ -8,6 +8,7 @@ import {
   dashboardUseCase,
   pdbFilesUseCase,
   visualizadorUseCase,
+  visualizadorCifUseCase,
 } from "./container";
 
 export default function App() {
@@ -19,6 +20,7 @@ export default function App() {
         dashboardUseCase={dashboardUseCase}
         pdbFilesUseCase={pdbFilesUseCase}
         visualizadorUseCase={visualizadorUseCase}
+        visualizadorCifUseCase={visualizadorCifUseCase}
       />
       <GlobalAccumulatedPanel />
     </VisualizadorProvider>

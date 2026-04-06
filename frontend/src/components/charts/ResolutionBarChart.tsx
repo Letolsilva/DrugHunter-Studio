@@ -19,13 +19,13 @@ const TOOLTIP_STYLE = {
   itemStyle: { color: "#e2e8f0" },
 };
 
-// Cores por faixa — mais azul = melhor resolução
+// Cores por faixa — mais brilhante = melhor resolução (menor valor em Å)
 const FAIXA_COLORS: Record<string, string> = {
-  "< 1.5 Å": "#00d4aa",
-  "1.5–2.0 Å": "#00b89a",
-  "2.0–2.5 Å": "#0094a0",
-  "2.5–3.0 Å": "#006e8a",
-  "> 3.0 Å": "#004a6e",
+  "< 1.5 \u00C5": "#00d4aa",
+  "1.5\u20132.0 \u00C5": "#00b89a",
+  "2.0\u20132.5 \u00C5": "#0094a0",
+  "2.5\u20133.0 \u00C5": "#006e8a",
+  "> 3.0 \u00C5": "#004a6e",
   "N/D": "#2a3e56",
 };
 

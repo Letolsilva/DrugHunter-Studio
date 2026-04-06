@@ -29,7 +29,8 @@ export function aplicarFiltros(
     r = r.filter((d) => d.proteina_buscada === filtros.filtroProteina);
   if (filtros.filtroResolucaoMax) {
     const max = parseFloat(filtros.filtroResolucaoMax);
-    if (!isNaN(max)) r = r.filter((d) => d.resolucao != null && d.resolucao <= max);
+    if (!isNaN(max))
+      r = r.filter((d) => d.resolucao != null && d.resolucao <= max);
   }
   if (filtros.filtroLigante === "sim") r = r.filter((d) => d.tem_ligante);
   if (filtros.filtroLigante === "nao") r = r.filter((d) => !d.tem_ligante);
@@ -67,12 +68,12 @@ export function paginar(
 }
 
 const RESOLUCAO_FAIXAS = [
-  { name: "< 1.5 Ã…",   min: 0,    max: 1.5  },
-  { name: "1.5â€“2.0 Ã…", min: 1.5,  max: 2.0  },
-  { name: "2.0â€“2.5 Ã…", min: 2.0,  max: 2.5  },
-  { name: "2.5â€“3.0 Ã…", min: 2.5,  max: 3.0  },
-  { name: "> 3.0 Ã…",   min: 3.0,  max: 9999 },
-  { name: "N/D",       min: -1,   max: -1   },
+  { name: "< 1.5 \u00C5", min: 0, max: 1.5 },
+  { name: "1.5\u20132.0 \u00C5", min: 1.5, max: 2.0 },
+  { name: "2.0\u20132.5 \u00C5", min: 2.0, max: 2.5 },
+  { name: "2.5\u20133.0 \u00C5", min: 2.5, max: 3.0 },
+  { name: "> 3.0 \u00C5", min: 3.0, max: 9999 },
+  { name: "N/D", min: -1, max: -1 },
 ];
 
 export function getChartData(filtrados: PdbResultModel[]): DashboardChartData {

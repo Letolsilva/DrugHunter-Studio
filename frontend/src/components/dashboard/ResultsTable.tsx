@@ -187,7 +187,7 @@ export function ResultsTable({
                   <button
                     onClick={() => onDownloadSingle(d.pdb_id)}
                     title={`Baixar ${d.pdb_id}.pdb`}
-                    className="inline-flex items-center justify-center w-7 h-7 rounded transition-all text-foreground-subtle hover:border-accent hover:bg-accent hover:text-bg"
+                    className="inline-flex items-center justify-center w-7 h-7 rounded transition-all text-foreground-subtle hover:border-accent hover:bg-accent hover:text-bg cursor-pointer"
                   >
                     <DownloadIcon size={13} />
                   </button>

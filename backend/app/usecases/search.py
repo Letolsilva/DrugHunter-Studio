@@ -199,4 +199,7 @@ def _proteina_dict(p: Protein) -> dict:
         "depositado_em": p.depositado_em,
         "link_pdb": p.link_pdb,
         "pdb_file_cached": p.pdb_file_cached,
+        "tem_legacy": p.tem_legacy,
+        "tem_cif": p.tem_cif,
+        "cif_file_cached": p.cif_file_cached,
     }

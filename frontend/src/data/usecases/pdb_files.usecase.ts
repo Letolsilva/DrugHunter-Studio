@@ -19,7 +19,10 @@ export class PdbFilesUseCase extends IPdbFilesUseCase {
     return (res.data as Parameters<typeof adaptPdbFile>[0][]).map(adaptPdbFile);
   }
 
-  async remover(pdb_id: string, token: string): Promise<void> {
-    await this.httpClient.delete(`/download/meus-pdbs/${pdb_id}`, { token });
+  async remover(pdb_id: string, formato: string, token: string): Promise<void> {
+    await this.httpClient.delete(
+      `/download/meus-pdbs/${pdb_id}?formato=${formato}`,
+      { token },
+    );
   }
 }
