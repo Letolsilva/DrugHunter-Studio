@@ -63,7 +63,13 @@ def construir_arvore(storage: LocalStorageService, pdb_id: str) -> dict:
         for resname, folhas in grupos[tipo].items():
             resultado[tipo][resname] = [
                 {"chain": ch, "resnum": rn, "n_atomos": n}
-                for (ch, rn), n in sorted(folhas.items())
+                for (ch, rn), n in sorted(
+                    folhas.items(),
+                    key=lambda x: (
+                        x[0][0],
+                        int(x[0][1]) if x[0][1].lstrip("-").isdigit() else x[0][1],
+                    ),
+                )
             ]
 
     return resultado

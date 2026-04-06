@@ -15,8 +15,6 @@ export interface UseVisualizadorPageReturn {
   erroMsg: string;
   filtroTipo: FiltroTipo;
   setFiltroTipo: (v: FiltroTipo) => void;
-  mostrarAgua: boolean;
-  setMostrarAgua: (v: boolean) => void;
   filtroBusca: string;
   setFiltroBusca: (v: string) => void;
   linhasRaw: string[];
@@ -54,7 +52,6 @@ export function useVisualizadorPage(
   const [arvore, setArvore] = useState<PdbArvore | null>(null);
   const [erroMsg, setErroMsg] = useState("");
   const [filtroTipo, setFiltroTipo] = useState<FiltroTipo>("HETATM");
-  const [mostrarAgua, setMostrarAgua] = useState(false);
   const [filtroBusca, setFiltroBusca] = useState("");
   const [linhasRaw, setLinhasRaw] = useState<string[]>([]);
   const [tituloRaw, setTituloRaw] = useState("");
@@ -148,8 +145,6 @@ export function useVisualizadorPage(
     erroMsg,
     filtroTipo,
     setFiltroTipo,
-    mostrarAgua,
-    setMostrarAgua,
     filtroBusca,
     setFiltroBusca,
     linhasRaw,

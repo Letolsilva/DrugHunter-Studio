@@ -2,7 +2,12 @@
 
 > Data: 04/04/2026  
 > Status: planejado, não iniciado
-
+Tela nova:
+inicial todos os arquivos baixados
+clicou entra em modo de visualização do atm e hetatm que vai vim do arquivo pdb e pega todos os dados da linha e vai poder filtrar se quer ve um ou outro 
+ve, selecioanr pelo codigo e gerar arquivo final com todos selecionados
+o arquivo final deve ter PDB_CODE,LIGAND,RESNUM (cod residuo),CHAIN(cadeia),RESOLUTION 
+salvar na mesma pasta que foi salvo os pdbs -> pdb_codes.csv
 ---
 
 ## Objetivo

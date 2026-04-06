@@ -22,3 +22,16 @@ calcineurin
 thymidylate synthase
 glucan synthase
 lanosterol 14-alpha demethylase
+
+
+Campo	Colunas	Exemplo	Significado
+Tipo de registro	1–6	ATOM	átomo de resíduo padrão
+Serial	7–11	1	número sequencial do átomo
+Nome do átomo	13–16	N, CA, CB	átomo dentro do resíduo
+Resíduo (RES)	18–20	MET	código de 3 letras do aminoácido
+Cadeia (Chain)	22	A	identifica a cadeia polipeptídica
+Nº do resíduo	23–26	141	posição na sequência da cadeia
+X, Y, Z	31–54	161.288…	coordenadas em Ångström
+Ocupância	55–60	1.00	fração do tempo no lugar
+B-factor	61–66	110.45	flexibilidade/agitação térmica
+Elemento	77–78	N, C, S	símbolo químico

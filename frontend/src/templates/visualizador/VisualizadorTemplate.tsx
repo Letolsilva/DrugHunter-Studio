@@ -25,8 +25,6 @@ export default function VisualizadorTemplate({
   erroMsg,
   filtroTipo,
   setFiltroTipo,
-  mostrarAgua,
-  setMostrarAgua,
   filtroBusca,
   setFiltroBusca,
   linhasRaw,
@@ -151,26 +149,6 @@ export default function VisualizadorTemplate({
                 ))}
               </div>
 
-              {/* Mostrar água */}
-              <button
-                type="button"
-                onClick={() => setMostrarAgua(!mostrarAgua)}
-                className="cursor-pointer rounded border px-3 py-1 font-mono text-[12px] transition-colors"
-                style={{
-                  background: mostrarAgua
-                    ? "var(--color-blue-12)"
-                    : "transparent",
-                  borderColor: mostrarAgua
-                    ? "var(--color-blue-25)"
-                    : "var(--color-outline)",
-                  color: mostrarAgua
-                    ? "var(--color-blue)"
-                    : "var(--color-foreground-subtle)",
-                }}
-              >
-                {mostrarAgua ? "Ocultar HOH" : "Mostrar HOH"}
-              </button>
-
               {/* Busca por resname */}
               <input
                 type="text"
@@ -187,7 +165,6 @@ export default function VisualizadorTemplate({
                 pdb_id={arvore.pdb_id}
                 resolucao={arvore.resolucao}
                 arvore={arvore.arvore}
-                mostrarAgua={mostrarAgua}
                 filtroTipo={filtroTipo}
                 filtroBusca={filtroBusca}
                 isSelecionada={isSelecionada}

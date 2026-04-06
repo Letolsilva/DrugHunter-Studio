@@ -16,7 +16,6 @@ interface ResidueTreeProps {
     ATOM: Record<string, ResidueLeaf[]>;
     HETATM: Record<string, ResidueLeaf[]>;
   };
-  mostrarAgua: boolean;
   filtroTipo: "ATOM" | "HETATM" | "AMBOS";
   filtroBusca: string;
   isSelecionada: (
@@ -111,7 +110,6 @@ interface TipoNodeProps {
   grupos: Record<string, ResidueLeaf[]>;
   pdb_id: string;
   resolucao: number | null;
-  mostrarAgua: boolean;
   filtroBusca: string;
   isSelecionada: ResidueTreeProps["isSelecionada"];
   toggleFolha: ResidueTreeProps["toggleFolha"];
@@ -125,7 +123,6 @@ function TipoNode({
   grupos,
   pdb_id,
   resolucao,
-  mostrarAgua,
   filtroBusca,
   isSelecionada,
   toggleFolha,
@@ -133,10 +130,9 @@ function TipoNode({
   removerFolha,
   onCarregarLinhas,
 }: TipoNodeProps) {
-  const [aberto, setAberto] = useState(tipo === "HETATM");
+  const [aberto, setAberto] = useState(true);
 
   const gruposFiltrados = Object.entries(grupos).filter(([rn]) => {
-    if (!mostrarAgua && rn === "HOH") return false;
     if (filtroBusca && !rn.toLowerCase().includes(filtroBusca.toLowerCase()))
       return false;
     return true;
@@ -354,7 +350,6 @@ export function ResidueTree({
   pdb_id,
   resolucao,
   arvore,
-  mostrarAgua,
   filtroTipo,
   filtroBusca,
   isSelecionada,
@@ -379,7 +374,6 @@ export function ResidueTree({
           grupos={arvore[tipo]}
           pdb_id={pdb_id}
           resolucao={resolucao}
-          mostrarAgua={mostrarAgua}
           filtroBusca={filtroBusca}
           isSelecionada={isSelecionada}
           toggleFolha={toggleFolha}
