@@ -1,7 +1,9 @@
 // App.tsx
 import AppRoutes from "./routes";
 import { VisualizadorProvider } from "./contexts/VisualizadorContext";
+import { RedockingProvider } from "./contexts/RedockingContext";
 import { GlobalAccumulatedPanel } from "./components/visualizador/GlobalAccumulatedPanel";
+import { GlobalRedockingIndicator } from "./components/visualizador/GlobalRedockingIndicator";
 import {
   searchUseCase,
   historyUseCase,
@@ -9,20 +11,25 @@ import {
   pdbFilesUseCase,
   visualizadorUseCase,
   visualizadorCifUseCase,
+  redockingUseCase,
 } from "./container";
 
 export default function App() {
   return (
     <VisualizadorProvider>
-      <AppRoutes
-        searchUseCase={searchUseCase}
-        historyUseCase={historyUseCase}
-        dashboardUseCase={dashboardUseCase}
-        pdbFilesUseCase={pdbFilesUseCase}
-        visualizadorUseCase={visualizadorUseCase}
-        visualizadorCifUseCase={visualizadorCifUseCase}
-      />
-      <GlobalAccumulatedPanel />
+      <RedockingProvider redockingUseCase={redockingUseCase}>
+        <AppRoutes
+          searchUseCase={searchUseCase}
+          historyUseCase={historyUseCase}
+          dashboardUseCase={dashboardUseCase}
+          pdbFilesUseCase={pdbFilesUseCase}
+          visualizadorUseCase={visualizadorUseCase}
+          visualizadorCifUseCase={visualizadorCifUseCase}
+          redockingUseCase={redockingUseCase}
+        />
+        <GlobalAccumulatedPanel />
+        <GlobalRedockingIndicator />
+      </RedockingProvider>
     </VisualizadorProvider>
   );
 }

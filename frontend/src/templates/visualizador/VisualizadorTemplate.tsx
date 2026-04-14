@@ -1,4 +1,5 @@
 // templates/visualizador/VisualizadorTemplate.tsx
+import { useNavigate } from "react-router-dom";
 import { Navbar } from "../../components/layout";
 import { Button } from "../../components/ui/Button";
 import { Spinner } from "../../components/ui/Spinner";
@@ -13,6 +14,8 @@ import type { UseVisualizadorPageReturn } from "../../pages/VisualizadorPage/use
 
 type FiltroTipo = "ATOM" | "HETATM" | "AMBOS";
 
+type Props = UseVisualizadorPageReturn & { formato: "cif" | "legacy" };
+
 const FILTROS: { label: string; value: FiltroTipo }[] = [
   { label: "HETATM", value: "HETATM" },
   { label: "ATOM", value: "ATOM" },
@@ -20,6 +23,7 @@ const FILTROS: { label: string; value: FiltroTipo }[] = [
 ];
 
 export default function VisualizadorTemplate({
+  formato,
   fase,
   arvore,
   erroMsg,
@@ -38,7 +42,8 @@ export default function VisualizadorTemplate({
   toggleFolha,
   adicionarFolha,
   removerFolha,
-}: UseVisualizadorPageReturn) {
+}: Props) {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen flex flex-col bg-surface-primary">
       <Navbar>
@@ -62,6 +67,13 @@ export default function VisualizadorTemplate({
           )}
         </Navbar.Left>
         <Navbar.Right>
+          <button
+            type="button"
+            onClick={() => navigate("/redocking")}
+            className="cursor-pointer rounded border-none bg-transparent px-3 py-1.5 font-mono text-[12px] text-foreground-subtle transition-colors hover:text-foreground"
+          >
+            Redocking
+          </button>
           <Button
             variant="ghost"
             onClick={handleLogout}
@@ -78,7 +90,9 @@ export default function VisualizadorTemplate({
           <div className="flex flex-col items-center justify-center gap-4 py-32">
             <Spinner style={{ width: 32, height: 32, borderWidth: 3 }} />
             <span className="font-mono text-[13px] text-foreground-subtle">
-              Lendo arquivo PDB...
+              {formato === "cif"
+                ? "Lendo arquivo CIF..."
+                : "Lendo arquivo PDB..."}
             </span>
           </div>
         )}
@@ -99,10 +113,24 @@ export default function VisualizadorTemplate({
           <>
             {/* Metadados */}
             <div className="flex flex-col gap-1">
-              <h1 className="text-[22px] font-extrabold text-foreground tracking-tight">
+              <h1 className="text-[22px] font-extrabold text-foreground tracking-tight inline-flex items-center gap-3">
                 {arvore.pdb_id}
+                {formato === "cif" && (
+                  <span
+                    className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-full border"
+                    style={{
+                      color: "var(--color-blue)",
+                      borderColor:
+                        "color-mix(in srgb, var(--color-blue) 30%, transparent)",
+                      background:
+                        "color-mix(in srgb, var(--color-blue) 10%, transparent)",
+                    }}
+                  >
+                    mmCIF
+                  </span>
+                )}
                 {arvore.resolucao !== null && (
-                  <span className="ml-3 font-mono text-[14px] font-normal text-foreground-subtle">
+                  <span className="font-mono text-[14px] font-normal text-foreground-subtle">
                     {arvore.resolucao} Å
                   </span>
                 )}
@@ -164,6 +192,7 @@ export default function VisualizadorTemplate({
               <ResidueTree
                 pdb_id={arvore.pdb_id}
                 resolucao={arvore.resolucao}
+                formato={formato}
                 arvore={arvore.arvore}
                 filtroTipo={filtroTipo}
                 filtroBusca={filtroBusca}

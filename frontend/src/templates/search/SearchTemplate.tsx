@@ -44,6 +44,7 @@ interface SearchTemplateProps {
   toggleMenu: () => void;
   irParaHistorico: () => void;
   irParaMeusPdbs: () => void;
+  irParaRedocking: () => void;
   pausar: () => void;
   cancelar: () => void;
   iniciarBusca: (forcarNovo?: boolean) => void;
@@ -73,6 +74,7 @@ export default function SearchTemplate({
   toggleMenu,
   irParaHistorico,
   irParaMeusPdbs,
+  irParaRedocking,
   pausar,
   cancelar,
   iniciarBusca,
@@ -107,6 +109,12 @@ export default function SearchTemplate({
               icon={<DownloadIcon size={14} />}
               label="Meus PDBs"
               onClick={irParaMeusPdbs}
+              divider
+            />
+            <DropdownMenu.Item
+              icon={<RefreshIcon size={14} />}
+              label="Redocking"
+              onClick={irParaRedocking}
               divider
             />
             <DropdownMenu.Item

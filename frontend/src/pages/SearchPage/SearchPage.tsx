@@ -35,6 +35,7 @@ export default function SearchPage({
     toggleMenu,
     irParaHistorico,
     irParaMeusPdbs,
+    irParaRedocking,
     pausar,
     cancelar,
     iniciarBusca,
@@ -65,6 +66,7 @@ export default function SearchPage({
       toggleMenu={toggleMenu}
       irParaHistorico={irParaHistorico}
       irParaMeusPdbs={irParaMeusPdbs}
+      irParaRedocking={irParaRedocking}
       pausar={pausar}
       cancelar={cancelar}
       iniciarBusca={iniciarBusca}

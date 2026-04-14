@@ -11,5 +11,5 @@ export default function VisualizadorPage({
   visualizadorUseCase,
 }: VisualizadorPageProps) {
   const props = useVisualizadorPage(visualizadorUseCase);
-  return <VisualizadorTemplate {...props} />;
+  return <VisualizadorTemplate {...props} formato="legacy" />;
 }

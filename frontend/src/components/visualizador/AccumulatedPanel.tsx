@@ -73,6 +73,14 @@ export function AccumulatedPanel({
                     <span className="ml-1 text-[10px] font-normal text-foreground-subtle">
                       ({itens.length})
                     </span>
+                    <span
+                      className="ml-1.5 font-mono text-[9px] font-semibold px-1 py-0.5 rounded border"
+                      style={itens[0].formato === "cif"
+                        ? { color: "var(--color-blue)", borderColor: "color-mix(in srgb, var(--color-blue) 30%, transparent)", background: "color-mix(in srgb, var(--color-blue) 10%, transparent)" }
+                        : { color: "var(--color-foreground-subtle)", borderColor: "var(--color-outline)", background: "transparent" }}
+                    >
+                      {itens[0].formato === "cif" ? "mmCIF" : "legacy"}
+                    </span>
                   </span>
                   <button
                     type="button"

@@ -17,12 +17,16 @@ import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from app.infra.db.database import criar_tabelas, SessionLocal, get_config
 from app.routes.auth import router as auth_router
 from app.routes.search import router as search_router
 from app.routes.admin import router as admin_router
 from app.routes.download import router as download_router
+from app.routes.redocking import router as redocking_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("pdb_explorer")
@@ -73,6 +77,7 @@ app.include_router(auth_router)
 app.include_router(search_router)
 app.include_router(admin_router)
 app.include_router(download_router)
+app.include_router(redocking_router)
 
 
 @app.get("/health")

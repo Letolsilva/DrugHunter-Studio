@@ -12,6 +12,7 @@ type TriState = "all" | "none" | "partial";
 interface ResidueTreeProps {
   pdb_id: string;
   resolucao: number | null;
+  formato: "legacy" | "cif";
   arvore: {
     ATOM: Record<string, ResidueLeaf[]>;
     HETATM: Record<string, ResidueLeaf[]>;
@@ -110,6 +111,7 @@ interface TipoNodeProps {
   grupos: Record<string, ResidueLeaf[]>;
   pdb_id: string;
   resolucao: number | null;
+  formato: "legacy" | "cif";
   filtroBusca: string;
   isSelecionada: ResidueTreeProps["isSelecionada"];
   toggleFolha: ResidueTreeProps["toggleFolha"];
@@ -123,6 +125,7 @@ function TipoNode({
   grupos,
   pdb_id,
   resolucao,
+  formato,
   filtroBusca,
   isSelecionada,
   toggleFolha,
@@ -168,6 +171,7 @@ function TipoNode({
           resnum: f.resnum,
           chain: f.chain,
           resolucao,
+          formato,
         }),
       );
     }
@@ -210,6 +214,7 @@ function TipoNode({
               folhas={folhas}
               pdb_id={pdb_id}
               resolucao={resolucao}
+              formato={formato}
               isSelecionada={isSelecionada}
               toggleFolha={toggleFolha}
               adicionarFolha={adicionarFolha}
@@ -229,6 +234,7 @@ interface ResnameNodeProps {
   folhas: ResidueLeaf[];
   pdb_id: string;
   resolucao: number | null;
+  formato: "legacy" | "cif";
   isSelecionada: ResidueTreeProps["isSelecionada"];
   toggleFolha: ResidueTreeProps["toggleFolha"];
   adicionarFolha: ResidueTreeProps["adicionarFolha"];
@@ -242,6 +248,7 @@ function ResnameNode({
   folhas,
   pdb_id,
   resolucao,
+  formato,
   isSelecionada,
   toggleFolha,
   adicionarFolha,
@@ -265,6 +272,7 @@ function ResnameNode({
           resnum: f.resnum,
           chain: f.chain,
           resolucao,
+          formato,
         }),
       );
     }
@@ -314,6 +322,7 @@ function ResnameNode({
                         resnum: f.resnum,
                         chain: f.chain,
                         resolucao,
+                        formato,
                       },
                       tipo,
                     )
@@ -349,6 +358,7 @@ function ResnameNode({
 export function ResidueTree({
   pdb_id,
   resolucao,
+  formato,
   arvore,
   filtroTipo,
   filtroBusca,
@@ -374,6 +384,7 @@ export function ResidueTree({
           grupos={arvore[tipo]}
           pdb_id={pdb_id}
           resolucao={resolucao}
+          formato={formato}
           filtroBusca={filtroBusca}
           isSelecionada={isSelecionada}
           toggleFolha={toggleFolha}

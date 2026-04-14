@@ -59,6 +59,13 @@ export default function HistoryListTemplate({
           >
             Meus PDBs
           </button>
+          <button
+            type="button"
+            onClick={() => navigate("/redocking")}
+            className="cursor-pointer rounded border-none bg-transparent px-3 py-1.5 font-mono text-[12px] text-foreground-subtle transition-colors hover:text-foreground"
+          >
+            Redocking
+          </button>
           <Button
             variant="ghost"
             onClick={handleLogout}

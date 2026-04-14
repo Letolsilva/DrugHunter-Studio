@@ -3,11 +3,13 @@
 // assim persiste em qualquer rota quando há itens selecionados.
 import { useState, useRef, useCallback } from "react";
 import { useVisualizador } from "../../contexts/VisualizadorContext";
+import { useRedocking } from "../../contexts/RedockingContext";
 import { AccumulatedPanel } from "./AccumulatedPanel";
 import { Toast } from "../ui/Toast";
 
 export function GlobalAccumulatedPanel() {
-  const { selecionados, limparTudo, limparPdb } = useVisualizador();
+  const { selecionados, limparTudo, limparPdb, organismoAtual } = useVisualizador();
+  const { salvarCsvNoServidor } = useRedocking();
   const [salvando, setSalvando] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [toastVariant, setToastVariant] = useState<"success" | "error">(
@@ -34,6 +36,10 @@ export function GlobalAccumulatedPanel() {
     );
     const csv = [header, ...linhas].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
+
+    // Salva no servidor em background (sem bloquear o download)
+    // Passa o organismo como target para pré-preencher o campo de redocking
+    salvarCsvNoServidor(csv, "pdb_codes.csv", organismoAtual ?? undefined);
 
     if ("showSaveFilePicker" in window) {
       setSalvando(true);

@@ -11,6 +11,8 @@ from app.domain.models.protein import Protein
 from app.domain.models.search import Search, SearchResult
 from app.domain.models.config import SystemConfig
 from app.domain.models.pdb_download import UserPdbDownload
+from app.domain.models.redocking_job import RedockingJob
+from app.domain.models.user_pdb_csv import UserPdbCsv
 
 __all__ = [
     "Base",
@@ -20,4 +22,6 @@ __all__ = [
     "SearchResult",
     "SystemConfig",
     "UserPdbDownload",
+    "RedockingJob",
+    "UserPdbCsv",
 ]

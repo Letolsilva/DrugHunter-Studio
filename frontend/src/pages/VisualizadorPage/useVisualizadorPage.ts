@@ -65,6 +65,7 @@ export function useVisualizadorPage(
       .getArvore(pdb_id, token)
       .then((data) => {
         setArvore(data);
+        ctx.setOrganismo(data.organismo);
         setFase("ok");
       })
       .catch((err: Error) => {

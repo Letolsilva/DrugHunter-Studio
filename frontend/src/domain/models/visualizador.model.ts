@@ -33,6 +33,7 @@ export interface SelecionadoItem {
   resnum: string;
   chain: string;
   resolucao: number | null;
+  formato: "legacy" | "cif";
 }
 
 /** Chave única de uma folha selecionada */

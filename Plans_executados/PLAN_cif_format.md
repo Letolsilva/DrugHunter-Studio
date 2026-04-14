@@ -4,7 +4,7 @@
 > Status: planejado, não iniciado
 > Dividido em 2 fases: a Fase 1 habilita o download; a Fase 2 implementa a visualização
 > (o arquivo `.cif` precisa estar disponível no storage antes de parsear a árvore)
-
+implemenbtado para pdb*,
 ---
 
 ## Contexto

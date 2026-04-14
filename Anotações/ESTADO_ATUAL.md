@@ -1,7 +1,7 @@
 # Estado Atual — PDB Explorer
 
 > Atualize este arquivo sempre que pausar ou retomar o desenvolvimento.  
-> Última atualização: 06/04/2026 (Suporte PDBx/mmCIF concluído — Fase 1 e Fase 2)
+> Última atualização: 12/04/2026 (Redocking Fase 1 concluída; Fase 2 — dashboards do CSV — em andamento)
 
 ---
 
@@ -26,11 +26,6 @@
 - [x] Seleção de lote considera filtros ativos (todas as páginas)
 - [x] Painel admin (configs, TTL, usuários)
 - [x] Arquitetura frontend migrada para TypeScript strict + container.ts
-
----
-
-## Em andamento
-
 - [x] Tela "Meus PDBs" (`/meus-pdbs`) — grid de cards, exclusão com confirmação, nav no menu de todas as telas
 - [x] Visualizador de estruturas PDB (`/visualizador/:pdb_id`) — árvore tri-state ATOM/HETATM, lazy load de linhas raw, seleção acumulada multi-PDB, gera `pdb_codes.csv`
 - [x] **Suporte PDBx/mmCIF** — veja `Plans_executados/PLAN_cif_format.md`
@@ -39,23 +34,27 @@
 
 ---
 
+## Em andamento
+
+- [ ] **Página de Redocking** (`/redocking`) — veja `Plans_executados/PLAN_redocking_fase2.md`
+  - [x] Fase 1 (infraestrutura + tabela + job + status in-app + e-mail): **concluída**
+  - [ ] Fase 2 (dashboards do CSV no frontend): **em execução**
+
+---
+
 ## Próximos passos (backlog priorizado)
 
-1. **Pasta `dataset/`** para organizar downloads
+1. **Menu principal** com as opções de módulos
 
-2. **Menu principal** com as opções de módulos
+2. **Scraper ChEMBL** (`https://www.ebi.ac.uk/chembl/`) — mesmas informações do PDB
 
-4. **Scraper ChEMBL** (`https://www.ebi.ac.uk/chembl/`) — mesmas informações do PDB
+3. **Scraper ZINC** (`https://zinc.docking.org/`) — compostos in stock, drug-like, SMILES
 
-5. **Scraper ZINC** (`https://zinc.docking.org/`) — compostos in stock, drug-like, SMILES
+4. **Scraper BioMol** (pegar no repositório do Lucas)
 
-6. **Scraper BioMol** (pegar no repositório do Lucas)
+5. **Testar limpeza TTL em 30 dias** (scheduler já implementado, precisa de teste real)
 
-7. **Suporte a FASTA*** — download e escolha de pasta (legacy já funciona para PDB)
-
-8. **Testar limpeza TTL em 30 dias** (scheduler já implementado, precisa de teste real)
-
-9. **Docker** — empacotamento para produção
+6. **Docker** — empacotamento para produção
 
 ---
 

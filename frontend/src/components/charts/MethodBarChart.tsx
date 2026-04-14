@@ -25,11 +25,13 @@ interface ChartDatum {
 
 interface MethodBarChartProps {
   data: ChartDatum[];
+  height?: number;
+  yAxisWidth?: number;
 }
 
-export function MethodBarChart({ data }: MethodBarChartProps) {
+export function MethodBarChart({ data, height = 200, yAxisWidth = 130 }: MethodBarChartProps) {
   return (
-    <ResponsiveContainer width="100%" height={200}>
+    <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} layout="vertical" margin={{ left: 8 }}>
         <XAxis
           type="number"
@@ -40,7 +42,7 @@ export function MethodBarChart({ data }: MethodBarChartProps) {
         <YAxis
           type="category"
           dataKey="name"
-          width={130}
+          width={yAxisWidth}
           tick={{ fontSize: 11, fill: "#94a3b8" }}
           axisLine={false}
           tickLine={false}

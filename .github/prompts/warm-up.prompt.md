@@ -1,7 +1,7 @@
 ---
 description: "Inicializa o contexto completo do projeto PDB Explorer no chat. Use no início de cada sessão para carregar arquitetura, decisões e estado atual."
 name: "warm-up"
-mode: ask
+mode: agent
 ---
 
 Leia os arquivos abaixo e use essas informações como base para toda a conversa desta sessão.

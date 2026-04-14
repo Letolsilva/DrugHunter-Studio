@@ -44,6 +44,7 @@ export interface UseSearchPageReturn {
   toggleMenu: () => void;
   irParaHistorico: () => void;
   irParaMeusPdbs: () => void;
+  irParaRedocking: () => void;
   pausar: () => void;
   cancelar: () => void;
   iniciarBusca: (forcarNovo?: boolean) => void;
@@ -106,6 +107,11 @@ export function useSearchPage(
   const irParaMeusPdbs = useCallback(() => {
     setMenuAberto(false);
     navigate("/meus-pdbs");
+  }, [navigate]);
+
+  const irParaRedocking = useCallback(() => {
+    setMenuAberto(false);
+    navigate("/redocking");
   }, [navigate]);
 
   const atualizarBarra = useCallback(
@@ -262,6 +268,7 @@ export function useSearchPage(
     toggleMenu,
     irParaHistorico,
     irParaMeusPdbs,
+    irParaRedocking,
     pausar,
     cancelar,
     iniciarBusca,

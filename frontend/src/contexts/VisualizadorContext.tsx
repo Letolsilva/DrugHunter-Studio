@@ -13,6 +13,8 @@ import { leafKey } from "../domain/models/visualizador.model";
 interface VisualizadorContextValue {
   selecionados: SelecionadoItem[];
   keysSet: Set<string>;
+  organismoAtual: string | null;
+  setOrganismo: (org: string | null) => void;
   adicionarFolha: (item: SelecionadoItem) => void;
   removerFolha: (
     pdb_id: string,
@@ -50,6 +52,7 @@ interface VisualizadorProviderProps {
 
 export function VisualizadorProvider({ children }: VisualizadorProviderProps) {
   const [selecionados, setSelecionados] = useState<SelecionadoItem[]>([]);
+  const [organismoAtual, setOrganismo] = useState<string | null>(null);
 
   const keysSet = new Set(
     selecionados.map((s) => leafKey(s.pdb_id, "", s.ligand, s.chain, s.resnum)),
@@ -143,6 +146,8 @@ export function VisualizadorProvider({ children }: VisualizadorProviderProps) {
       value={{
         selecionados,
         keysSet,
+        organismoAtual,
+        setOrganismo,
         adicionarFolha,
         removerFolha,
         toggleFolha,
