@@ -26,7 +26,9 @@ from app.usecases import redocking as uc
 router = APIRouter(prefix="/api/redocking", tags=["Redocking"])
 
 
-@router.post("/iniciar", response_model=RedockingJobResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/iniciar", response_model=RedockingJobResponse, status_code=status.HTTP_201_CREATED
+)
 def iniciar_redocking(
     dados: IniciarRedockingRequest,
     background_tasks: BackgroundTasks,
@@ -89,7 +91,9 @@ def salvar_csv(
     usuario: User = Depends(get_usuario_atual),
 ):
     """Salva ou atualiza o pdb_codes.csv do usuário autenticado."""
-    uc.uc_salvar_csv(db, usuario, dados.csv_content, dados.target, dados.base_input_path)
+    uc.uc_salvar_csv(
+        db, usuario, dados.csv_content, dados.target, dados.base_input_path
+    )
 
 
 @router.get("/csv", response_model=CsvResponse)
@@ -100,8 +104,11 @@ def buscar_csv(
     """Retorna o pdb_codes.csv mais recente do usuário. 404 se ainda não houver."""
     csv_content = uc.uc_buscar_csv(db, usuario)
     if csv_content is None:
-        raise HTTPException(status_code=404, detail="Nenhum CSV salvo para este usuário.")
+        raise HTTPException(
+            status_code=404, detail="Nenhum CSV salvo para este usuário."
+        )
     from app.services.redocking import buscar_csv_usuario
+
     registro = buscar_csv_usuario(db, usuario.id)
     return registro
 

@@ -10,7 +10,10 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { CsvLinha, RedockingJobModel } from "../domain/models/redocking.model";
+import type {
+  CsvLinha,
+  RedockingJobModel,
+} from "../domain/models/redocking.model";
 import { parseCsvContent } from "../domain/models/redocking.model";
 import type { RedockingUseCase } from "../data/usecases/redocking.usecase";
 
@@ -22,7 +25,12 @@ interface RedockingContextValue {
   // CSV atual do usuário
   csvLinhas: CsvLinha[];
   csvFileName: string;
-  salvarCsvNoServidor: (csvContent: string, fileName?: string, target?: string, baseInputPath?: string) => Promise<void>;
+  salvarCsvNoServidor: (
+    csvContent: string,
+    fileName?: string,
+    target?: string,
+    baseInputPath?: string,
+  ) => Promise<void>;
   carregarCsvDoServidor: () => Promise<void>;
 }
 
@@ -30,7 +38,8 @@ const RedockingContext = createContext<RedockingContextValue | null>(null);
 
 export function useRedocking(): RedockingContextValue {
   const ctx = useContext(RedockingContext);
-  if (!ctx) throw new Error("useRedocking must be used inside RedockingProvider");
+  if (!ctx)
+    throw new Error("useRedocking must be used inside RedockingProvider");
   return ctx;
 }
 
@@ -39,8 +48,13 @@ interface RedockingProviderProps {
   redockingUseCase: RedockingUseCase;
 }
 
-export function RedockingProvider({ children, redockingUseCase }: RedockingProviderProps) {
-  const [activeJob, setActiveJobState] = useState<RedockingJobModel | null>(null);
+export function RedockingProvider({
+  children,
+  redockingUseCase,
+}: RedockingProviderProps) {
+  const [activeJob, setActiveJobState] = useState<RedockingJobModel | null>(
+    null,
+  );
   const [csvLinhas, setCsvLinhas] = useState<CsvLinha[]>([]);
   const [csvFileName, setCsvFileName] = useState("");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -87,12 +101,22 @@ export function RedockingProvider({ children, redockingUseCase }: RedockingProvi
   }, [stopPolling]);
 
   const salvarCsvNoServidor = useCallback(
-    async (csvContent: string, fileName?: string, target?: string, baseInputPath?: string) => {
+    async (
+      csvContent: string,
+      fileName?: string,
+      target?: string,
+      baseInputPath?: string,
+    ) => {
       setCsvLinhas(parseCsvContent(csvContent));
       if (fileName) setCsvFileName(fileName);
       const token = localStorage.getItem("access_token") ?? "";
       try {
-        await redockingUseCase.salvarCsv(csvContent, token, target, baseInputPath);
+        await redockingUseCase.salvarCsv(
+          csvContent,
+          token,
+          target,
+          baseInputPath,
+        );
       } catch {
         // ignora falhas de rede — os dados já estão em memória
       }

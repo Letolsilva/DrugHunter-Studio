@@ -40,7 +40,8 @@ export function GlobalRedockingIndicator() {
 
   const isDone = activeJob.status === "done";
   const isError = activeJob.status === "error";
-  const isRunning = activeJob.status === "pending" || activeJob.status === "running";
+  const isRunning =
+    activeJob.status === "pending" || activeJob.status === "running";
 
   const borderColor = isError
     ? "var(--color-red-30)"

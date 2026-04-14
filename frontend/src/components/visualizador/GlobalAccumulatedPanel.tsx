@@ -8,7 +8,8 @@ import { AccumulatedPanel } from "./AccumulatedPanel";
 import { Toast } from "../ui/Toast";
 
 export function GlobalAccumulatedPanel() {
-  const { selecionados, limparTudo, limparPdb, organismoAtual } = useVisualizador();
+  const { selecionados, limparTudo, limparPdb, organismoAtual } =
+    useVisualizador();
   const { salvarCsvNoServidor } = useRedocking();
   const [salvando, setSalvando] = useState(false);
   const [toast, setToast] = useState<string | null>(null);

@@ -29,7 +29,11 @@ interface MethodBarChartProps {
   yAxisWidth?: number;
 }
 
-export function MethodBarChart({ data, height = 200, yAxisWidth = 130 }: MethodBarChartProps) {
+export function MethodBarChart({
+  data,
+  height = 200,
+  yAxisWidth = 130,
+}: MethodBarChartProps) {
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} layout="vertical" margin={{ left: 8 }}>

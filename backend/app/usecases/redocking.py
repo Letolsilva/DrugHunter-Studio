@@ -43,7 +43,9 @@ def uc_iniciar_redocking(
         csv_content=csv_content,
     )
     # Atualiza target e base_input_path na configuração salva
-    svc.salvar_csv_usuario(db, usuario.id, target=target, base_input_path=base_input_path)
+    svc.salvar_csv_usuario(
+        db, usuario.id, target=target, base_input_path=base_input_path
+    )
     return job
 
 
@@ -58,8 +60,20 @@ def uc_status_job(db: Session, usuario: User, job_id: int) -> RedockingJob:
     return job
 
 
-def uc_salvar_csv(db: Session, usuario: User, csv_content: str, target: str = "", base_input_path: str = "") -> None:
-    svc.salvar_csv_usuario(db, usuario.id, csv_content=csv_content, target=target or None, base_input_path=base_input_path or None)
+def uc_salvar_csv(
+    db: Session,
+    usuario: User,
+    csv_content: str,
+    target: str = "",
+    base_input_path: str = "",
+) -> None:
+    svc.salvar_csv_usuario(
+        db,
+        usuario.id,
+        csv_content=csv_content,
+        target=target or None,
+        base_input_path=base_input_path or None,
+    )
 
 
 def uc_buscar_csv(db: Session, usuario: User) -> str | None:
@@ -72,7 +86,8 @@ def uc_defaults_redocking(db: Session, usuario: User) -> dict:
     registro = svc.buscar_csv_usuario(db, usuario.id)
     stored_target = (registro.target or None) if registro else None
     stored_base_input = (
-        registro.base_input_path if registro and registro.base_input_path
+        registro.base_input_path
+        if registro and registro.base_input_path
         else str(PDB_FILES_DIR.resolve())
     )
     return {

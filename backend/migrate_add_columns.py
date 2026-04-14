@@ -1,4 +1,5 @@
 """Migração manual: adiciona colunas target e base_input_path à tabela user_pdb_csv."""
+
 import sqlite3
 
 DB_PATH = "pdb_explorer.db"

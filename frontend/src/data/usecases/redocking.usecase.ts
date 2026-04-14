@@ -1,7 +1,10 @@
 // data/usecases/redocking.usecase.ts
 import { IRedockingUseCase } from "../../domain/interfaces/redocking.interface";
 import type { IHTTPClient } from "../../infra/interfaces/httpClient.interface";
-import type { IniciarRedockingPayload, RedockingJobModel } from "../../domain/models/redocking.model";
+import type {
+  IniciarRedockingPayload,
+  RedockingJobModel,
+} from "../../domain/models/redocking.model";
 
 interface JobsListResponse {
   jobs: RedockingJobModel[];
@@ -15,7 +18,10 @@ export class RedockingUseCase extends IRedockingUseCase {
     this.httpClient = httpClient;
   }
 
-  async iniciar(payload: IniciarRedockingPayload, token: string): Promise<RedockingJobModel> {
+  async iniciar(
+    payload: IniciarRedockingPayload,
+    token: string,
+  ): Promise<RedockingJobModel> {
     return this.httpClient
       .post<RedockingJobModel>("/redocking/iniciar", payload, { token })
       .then((res) => res.data);
@@ -33,22 +39,39 @@ export class RedockingUseCase extends IRedockingUseCase {
       .then((res) => res.data);
   }
 
-  async salvarCsv(csvContent: string, token: string, target = "", baseInputPath = ""): Promise<void> {
-    await this.httpClient.put("/redocking/csv", { csv_content: csvContent, target, base_input_path: baseInputPath }, { token });
+  async salvarCsv(
+    csvContent: string,
+    token: string,
+    target = "",
+    baseInputPath = "",
+  ): Promise<void> {
+    await this.httpClient.put(
+      "/redocking/csv",
+      { csv_content: csvContent, target, base_input_path: baseInputPath },
+      { token },
+    );
   }
 
   async buscarCsv(token: string): Promise<string | null> {
     try {
-      const res = await this.httpClient.get<{ csv_content: string }>("/redocking/csv", { token });
+      const res = await this.httpClient.get<{ csv_content: string }>(
+        "/redocking/csv",
+        { token },
+      );
       return res.data.csv_content;
     } catch {
       return null; // 404 = nenhum CSV salvo ainda
     }
   }
 
-  async buscarDefaults(token: string): Promise<{ base_input_path: string; last_target: string | null }> {
+  async buscarDefaults(
+    token: string,
+  ): Promise<{ base_input_path: string; last_target: string | null }> {
     return this.httpClient
-      .get<{ base_input_path: string; last_target: string | null }>("/redocking/defaults", { token })
+      .get<{
+        base_input_path: string;
+        last_target: string | null;
+      }>("/redocking/defaults", { token })
       .then((res) => res.data);
   }
 }

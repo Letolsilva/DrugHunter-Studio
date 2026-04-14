@@ -126,9 +126,7 @@ export function useRedockingPage(
   // Sincroniza o histórico local com o job ativo atualizado pelo polling do contexto
   useEffect(() => {
     if (!activeJob) return;
-    setJobs((prev) =>
-      prev.map((j) => (j.id === activeJob.id ? activeJob : j)),
-    );
+    setJobs((prev) => prev.map((j) => (j.id === activeJob.id ? activeJob : j)));
   }, [activeJob]);
 
   const handleImportarCsv = useCallback(
