@@ -2,30 +2,26 @@
 - criar um email para o tcc e confirmar se o nome vai ser PDB explorer
 - colocar o codigo python de redocking
 - gerar o executar final.
-explicar top ligates
+  explicar top ligates
 
-
-
-no historico colcoar o botão de donwload dos resultados que via vim do redocking que vem de uma pasta temporaria que vais er gerado um zip, vai baixar o zip, gera uma pasta preparaed
+no historico colcoar o botão de donwload dos resultados que vai vim do redocking que vem de uma pasta temporaria que vais er gerado um zip, vai baixar o zip, gera uma pasta preparaed
 no lugar do sistema com dois aruivos e gerar um zip.
-dentro da pasta dos pdbs tem uma sub pasta prepared e eu zipo ela, eu quem faço nn tem pronto 
+dentro da pasta dos pdbs tem uma sub pasta prepared e eu zipo ela, eu quem faço nn tem pronto
 
 escrevendo a monografia, estudo da arte, metodologia, se sobrar tempo o codigo do hunter
-o hunter trabalha em cima do anaconda, vou ter que instalar ele, em uma maaquina virtual instalar os pacotes que ele precisa, rodar linux 
+o hunter trabalha em cima do anaconda, vou ter que instalar ele, em uma maaquina virtual instalar os pacotes que ele precisa, rodar linux
 começar pela metodologia, depois vai para as referencias, dados de bioinformatica para o que é, como serve, resultados parciais, trabalhos futuros vai ser o que escrever nos dois, terminar a implementação, iniciar a intergação do dashboard com o drughunter e rodar o estudo de caso que vai ser selecionado em momento oportuno.
 instalador do hunter com ferramenta
 
-
-
 - resultado final vai ser um instalador para instalar localmente na maquina, conteiner docker...
-simples e objetivo possivel.
+  simples e objetivo possivel.
 - usar o espaço local
 
-drughunter consegue fazer deste a extração de dados ate a dinamica molecular o a limitação do hunter para usar ele voce tem que ser programador, meu trabalho e desenvolver uma arquitetura funcional  para usuariuos explorar ele de maneira funcional e como estudo de caso eu escokho um fungo e valido ele do inicio ao fim em cima do front end 
+drughunter consegue fazer deste a extração de dados ate a dinamica molecular o a limitação do hunter para usar ele voce tem que ser programador, meu trabalho e desenvolver uma arquitetura funcional para usuariuos explorar ele de maneira funcional e como estudo de caso eu escokho um fungo e valido ele do inicio ao fim em cima do front end
 
 - trabalhei no pre processamento
-- trbalahos futuros: pfc 2 moleculas da chemble, usa as moleculas para fazer o docking, treina rede neural e escolhe os melhores compostos em cima da rede neural 
-- metodologia narra ela toda, resultados parciais fala ate onde cheguei 
+- trbalahos futuros: pfc 2 moleculas da chemble, usa as moleculas para fazer o docking, treina rede neural e escolhe os melhores compostos em cima da rede neural
+- metodologia narra ela toda, resultados parciais fala ate onde cheguei
 
 PFC 2
 
@@ -33,7 +29,7 @@ fazer um menu com as opçoes
 scraper no biomol pegar no git do lucas
 
 1. https://www.ebi.ac.uk/chembl/ pegar as mesmas informações do pdb
-2. https://zinc.docking.org/   -> base compostos baixa o in stock, drug like e smiles
+2. https://zinc.docking.org/ -> base compostos baixa o in stock, drug like e smiles
 
 https://www.ebi.ac.uk/chembl/
 https://zinc.docking.org/
