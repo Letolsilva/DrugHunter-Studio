@@ -6,7 +6,7 @@ Responsabilidades:
 2. Define o diretório de dados (banco + pdb_files) relativo ao executável
 3. Sobe o FastAPI via uvicorn em thread separada
 4. Aguarda o servidor ficar pronto
-5. Abre o navegador padrão em http://localhost:8765
+5. Abre o navegador padrão em http://localhost:8080
 6. Mantém o processo vivo até o usuário fechar
 """
 
@@ -77,7 +77,7 @@ if env_file.exists():
     load_dotenv(env_file)
 
 # ── Sobe o servidor em thread separada ───────────────────────────────────────
-PORT = int(os.environ.get("PORT", "8765"))
+PORT = int(os.environ.get("PORT", "8080"))
 
 
 def _iniciar_servidor() -> None:
