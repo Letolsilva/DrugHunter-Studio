@@ -5,6 +5,7 @@ Não depende de nada do domínio ou da infraestrutura —
 é utilitário puro reutilizado por qualquer módulo.
 """
 
+import logging
 import os
 from datetime import datetime, timedelta
 from typing import Optional
@@ -12,7 +13,13 @@ from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-SECRET_KEY = os.getenv("SECRET_KEY", "TROQUE_ESTA_CHAVE_EM_PRODUCAO_abc123xyz789")
+_CHAVE_PADRAO = "TROQUE_ESTA_CHAVE_EM_PRODUCAO_abc123xyz789"
+SECRET_KEY = os.getenv("SECRET_KEY", _CHAVE_PADRAO)
+if SECRET_KEY == _CHAVE_PADRAO:
+    logging.getLogger("pdb_explorer").warning(
+        "⚠️  SECRET_KEY não configurada — usando chave padrão insegura. "
+        "Configure a variável de ambiente SECRET_KEY antes de rodar em produção."
+    )
 ALGORITHM = "HS256"
 
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))

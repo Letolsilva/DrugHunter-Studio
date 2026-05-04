@@ -52,4 +52,12 @@ logs/
 # ── Artefatos de build/distribuição ───────────────────────
 PDB-Explorer-dist/
 PDB-Explorer-linux.zip
+pdb-explorer.deb
+PDB-Explorer-Setup.exe
+pdb-explorer-pkg/
+pdb-explorer-windows-pkg/
 backend/static/
+
+# ── Runtime ───────────────────────────────────────────────
+*.pid
+.pdb_explorer.pid

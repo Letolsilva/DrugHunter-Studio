@@ -17,13 +17,18 @@ import asyncio
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Suporta DOTENV_PATH para instalações .deb onde o .env fica em ~/.local/share/
+_dotenv_extra = os.environ.get("DOTENV_PATH")
+if _dotenv_extra:
+    load_dotenv(_dotenv_extra, override=True)
 
 from app.infra.db.database import criar_tabelas, SessionLocal, get_config
 from app.routes.auth import router as auth_router
@@ -71,11 +76,22 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(Exception)
+async def _handler_erro_inesperado(request: Request, exc: Exception):
+    logger.exception("Erro interno não tratado: %s", exc)
+    return JSONResponse(status_code=500, content={"detail": "Erro interno do servidor."})
 
 app.include_router(auth_router)
 app.include_router(search_router)
@@ -95,6 +111,11 @@ def health():
 _STATIC_DIR = Path(__file__).parent.parent / "static"
 if _STATIC_DIR.exists():
     app.mount("/assets", StaticFiles(directory=_STATIC_DIR / "assets"), name="assets")
+
+    # Em modo executável desabilita docs para não expor esquema da API
+    app.openapi_url = None
+    app.docs_url = None
+    app.redoc_url = None
 
     @app.get("/{full_path:path}", include_in_schema=False)
     def serve_spa(full_path: str):

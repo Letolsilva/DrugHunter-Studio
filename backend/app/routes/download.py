@@ -33,10 +33,10 @@ def _fetch_from_rcsb(url_template: str, pdb_id: str) -> bytes:
     try:
         with urllib.request.urlopen(url, timeout=30) as resp:
             return resp.read()
-    except Exception as exc:
+    except Exception:
         raise HTTPException(
             status_code=502,
-            detail=f"Não foi possível baixar {pdb_id} do RCSB: {exc}",
+            detail=f"Não foi possível baixar {pdb_id} do RCSB. Tente novamente mais tarde.",
         )
 
 
@@ -203,12 +203,12 @@ def visualizar_pdb(
 
     try:
         return vc.uc_arvore(db, storage, pdb_id, usuario)
-    except KeyError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except PermissionError as e:
-        raise HTTPException(status_code=403, detail=str(e))
-    except FileNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Arquivo não encontrado.")
+    except PermissionError:
+        raise HTTPException(status_code=403, detail="Acesso negado.")
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Arquivo não encontrado.")
 
 
 @router.get("/visualizar/{pdb_id}/linhas")
@@ -230,12 +230,12 @@ def linhas_grupo(
             db, storage, pdb_id, tipo, resname, chain, resnum, usuario
         )
         return {"linhas": linhas}
-    except KeyError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except PermissionError as e:
-        raise HTTPException(status_code=403, detail=str(e))
-    except FileNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Arquivo não encontrado.")
+    except PermissionError:
+        raise HTTPException(status_code=403, detail="Acesso negado.")
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Arquivo não encontrado.")
 
 
 @router.get("/visualizar-cif/{pdb_id}")
@@ -250,12 +250,12 @@ def visualizar_cif(
 
     try:
         return vc_cif.uc_arvore_cif(db, storage, pdb_id, usuario)
-    except KeyError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except PermissionError as e:
-        raise HTTPException(status_code=403, detail=str(e))
-    except FileNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Arquivo não encontrado.")
+    except PermissionError:
+        raise HTTPException(status_code=403, detail="Acesso negado.")
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Arquivo não encontrado.")
 
 
 @router.get("/visualizar-cif/{pdb_id}/linhas")
@@ -277,9 +277,9 @@ def linhas_grupo_cif(
             db, storage, pdb_id, tipo, resname, chain, resnum, usuario
         )
         return {"linhas": linhas}
-    except KeyError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except PermissionError as e:
-        raise HTTPException(status_code=403, detail=str(e))
-    except FileNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Arquivo não encontrado.")
+    except PermissionError:
+        raise HTTPException(status_code=403, detail="Acesso negado.")
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Arquivo não encontrado.")
