@@ -4,12 +4,12 @@ usecases/redocking.py — Orquestração dos casos de uso de redocking.
 Não importa fastapi, Request ou Response.
 """
 
+from pathlib import Path
 from typing import List
 
 from sqlalchemy.orm import Session
 
 from app.domain.models import User, RedockingJob
-from app.infra.storage.storage_service import PDB_FILES_DIR
 from app.services import redocking as svc
 
 
@@ -88,7 +88,7 @@ def uc_defaults_redocking(db: Session, usuario: User) -> dict:
     stored_base_input = (
         registro.base_input_path
         if registro and registro.base_input_path
-        else str(PDB_FILES_DIR.resolve())
+        else str(Path.home())
     )
     return {
         "base_input_path": stored_base_input,

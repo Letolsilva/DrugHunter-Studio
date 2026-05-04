@@ -9,6 +9,7 @@ import logging
 import os
 import subprocess
 import tempfile
+from pathlib import Path
 
 from app.infra.db.database import SessionLocal
 from app.infra.email_sender import enviar_email_conclusao
@@ -34,7 +35,8 @@ def executar_redocking_background(
     try:
         atualizar_status(db, job_id, "running")
 
-        script = os.getenv("REDOCKING_SCRIPT_PATH", "redocking.py")
+        # Script sempre fica em backend/redocking.py — detectado via __file__
+        script = str(Path(__file__).resolve().parent.parent.parent / "redocking.py")
 
         # Salva o CSV em arquivo temporário para passar ao script
         with tempfile.NamedTemporaryFile(
@@ -47,17 +49,25 @@ def executar_redocking_background(
             tmp.write(csv_content)
             csv_path = tmp.name
 
+        drug_hunter_dir = os.environ.get("DRUG_HUNTER_PATH")
+        if not drug_hunter_dir:
+            raise EnvironmentError(
+                "Variável de ambiente DRUG_HUNTER_PATH não definida. "
+                "Configure-a no arquivo backend/.env apontando para o diretório raiz do DrugHunter."
+            )
+
         logger.info(
-            "Job %d iniciando: target=%s script=%s csv=%s",
+            "Job %d iniciando: target=%s script=%s csv=%s cwd=%s",
             job_id,
             target,
             script,
             csv_path,
+            drug_hunter_dir,
         )
 
         resultado = subprocess.run(
             [
-                "python",
+                os.getenv("PYTHON_BIN", "python3"),
                 script,
                 "--base_input_path",
                 base_input_path,
@@ -74,6 +84,7 @@ def executar_redocking_background(
             ],
             capture_output=True,
             text=True,
+            cwd=drug_hunter_dir,
         )
 
         # Limpa o CSV temporário

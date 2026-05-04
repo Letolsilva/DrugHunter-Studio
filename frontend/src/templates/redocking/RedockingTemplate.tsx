@@ -16,6 +16,7 @@ import {
 import { ResolutionBarChart } from "../../components/charts/ResolutionBarChart";
 import { MethodBarChart } from "../../components/charts/MethodBarChart";
 import { LigandDonutChart } from "../../components/charts/LigandDonutChart";
+import { InfoTooltip } from "../../components/ui/InfoTooltip";
 import type { UseRedockingPageReturn } from "../../pages/RedockingPage/useRedockingPage";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -313,8 +314,9 @@ export default function RedockingTemplate({
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <span className="uppercase tracking-wide font-medium text-[11px] text-foreground-subtle">
+                <span className="uppercase tracking-wide font-medium text-[11px] text-foreground-subtle flex items-center gap-1">
                   Top ligantes
+                  <InfoTooltip text="Moléculas ligantes mais frequentes entre as estruturas filtradas. Cada fatia representa a proporção de estruturas que contém aquele ligante." />
                 </span>
                 <LigandDonutChart data={dashboard.topLigantes} />
               </div>

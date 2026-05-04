@@ -20,6 +20,10 @@ ENV/
 *.sqlite
 *.sqlite3
 
+# Arquivos PDB/CIF baixados em runtime — não são código
+backend/pdb_files/*.pdb
+backend/pdb_files/*.cif
+
 # ── Node / frontend ───────────────────────────────────────
 node_modules/
 frontend/dist/

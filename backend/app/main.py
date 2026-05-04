@@ -14,9 +14,13 @@ Arquitetura Hexagonal:
 
 import logging
 import asyncio
+import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -83,3 +87,16 @@ app.include_router(redocking_router)
 @app.get("/health")
 def health():
     return {"status": "ok", "version": "4.0.0"}
+
+
+# ── Frontend estático (executável) ────────────────────────────────────────────
+# Serve os arquivos buildados do React quando rodando como executável.
+# Em dev o Vite cuida disso separadamente — esta seção é ignorada.
+_STATIC_DIR = Path(__file__).parent.parent / "static"
+if _STATIC_DIR.exists():
+    app.mount("/assets", StaticFiles(directory=_STATIC_DIR / "assets"), name="assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    def serve_spa(full_path: str):
+        """Retorna o index.html para qualquer rota não-API (SPA fallback)."""
+        return FileResponse(_STATIC_DIR / "index.html")
