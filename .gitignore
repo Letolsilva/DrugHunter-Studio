@@ -48,3 +48,8 @@ Thumbs.db
 # ── Logs ──────────────────────────────────────────────────
 *.log
 logs/
+
+# ── Artefatos de build/distribuição ───────────────────────
+PDB-Explorer-dist/
+PDB-Explorer-linux.zip
+backend/static/
