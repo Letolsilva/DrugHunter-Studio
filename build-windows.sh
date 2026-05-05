@@ -65,7 +65,8 @@ else
 fi
 
 # ── iniciar.ps1 ───────────────────────────────────────────────────────────────
-cat > "$PKG/iniciar.ps1" << 'ENDPS1'
+printf '\xef\xbb\xbf' > "$PKG/iniciar.ps1"
+cat >> "$PKG/iniciar.ps1" << 'ENDPS1'
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
@@ -74,49 +75,26 @@ $DATA_DIR = "$env:LOCALAPPDATA\PDB Explorer"
 $VENV     = "$DATA_DIR\.venv"
 $PID_FILE = "$DATA_DIR\.pid"
 $PORT     = 8080
+$LOG_FILE = "$DATA_DIR\pdb-explorer.log"
 
 New-Item -ItemType Directory -Force -Path "$DATA_DIR\pdb_files" | Out-Null
 
-# ── Já está rodando? ──────────────────────────────────────────────────────────
+function Log($msg) {
+    $line = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') $msg"
+    Add-Content -Path $LOG_FILE -Value $line -Encoding UTF8
+}
+
+Log "=== Iniciando PDB Explorer ==="
+Log "APP_DIR: $APP_DIR"
+Log "DATA_DIR: $DATA_DIR"
+
+# ── Ja esta rodando? ──────────────────────────────────────────────────────────
 if (Test-Path $PID_FILE) {
     $savedPid = [int](Get-Content $PID_FILE -ErrorAction SilentlyContinue)
     $proc = Get-Process -Id $savedPid -ErrorAction SilentlyContinue
     if ($proc) {
-        $form = New-Object System.Windows.Forms.Form
-        $form.Text = "PDB Explorer"
-        $form.Size = New-Object System.Drawing.Size(340, 150)
-        $form.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
-        $form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
-        $form.MaximizeBox = $false
-        $form.MinimizeBox = $false
-
-        $lbl = New-Object System.Windows.Forms.Label
-        $lbl.Text = "O PDB Explorer já está rodando."
-        $lbl.AutoSize = $true
-        $lbl.Location = New-Object System.Drawing.Point(20, 25)
-
-        $btnAbrir = New-Object System.Windows.Forms.Button
-        $btnAbrir.Text = "Abrir no navegador"
-        $btnAbrir.Size = New-Object System.Drawing.Size(135, 30)
-        $btnAbrir.Location = New-Object System.Drawing.Point(15, 70)
-        $btnAbrir.DialogResult = [System.Windows.Forms.DialogResult]::OK
-
-        $btnEncerrar = New-Object System.Windows.Forms.Button
-        $btnEncerrar.Text = "Encerrar servidor"
-        $btnEncerrar.Size = New-Object System.Drawing.Size(135, 30)
-        $btnEncerrar.Location = New-Object System.Drawing.Point(175, 70)
-        $btnEncerrar.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
-
-        $form.Controls.AddRange(@($lbl, $btnAbrir, $btnEncerrar))
-        $form.AcceptButton = $btnAbrir
-        $form.CancelButton = $btnEncerrar
-
-        if ($form.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
-            Start-Process "http://localhost:$PORT"
-        } else {
-            Stop-Process -Id $savedPid -Force -ErrorAction SilentlyContinue
-            Remove-Item $PID_FILE -Force -ErrorAction SilentlyContinue
-        }
+        Log "Servidor ja rodando (PID $savedPid), abrindo browser"
+        Start-Process "http://localhost:$PORT"
         exit 0
     }
 }
@@ -133,13 +111,17 @@ $python = $null
 foreach ($cmd in @("python", "python3", "py")) {
     try {
         $ver = & $cmd --version 2>&1
+        Log "Testando '$cmd': $ver"
         if ("$ver" -match "Python 3") { $python = $cmd; break }
-    } catch {}
+    } catch {
+        Log "Falhou '$cmd': $_"
+    }
 }
 if (-not $python) {
+    Log "ERRO: Python 3 nao encontrado"
     [System.Windows.Forms.MessageBox]::Show(
-        "Python 3 não foi encontrado.`n`nInstale em: https://www.python.org/downloads/`n`nDurante a instalação, marque 'Add Python to PATH'.",
-        "PDB Explorer — Python necessário",
+        "Python 3 nao foi encontrado.`n`nInstale em: https://www.python.org/downloads/`n`nDurante a instalacao, marque 'Add Python to PATH'.",
+        "PDB Explorer - Python necessario",
         [System.Windows.Forms.MessageBoxButtons]::OK,
         [System.Windows.Forms.MessageBoxIcon]::Error
     ) | Out-Null
@@ -150,7 +132,7 @@ if (-not $python) {
 # ── Primeira execução: criar venv ─────────────────────────────────────────────
 if (-not (Test-Path "$VENV\Scripts\python.exe")) {
     $form = New-Object System.Windows.Forms.Form
-    $form.Text = "PDB Explorer — Configuração"
+    $form.Text = "PDB Explorer - Configuracao"
     $form.Size = New-Object System.Drawing.Size(420, 120)
     $form.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
     $form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
@@ -165,9 +147,9 @@ if (-not (Test-Path "$VENV\Scripts\python.exe")) {
     $form.Show()
     [System.Windows.Forms.Application]::DoEvents()
 
-    & $python -m venv $VENV 2>&1 | Out-Null
-    & "$VENV\Scripts\pip.exe" install --quiet --upgrade pip 2>&1 | Out-Null
-    & "$VENV\Scripts\pip.exe" install --quiet -r "$APP_DIR\backend\requirements.txt" 2>&1 | Out-Null
+    & $python -m venv $VENV 2>&1 | ForEach-Object { Log "venv: $_" }
+    & "$VENV\Scripts\pip.exe" install --upgrade pip 2>&1 | ForEach-Object { Log "pip upgrade: $_" }
+    & "$VENV\Scripts\pip.exe" install -r "$APP_DIR\backend\requirements.txt" 2>&1 | ForEach-Object { Log "pip install: $_" }
 
     if (-not (Test-Path "$DATA_DIR\.env") -and (Test-Path "$APP_DIR\backend\.env.example")) {
         Copy-Item "$APP_DIR\backend\.env.example" "$DATA_DIR\.env"
@@ -203,7 +185,11 @@ $proc = Start-Process `
         "--host", "127.0.0.1", "--port", "$PORT", "--log-level", "warning") `
     -WorkingDirectory "$APP_DIR\backend" `
     -WindowStyle Hidden `
+    -RedirectStandardOutput "$DATA_DIR\uvicorn-stdout.log" `
+    -RedirectStandardError  "$DATA_DIR\uvicorn-stderr.log" `
     -PassThru
+
+Log "Processo uvicorn PID: $($proc.Id)"
 
 $proc.Id | Out-File -FilePath $PID_FILE -Encoding ASCII
 
@@ -212,21 +198,26 @@ for ($i = 0; $i -lt 40; $i++) {
     Start-Sleep -Milliseconds 500
     try {
         Invoke-WebRequest "http://127.0.0.1:$PORT/health" -UseBasicParsing -TimeoutSec 1 -ErrorAction Stop | Out-Null
+        Log "Servidor respondeu na tentativa $i"
         break
-    } catch {}
+    } catch {
+        if ($i -eq 39) { Log "ERRO: servidor não respondeu após 20s. Verifique uvicorn-stderr.log" }
+    }
 }
 
+Log "Abrindo browser em http://localhost:$PORT"
 Start-Process "http://localhost:$PORT"
 ENDPS1
 
-# ── iniciar.vbs (lança PS sem flash de terminal) ──────────────────────────────
-cat > "$PKG/iniciar.vbs" << 'ENDVBS'
-Dim fso, scriptDir, cmd
-Set fso = CreateObject("Scripting.FileSystemObject")
-scriptDir = fso.GetParentFolderName(WScript.ScriptFullName)
-cmd = "powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File """ & scriptDir & "\iniciar.ps1"""
-CreateObject("WScript.Shell").Run cmd, 0, False
-ENDVBS
+# ── iniciar.cmd (chamado pelo atalho; captura erros do PowerShell em log) ──────────────
+cat > "$PKG/iniciar.cmd" << 'ENDCMD'
+@echo off
+if not exist "%LOCALAPPDATA%\PDB Explorer\" mkdir "%LOCALAPPDATA%\PDB Explorer"
+echo %DATE% %TIME% [CMD] iniciar.cmd executado >> "%LOCALAPPDATA%\PDB Explorer\cmd.log"
+echo %DATE% %TIME% [CMD] Script: %~dp0iniciar.ps1 >> "%LOCALAPPDATA%\PDB Explorer\cmd.log"
+powershell.exe -ExecutionPolicy Bypass -NonInteractive -File "%~dp0iniciar.ps1" >> "%LOCALAPPDATA%\PDB Explorer\cmd.log" 2>&1
+echo %DATE% %TIME% [CMD] PowerShell encerrou: %ERRORLEVEL% >> "%LOCALAPPDATA%\PDB Explorer\cmd.log"
+ENDCMD
 
 # ── Gerar script NSIS ─────────────────────────────────────────────────────────
 echo "▶ Gerando script NSIS..."
@@ -270,8 +261,8 @@ Section "PDB Explorer"
   File /r "pdb-explorer-windows-pkg\*.*"
 
   CreateDirectory "\$SMPROGRAMS\PDB Explorer"
-  CreateShortCut "\$SMPROGRAMS\PDB Explorer\PDB Explorer.lnk" "\$SYSDIR\wscript.exe" '"\$INSTDIR\iniciar.vbs"'${SHORTCUT_ICON}
-  CreateShortCut "\$DESKTOP\PDB Explorer.lnk" "\$SYSDIR\wscript.exe" '"\$INSTDIR\iniciar.vbs"'${SHORTCUT_ICON}
+  CreateShortCut "\$SMPROGRAMS\PDB Explorer\PDB Explorer.lnk" "\$INSTDIR\iniciar.cmd" "" "" "" "SW_SHOWMINIMIZED"
+  CreateShortCut "\$DESKTOP\PDB Explorer.lnk" "\$INSTDIR\iniciar.cmd" "" "" "" "SW_SHOWMINIMIZED"
 
   WriteUninstaller "\$INSTDIR\Desinstalar PDB Explorer.exe"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\PDB Explorer" "DisplayName" "PDB Explorer"
@@ -281,7 +272,7 @@ Section "PDB Explorer"
 SectionEnd
 
 Function LaunchApp
-  ExecShell "" "\$INSTDIR\iniciar.vbs"
+  ExecShell "" "\$INSTDIR\iniciar.cmd"
 FunctionEnd
 
 Section "Uninstall"
