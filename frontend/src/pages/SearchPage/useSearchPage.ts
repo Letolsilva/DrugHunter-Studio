@@ -119,7 +119,7 @@ export function useSearchPage(
       const pct = total > 0 ? Math.round((atual / total) * 100) : 0;
       if (barraRef.current)
         barraRef.current.style.width = `${Math.max(pct, 2)}%`;
-      if (pctTextoRef.current) pctTextoRef.current.textContent = `${pct}%`;
+      if (pctTextoRef.current) pctTextoRef.current.textContent = `${pct}`;
       if (contadorRef.current)
         contadorRef.current.textContent = `${atual}/${total}`;
       if (labelRef.current) labelRef.current.textContent = label ?? "";
