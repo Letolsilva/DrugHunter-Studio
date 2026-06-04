@@ -1,0 +1,309 @@
+@import "tailwindcss";
+
+/* ── Tailwind v4 theme — gerado de tailwind.config.js ─────── */
+@theme {
+  /* Surfaces */
+  --color-surface-primary: #0a0e1a;
+  --color-surface-secondary: #0f1623;
+  --color-panel: #141c2e;
+  --color-panel-hover: #1a2440;
+
+  /* Outlines */
+  --color-outline: #1e2d4a;
+  --color-outline-strong: #253652;
+
+  /* Foreground / text */
+  --color-foreground: #e2e8f0;
+  --color-foreground-muted: #94a3b8;
+  --color-foreground-subtle: #4a6080;
+
+  /* Accent (teal) */
+  --color-accent: #00d4aa;
+  --color-accent-hover: #00bfa0;
+  --color-accent-12: rgba(0, 212, 170, 0.12);
+  --color-accent-15: rgba(0, 212, 170, 0.15);
+  --color-accent-25: rgba(0, 212, 170, 0.25);
+  --color-accent-30: rgba(0, 212, 170, 0.3);
+  --color-accent-muted: rgba(0, 212, 170, 0.25);
+
+  /* Blue */
+  --color-blue: #3b82f6;
+  --color-blue-12: rgba(59, 130, 246, 0.12);
+  --color-blue-15: rgba(59, 130, 246, 0.15);
+  --color-blue-25: rgba(59, 130, 246, 0.25);
+  --color-blue-30: rgba(59, 130, 246, 0.3);
+
+  /* Red */
+  --color-red: #ef4444;
+  --color-red-12: rgba(239, 68, 68, 0.12);
+  --color-red-15: rgba(239, 68, 68, 0.15);
+  --color-red-30: rgba(239, 68, 68, 0.3);
+
+  /* Yellow */
+  --color-yellow: #f59e0b;
+  --color-yellow-12: rgba(245, 158, 11, 0.12);
+  --color-yellow-15: rgba(245, 158, 11, 0.15);
+  --color-yellow-25: rgba(245, 158, 11, 0.25);
+  --color-yellow-30: rgba(245, 158, 11, 0.3);
+
+  /* Shadows */
+  --shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-accent-glow: 0 0 10px rgba(0, 212, 170, 0.3);
+  --shadow-yellow-glow: 0 0 10px rgba(245, 158, 11, 0.3);
+
+  /* Border radius */
+  --radius: 8px;
+  --radius-lg: 12px;
+
+  /* Font */
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+}
+
+/* ── Reset & base ─────────────────────────────────────────── */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* ── Global body ─────────────────────────────────────────── */
+html,
+body,
+#root {
+  min-height: 100vh;
+}
+
+body {
+  background-color: var(--color-surface-primary);
+  color: var(--color-foreground);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-surface-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-outline-strong);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-foreground-subtle);
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: var(--color-accent);
+  color: #001a14;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    opacity 0.15s,
+    transform 0.1s;
+  white-space: nowrap;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: transparent;
+  color: var(--color-foreground-muted);
+  border: 1px solid var(--color-outline-strong);
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+  white-space: nowrap;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--color-accent-12);
+}
+
+.btn-ghost:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Utility ─────────────────────────────────────────────── */
+.w-full {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ── Inputs & selects ────────────────────────────────────── */
+input,
+select,
+textarea {
+  background: var(--color-surface-secondary);
+  color: var(--color-foreground);
+  border: 1px solid var(--color-outline-strong);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-12);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-foreground-subtle);
+}
+
+select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234a6080' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+
+select option {
+  background: var(--color-panel-hover);
+  color: var(--color-foreground);
+}
+
+/* ── Spinner ─────────────────────────────────────────────── */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-accent-30);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Fade-in ─────────────────────────────────────────────── */
+.fade-in {
+  animation: fadeIn 0.25s ease both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Badges de qualidade ─────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.badge-excelente {
+  background: var(--color-accent-15);
+  color: #00d4aa;
+  border: 1px solid var(--color-accent-30);
+}
+
+.badge-boa {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.badge-razoavel {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-verificar {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.badge-ligante {
+  background: rgba(59, 130, 246, 0.12);
+  color: #7dd3fc;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.badge-sem-ligante {
+  background: transparent;
+  color: var(--color-foreground-subtle);
+  border: 1px solid var(--color-outline);
+}

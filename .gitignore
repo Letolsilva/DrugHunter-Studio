@@ -1,0 +1,63 @@
+# ── Python ────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+ENV/
+
+# ── FastAPI / uvicorn ──────────────────────────────────────
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Arquivos PDB/CIF baixados em runtime — não são código
+backend/pdb_files/*.pdb
+backend/pdb_files/*.cif
+
+# ── Node / frontend ───────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/.vite/
+*.local
+
+# ── Variáveis de ambiente ──────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── IDEs ──────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── OS ────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Logs ──────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Artefatos de build/distribuição ───────────────────────
+PDB-Explorer-dist/
+PDB-Explorer-linux.zip
+pdb-explorer.deb
+PDB-Explorer-Setup.exe
+pdb-explorer-pkg/
+pdb-explorer-windows-pkg/
+backend/static/
+
+# ── Runtime ───────────────────────────────────────────────
+*.pid
+.pdb_explorer.pid
