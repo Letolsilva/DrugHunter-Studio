@@ -45,7 +45,7 @@ export default function VisualizadorTemplate({
 }: Props) {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen flex flex-col bg-surface-primary">
+    <div className="min-h-screen flex flex-col bg-surface-primary select-none">
       <Navbar>
         <Navbar.Left>
           <button
@@ -237,7 +237,7 @@ export default function VisualizadorTemplate({
               </div>
             ) : (
               <div
-                className="overflow-auto rounded bg-surface-primary p-3"
+                className="overflow-auto rounded bg-surface-primary p-3 select-text"
                 style={{ maxHeight: "calc(70vh - 80px)" }}
               >
                 {linhasRaw.map((linha, i) => (

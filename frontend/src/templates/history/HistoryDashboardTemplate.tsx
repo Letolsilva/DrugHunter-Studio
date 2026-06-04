@@ -25,7 +25,7 @@ export default function HistoryDashboardTemplate({
 }: UseHistoryDashboardPageReturn) {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen flex flex-col bg-surface-primary">
+    <div className="min-h-screen flex flex-col bg-surface-primary select-none">
       <Navbar>
         <Navbar.Left>
           <button

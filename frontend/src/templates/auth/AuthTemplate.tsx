@@ -33,7 +33,7 @@ export default function AuthTemplate({
   const isRegister = modo === "register";
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-surface-primary">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-surface-primary select-none">
       <DecorativeBackground />
 
       <div className="relative px-8 z-10 bg-panel border border-outline-strong rounded-2xl w-full max-w-[420px] shadow-[0_24px_64px_rgba(0,0,0,0.55)] fade-in">

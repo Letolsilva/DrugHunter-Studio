@@ -33,7 +33,7 @@ export default function PdbFilesTemplate({
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex flex-col bg-surface-primary">
+    <div className="min-h-screen flex flex-col bg-surface-primary select-none">
       <Navbar>
         <Navbar.Left>
           <span className="text-[17px] font-medium text-foreground-muted inline-flex items-center gap-1.5">

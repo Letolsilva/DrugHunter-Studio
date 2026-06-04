@@ -80,7 +80,7 @@ export default function DashboardTemplate({
 
   return (
     <>
-      <div className="flex flex-col gap-5 w-full fade-in">
+      <div className="flex flex-col gap-5 w-full fade-in select-none">
         {/* Header de resultado */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>

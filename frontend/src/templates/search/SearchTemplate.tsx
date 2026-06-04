@@ -82,7 +82,7 @@ export default function SearchTemplate({
   dashboard,
 }: SearchTemplateProps) {
   return (
-    <div className="min-h-screen flex flex-col bg-surface-primary">
+    <div className="min-h-screen flex flex-col bg-surface-primary select-none">
       <Navbar>
         <Navbar.Left>
           <span className="inline-flex items-center gap-1.5 text-[17px] font-medium text-foreground-muted">
