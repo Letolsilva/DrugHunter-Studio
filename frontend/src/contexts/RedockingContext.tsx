@@ -140,6 +140,14 @@ export function RedockingProvider({
   // Para o polling ao desmontar
   useEffect(() => () => stopPolling(), [stopPolling]);
 
+  // Quando o job conclui com sucesso, recarrega o CSV (agora com coluna RMSD)
+  useEffect(() => {
+    if (activeJob?.status === "done") {
+      carregarCsvDoServidor();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeJob?.status]);
+
   return (
     <RedockingContext.Provider
       value={{

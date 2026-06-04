@@ -13,7 +13,8 @@ from pathlib import Path
 
 from app.infra.db.database import SessionLocal
 from app.infra.email_sender import enviar_email_conclusao
-from app.services.redocking import atualizar_status, marcar_finalizado
+from app.services.redocking import atualizar_status, marcar_finalizado, salvar_csv_usuario
+from app.domain.models.redocking_job import RedockingJob
 
 logger = logging.getLogger("pdb_explorer")
 
@@ -96,6 +97,22 @@ def executar_redocking_background(
         if resultado.returncode == 0:
             logger.info("Job %d concluído com sucesso", job_id)
             marcar_finalizado(db, job_id, "done")
+
+            # Lê o CSV reescrito pelo DrugHunter (agora inclui coluna RMSD)
+            target_clean = target.replace(" ", "")
+            result_csv_path = Path(
+                drug_hunter_dir + base_input_path + "/" + target_clean + "/pdb_codes.csv"
+            )
+            if result_csv_path.exists():
+                try:
+                    updated_csv = result_csv_path.read_text(encoding="utf-8")
+                    job_obj = db.query(RedockingJob).filter(RedockingJob.id == job_id).first()
+                    if job_obj:
+                        salvar_csv_usuario(db, job_obj.user_id, csv_content=updated_csv)
+                        logger.info("Job %d: CSV com RMSD salvo no banco", job_id)
+                except Exception as csv_exc:
+                    logger.warning("Job %d: falha ao ler CSV com RMSD: %s", job_id, csv_exc)
+
             if email_notificacao:
                 enviar_email_conclusao(
                     email_notificacao, job_id, target, "done", None, base_output_path

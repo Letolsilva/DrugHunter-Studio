@@ -27,6 +27,7 @@ export interface CsvLinha {
   resnum: string;
   chain: string;
   resolution: string;
+  rmsd?: string;
 }
 
 /** Parseia uma string CSV (com header) em array de CsvLinha */
@@ -37,13 +38,14 @@ export function parseCsvContent(content: string): CsvLinha[] {
     .filter(Boolean)
     .slice(1) // pula o header
     .map((linha) => {
-      const [pdb_code, ligand, resnum, chain, resolution] = linha.split(",");
+      const [pdb_code, ligand, resnum, chain, resolution, rmsd] = linha.split(",");
       return {
         pdb_code: pdb_code?.trim() ?? "",
         ligand: ligand?.trim() ?? "",
         resnum: resnum?.trim() ?? "",
         chain: chain?.trim() ?? "",
         resolution: resolution?.trim() ?? "",
+        rmsd: rmsd?.trim() || undefined,
       };
     });
 }

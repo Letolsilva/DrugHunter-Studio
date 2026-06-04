@@ -77,7 +77,7 @@ export default function RedockingTemplate({
     !submitting;
 
   return (
-    <div className="min-h-screen flex flex-col bg-surface-primary">
+    <div className="min-h-screen flex flex-col bg-surface-primary select-none">
       <Navbar>
         <Navbar.Left>
           <button
@@ -224,6 +224,7 @@ export default function RedockingTemplate({
                       "RESNUM",
                       "CHAIN",
                       "RESOLUTION",
+                      "RMSD",
                     ] as const
                   ).map((col) => (
                     <span
@@ -231,7 +232,7 @@ export default function RedockingTemplate({
                       className={`font-mono text-[11px] px-5 py-2 font-semibold uppercase tracking-widest text-foreground-subtle ${
                         col === "PDB_CODE" || col === "LIGAND"
                           ? "min-w-[110px]"
-                          : col === "RESOLUTION"
+                          : col === "RESOLUTION" || col === "RMSD"
                             ? "min-w-[120px]"
                             : "min-w-[90px]"
                       }`}
@@ -265,6 +266,9 @@ export default function RedockingTemplate({
                     </span>
                     <span className="font-mono text-[12px] px-5 py-1.5 min-w-[120px] text-foreground-subtle">
                       {linha.resolution || "—"}
+                    </span>
+                    <span className="font-mono text-[12px] px-5 py-1.5 min-w-[120px] text-foreground-subtle">
+                      {linha.rmsd ?? "—"}
                     </span>
                   </div>
                 ))}

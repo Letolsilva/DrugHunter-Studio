@@ -91,7 +91,7 @@ export function useRedockingPage(
   );
   const [config, setConfig] = useState({
     target: localStorage.getItem("redocking_target") ?? "",
-    base_input_path: "",
+    base_input_path: localStorage.getItem("redocking_base_input_path") ?? "",
     base_output_path: "",
     charge_type: "am1" as ChargeType,
   });
@@ -131,6 +131,18 @@ export function useRedockingPage(
 
   const handleImportarCsv = useCallback(
     (file: File) => {
+      // Tenta extrair o diretório do caminho completo do arquivo.
+      // `file.path` é exposto em ambientes como Electron; em navegadores padrão retorna undefined.
+      const fullPath: string | undefined = (file as unknown as { path?: string }).path;
+      const dirFromFile = fullPath
+        ? fullPath.replace(/[\\/][^\\/]+$/, "") // remove o nome do arquivo
+        : undefined;
+
+      if (dirFromFile) {
+        setConfig((prev) => ({ ...prev, base_input_path: dirFromFile }));
+        localStorage.setItem("redocking_base_input_path", dirFromFile);
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         const text = e.target?.result as string;
@@ -138,7 +150,7 @@ export function useRedockingPage(
           text,
           file.name,
           config.target,
-          config.base_input_path,
+          dirFromFile ?? config.base_input_path,
         );
       };
       reader.readAsText(file);
@@ -150,6 +162,8 @@ export function useRedockingPage(
     setConfig((prev) => ({ ...prev, [field]: value }));
     if (field === "target") {
       localStorage.setItem("redocking_target", value);
+    } else if (field === "base_input_path") {
+      localStorage.setItem("redocking_base_input_path", value);
     }
   }, []);
 
