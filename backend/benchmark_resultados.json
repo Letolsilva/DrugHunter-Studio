@@ -1,0 +1,100 @@
+{
+  "config": {
+    "N_SCRAPING": 3,
+    "N_CACHE": 5
+  },
+  "resultados": [
+    {
+      "label": "Candida auris",
+      "query": "Candida auris",
+      "limite": 15,
+      "n_estruturas": 12,
+      "scraping_media": 22.8795,
+      "scraping_dp": 7.7851,
+      "cache_media": 0.003612,
+      "cache_dp": 0.001426,
+      "fator_reducao": 6333.4,
+      "tempos_scraping": [
+        31.2977,
+        15.9395,
+        21.4012
+      ],
+      "tempos_cache": [
+        0.006104,
+        0.003284,
+        0.003266,
+        0.002556,
+        0.002853
+      ]
+    },
+    {
+      "label": "Candida albicans",
+      "query": "Candida albicans",
+      "limite": 50,
+      "n_estruturas": 50,
+      "scraping_media": 87.7045,
+      "scraping_dp": 33.1736,
+      "cache_media": 0.00512,
+      "cache_dp": 0.001758,
+      "fator_reducao": 17130.4,
+      "tempos_scraping": [
+        126.0078,
+        68.9084,
+        68.1973
+      ],
+      "tempos_cache": [
+        0.00817,
+        0.004598,
+        0.004911,
+        0.004132,
+        0.003789
+      ]
+    },
+    {
+      "label": "Aspergillus fumigatus",
+      "query": "Aspergillus fumigatus",
+      "limite": 100,
+      "n_estruturas": 100,
+      "scraping_media": 182.6912,
+      "scraping_dp": 70.4007,
+      "cache_media": 0.008529,
+      "cache_dp": 0.001854,
+      "fator_reducao": 21419.6,
+      "tempos_scraping": [
+        263.9763,
+        142.9515,
+        141.1458
+      ],
+      "tempos_cache": [
+        0.010659,
+        0.007518,
+        0.010357,
+        0.007558,
+        0.006554
+      ]
+    },
+    {
+      "label": "Aspergillus (geral)",
+      "query": "Aspergillus",
+      "limite": 200,
+      "n_estruturas": 200,
+      "scraping_media": 338.9786,
+      "scraping_dp": 108.648,
+      "cache_media": 0.010957,
+      "cache_dp": 0.003228,
+      "fator_reducao": 30937.2,
+      "tempos_scraping": [
+        464.3732,
+        279.6765,
+        272.886
+      ],
+      "tempos_cache": [
+        0.016308,
+        0.008809,
+        0.010738,
+        0.010868,
+        0.008062
+      ]
+    }
+  ]
+}
