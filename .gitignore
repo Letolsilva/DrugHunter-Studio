@@ -61,3 +61,7 @@ backend/static/
 # ── Runtime ───────────────────────────────────────────────
 *.pid
 .pdb_explorer.pid
+
+# ── Anotações e planos internos ───────────────────────────
+Anotações/
+Plans_executados/
