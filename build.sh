@@ -13,6 +13,15 @@ set -e
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 PKG="$ROOT/pdb-explorer-pkg"
 
+# ── Credenciais SMTP ──────────────────────────────────────────────────────────
+SMTP_SECRET_FILE="$ROOT/.smtp_secret"
+if [ -f "$SMTP_SECRET_FILE" ]; then
+    SMTP_PASSWORD="$(cat "$SMTP_SECRET_FILE")"
+else
+    echo "⚠️  Aviso: .smtp_secret não encontrado — notificações por e-mail desativadas no .deb gerado."
+    SMTP_PASSWORD=""
+fi
+
 # ── Build frontend ─────────────────────────────────────────────────────────────
 echo "▶ Buildando frontend..."
 cd "$ROOT/frontend" && npm ci --silent && npm run build
@@ -38,6 +47,10 @@ mkdir -p "$PKG/opt/pdb-explorer/backend/pdb_files"
 cp "$ROOT/backend/requirements.txt" "$PKG/opt/pdb-explorer/backend/"
 cp "$ROOT/backend/.env.example"     "$PKG/opt/pdb-explorer/backend/"
 cp "$ROOT/backend/redocking.py"     "$PKG/opt/pdb-explorer/backend/"
+
+# Injeta a senha SMTP no email_sender.py do pacote (nunca no arquivo do repo)
+sed -i "s|%%SMTP_PASSWORD%%|$SMTP_PASSWORD|g" \
+    "$PKG/opt/pdb-explorer/backend/app/infra/email_sender.py"
 cp "$ROOT/assets/pdb-explorer.svg"  "$PKG/usr/share/icons/hicolor/scalable/apps/pdb-explorer.svg"
 
 # ── iniciar.sh instalado em /opt ──────────────────────────────────────────────
@@ -122,6 +135,12 @@ if [ ! -f "$DATA_DIR/.env" ] && [ -f "$APP_DIR/backend/.env.example" ]; then
     cp "$APP_DIR/backend/.env.example" "$DATA_DIR/.env"
     SECRET=$(python3 -c "import secrets; print(secrets.token_hex(32))")
     sed -i "s|SECRET_KEY=TROQUE_ESTA_CHAVE_EM_PRODUCAO_abc123xyz789|SECRET_KEY=$SECRET|" \
+        "$DATA_DIR/.env"
+fi
+
+# ── Remover credenciais SMTP placeholder de instalações antigas ───────────────
+if [ -f "$DATA_DIR/.env" ]; then
+    sed -i '/^SMTP_USER=COLOQUE_/d;/^SMTP_PASSWORD=COLOQUE_/d;/^SMTP_HOST=COLOQUE_/d;/^SMTP_FROM=COLOQUE_/d;/^SMTP_PORT=COLOQUE_/d' \
         "$DATA_DIR/.env"
 fi
 

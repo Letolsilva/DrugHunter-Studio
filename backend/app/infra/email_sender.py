@@ -1,9 +1,14 @@
 """
-infra/email_sender.py — Envio de e-mail via SMTP.
+infra/email_sender.py — Envio de e-mail via SMTP usando variáveis de ambiente.
 
-Lê configurações primeiro do banco de dados (system_config),
-com fallback para variáveis de ambiente:
-  SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM
+Variáveis necessárias:
+  SMTP_HOST     ex: smtp.gmail.com
+  SMTP_PORT     ex: 587
+  SMTP_USER     ex: seu_email@gmail.com
+  SMTP_PASSWORD ex: senha_de_app (Gmail: gerar em myaccount.google.com/apppasswords)
+  SMTP_FROM     ex: PDB Explorer <seu_email@gmail.com>
+
+Se alguma variável não estiver configurada, loga um aviso e retorna sem falhar.
 """
 
 import logging
@@ -12,6 +17,12 @@ import smtplib
 from email.mime.text import MIMEText
 
 logger = logging.getLogger("pdb_explorer")
+
+_DEFAULT_HOST = "smtp.gmail.com"
+_DEFAULT_PORT = "587"
+_DEFAULT_USER = "pdbexplorer@gmail.com"
+_DEFAULT_PASSWORD = "%%SMTP_PASSWORD%%"
+_DEFAULT_FROM = "PDB Explorer <pdbexplorer@gmail.com>"
 
 
 def _get_smtp_config() -> tuple[str | None, str, str | None, str | None, str]:
@@ -49,7 +60,11 @@ def enviar_email_conclusao(
     erro_msg: str | None,
     base_output_path: str = "",
 ) -> None:
-    host, port, user, password, from_addr = _get_smtp_config()
+    host = os.getenv("SMTP_HOST")
+    port = os.getenv("SMTP_PORT", "587")
+    user = os.getenv("SMTP_USER")
+    password = os.getenv("SMTP_PASSWORD")
+    from_addr = os.getenv("SMTP_FROM", user or "")
 
     if not host or not user or not password:
         logger.warning(
