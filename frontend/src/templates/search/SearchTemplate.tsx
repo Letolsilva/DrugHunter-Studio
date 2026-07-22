@@ -16,6 +16,7 @@ import {
   PauseIcon,
   RefreshIcon,
   SearchIcon,
+  SettingsIcon,
   WarningIcon,
 } from "../../components/icons";
 import type { UserModel } from "../../domain/models/auth.model";
@@ -45,6 +46,7 @@ interface SearchTemplateProps {
   irParaHistorico: () => void;
   irParaMeusPdbs: () => void;
   irParaRedocking: () => void;
+  irParaConfiguracoes: () => void;
   pausar: () => void;
   cancelar: () => void;
   iniciarBusca: (forcarNovo?: boolean) => void;
@@ -75,6 +77,7 @@ export default function SearchTemplate({
   irParaHistorico,
   irParaMeusPdbs,
   irParaRedocking,
+  irParaConfiguracoes,
   pausar,
   cancelar,
   iniciarBusca,
@@ -115,6 +118,12 @@ export default function SearchTemplate({
               icon={<RefreshIcon size={14} />}
               label="Redocking"
               onClick={irParaRedocking}
+              divider
+            />
+            <DropdownMenu.Item
+              icon={<SettingsIcon size={14} />}
+              label="Configurações"
+              onClick={irParaConfiguracoes}
               divider
             />
             <DropdownMenu.Item

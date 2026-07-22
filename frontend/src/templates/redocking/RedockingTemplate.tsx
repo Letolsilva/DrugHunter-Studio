@@ -12,6 +12,7 @@ import {
   LogoutIcon,
   MenuIcon,
   SearchIcon,
+  SettingsIcon,
 } from "../../components/icons";
 import { ResolutionBarChart } from "../../components/charts/ResolutionBarChart";
 import { MethodBarChart } from "../../components/charts/MethodBarChart";
@@ -61,6 +62,7 @@ export default function RedockingTemplate({
   irParaBusca,
   irParaHistorico,
   irParaMeusPdbs,
+  irParaConfiguracoes,
   handleImportarCsv,
   handleConfigChange,
   handleSubmit,
@@ -120,6 +122,12 @@ export default function RedockingTemplate({
               icon={<DownloadIcon size={14} />}
               label="Meus PDBs"
               onClick={irParaMeusPdbs}
+              divider
+            />
+            <DropdownMenu.Item
+              icon={<SettingsIcon size={14} />}
+              label="Configurações"
+              onClick={irParaConfiguracoes}
               divider
             />
             <DropdownMenu.Item

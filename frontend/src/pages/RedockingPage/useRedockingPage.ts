@@ -50,6 +50,7 @@ export interface UseRedockingPageReturn {
   irParaBusca: () => void;
   irParaHistorico: () => void;
   irParaMeusPdbs: () => void;
+  irParaConfiguracoes: () => void;
   handleImportarCsv: (file: File) => void;
   handleConfigChange: (field: string, value: string) => void;
   handleSubmit: () => Promise<void>;
@@ -228,6 +229,11 @@ export function useRedockingPage(
     navigate("/meus-pdbs");
   }, [navigate]);
 
+  const irParaConfiguracoes = useCallback(() => {
+    setMenuAberto(false);
+    navigate("/configuracoes");
+  }, [navigate]);
+
   const dashboard = useMemo((): RedockingDashboard | null => {
     if (csvLinhas.length === 0) return null;
 
@@ -322,6 +328,7 @@ export function useRedockingPage(
     irParaBusca,
     irParaHistorico,
     irParaMeusPdbs,
+    irParaConfiguracoes,
     handleImportarCsv,
     handleConfigChange,
     handleSubmit,

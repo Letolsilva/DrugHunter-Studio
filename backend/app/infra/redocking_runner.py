@@ -11,7 +11,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from app.infra.db.database import SessionLocal
+from app.infra.db.database import SessionLocal, get_config
 from app.infra.email_sender import enviar_email_conclusao
 from app.services.redocking import atualizar_status, marcar_finalizado, salvar_csv_usuario
 from app.domain.models.redocking_job import RedockingJob
@@ -50,11 +50,11 @@ def executar_redocking_background(
             tmp.write(csv_content)
             csv_path = tmp.name
 
-        drug_hunter_dir = os.environ.get("DRUG_HUNTER_PATH")
+        drug_hunter_dir = get_config(db, "drug_hunter_path") or os.environ.get("DRUG_HUNTER_PATH")
         if not drug_hunter_dir:
             raise EnvironmentError(
-                "Variável de ambiente DRUG_HUNTER_PATH não definida. "
-                "Configure-a no arquivo backend/.env apontando para o diretório raiz do DrugHunter."
+                "Caminho do DrugHunter não configurado. "
+                "Configure-o na tela de Configurações ou na variável DRUG_HUNTER_PATH do arquivo backend/.env."
             )
 
         logger.info(
@@ -66,9 +66,11 @@ def executar_redocking_background(
             drug_hunter_dir,
         )
 
+        python_bin = get_config(db, "python_bin") or os.getenv("PYTHON_BIN", "python3")
+
         resultado = subprocess.run(
             [
-                os.getenv("PYTHON_BIN", "python3"),
+                python_bin,
                 script,
                 "--base_input_path",
                 base_input_path,
