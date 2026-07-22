@@ -9,6 +9,7 @@ import PdbFilesPage from "./pages/PdbFilesPage/PdbFilesPage";
 import VisualizadorPage from "./pages/VisualizadorPage/VisualizadorPage";
 import VisualizadorCifPage from "./pages/VisualizadorCifPage/VisualizadorCifPage";
 import RedockingPage from "./pages/RedockingPage/RedockingPage";
+import ConfigPage from "./pages/ConfigPage/ConfigPage";
 import type { SearchUseCase } from "./data/usecases/search.usecase";
 import type { HistoryUseCase } from "./data/usecases/history.usecase";
 import type { DashboardUseCase } from "./data/usecases/dashboard.usecase";
@@ -16,6 +17,7 @@ import type { PdbFilesUseCase } from "./data/usecases/pdb_files.usecase";
 import type { VisualizadorUseCase } from "./data/usecases/visualizador.usecase";
 import type { VisualizadorCifUseCase } from "./data/usecases/visualizador_cif.usecase";
 import type { RedockingUseCase } from "./data/usecases/redocking.usecase";
+import type { ConfigUseCase } from "./data/usecases/config.usecase";
 
 interface RotaProtegidaProps {
   children: ReactNode;
@@ -27,8 +29,7 @@ function RotaProtegida({ children }: RotaProtegidaProps) {
   if (loading) {
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center gap-4"
-        style={{ background: "#0a0e1a" }}
+        className="min-h-screen flex flex-col items-center justify-center gap-4 bg-surface-primary"
       >
         <span
           className="spinner"
@@ -59,6 +60,7 @@ interface AppRoutesProps {
   visualizadorUseCase: VisualizadorUseCase;
   visualizadorCifUseCase: VisualizadorCifUseCase;
   redockingUseCase: RedockingUseCase;
+  configUseCase: ConfigUseCase;
 }
 
 export default function AppRoutes({
@@ -69,6 +71,7 @@ export default function AppRoutes({
   visualizadorUseCase,
   visualizadorCifUseCase,
   redockingUseCase,
+  configUseCase,
 }: AppRoutesProps) {
   const { user, loading } = useAuth();
 
@@ -145,6 +148,14 @@ export default function AppRoutes({
         element={
           <RotaProtegida>
             <RedockingPage redockingUseCase={redockingUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/configuracoes"
+        element={
+          <RotaProtegida>
+            <ConfigPage configUseCase={configUseCase} />
           </RotaProtegida>
         }
       />

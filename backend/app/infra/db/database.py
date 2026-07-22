@@ -66,6 +66,41 @@ CONFIGS_PADRAO = [
         "valor": "true",
         "descricao": "Executar limpeza de TTL automaticamente ao iniciar o servidor",
     },
+    {
+        "chave": "drug_hunter_path",
+        "valor": "",
+        "descricao": "Caminho absoluto para o diretório raiz do DrugHunter",
+    },
+    {
+        "chave": "python_bin",
+        "valor": "python3",
+        "descricao": "Interpretador Python usado para executar o DrugHunter",
+    },
+    {
+        "chave": "smtp_host",
+        "valor": "",
+        "descricao": "Host do servidor SMTP (ex: smtp.gmail.com)",
+    },
+    {
+        "chave": "smtp_port",
+        "valor": "587",
+        "descricao": "Porta do servidor SMTP (587 para TLS, 465 para SSL)",
+    },
+    {
+        "chave": "smtp_user",
+        "valor": "",
+        "descricao": "Email ou usuário para autenticar no servidor SMTP",
+    },
+    {
+        "chave": "smtp_password",
+        "valor": "",
+        "descricao": "Senha SMTP (armazenada criptografada no banco de dados)",
+    },
+    {
+        "chave": "smtp_from",
+        "valor": "",
+        "descricao": "Endereço remetente exibido nos emails (ex: PDB Explorer <email@gmail.com>)",
+    },
 ]
 
 

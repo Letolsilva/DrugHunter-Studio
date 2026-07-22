@@ -9,8 +9,20 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.services import admin as service
+from app.infra.db.database import get_config
 
-CHAVES_VALIDAS = {"ttl_dias", "max_por_proteina", "limpeza_automatica"}
+CHAVES_VALIDAS = {
+    "ttl_dias",
+    "max_por_proteina",
+    "limpeza_automatica",
+    "drug_hunter_path",
+    "python_bin",
+    "smtp_host",
+    "smtp_port",
+    "smtp_user",
+    "smtp_password",
+    "smtp_from",
+}
 
 
 def uc_stats(db: Session) -> dict:
@@ -26,8 +38,9 @@ def uc_atualizar_config(db: Session, chave: str, valor: str) -> dict:
     if chave not in CHAVES_VALIDAS:
         raise HTTPException(
             status_code=400,
-            detail=f"Chave inválida. Chaves válidas: {CHAVES_VALIDAS}",
+            detail=f"Chave inválida. Chaves válidas: {sorted(CHAVES_VALIDAS)}",
         )
+
     if chave == "ttl_dias":
         try:
             v = int(valor)
@@ -55,10 +68,43 @@ def uc_atualizar_config(db: Session, chave: str, valor: str) -> dict:
             )
         valor = valor.lower()
 
+    if chave == "drug_hunter_path":
+        valor = valor.strip()
+
+    if chave == "python_bin":
+        valor = valor.strip()
+        if not valor:
+            raise HTTPException(
+                status_code=400, detail="python_bin não pode ser vazio"
+            )
+
+    if chave == "smtp_port":
+        try:
+            v = int(valor)
+            if v < 1 or v > 65535:
+                raise ValueError
+        except ValueError:
+            raise HTTPException(
+                status_code=400, detail="smtp_port deve ser um número entre 1 e 65535"
+            )
+
+    if chave == "smtp_password":
+        valor = valor.strip()
+        if not valor:
+            # Senha em branco → manter a existente sem sobrescrever
+            existente = get_config(db, "smtp_password", "")
+            sentinela = "__set__" if existente else ""
+            return {"chave": chave, "valor": sentinela, "mensagem": "Senha mantida sem alteração."}
+        from app.infra.crypto import encrypt_value
+        valor = encrypt_value(valor)
+
     cfg = service.atualizar_config(db, chave, valor)
+
+    # Para smtp_password retorna sentinela, nunca o valor criptografado
+    valor_retorno = "__set__" if chave == "smtp_password" else cfg.valor
     return {
         "chave": cfg.chave,
-        "valor": cfg.valor,
+        "valor": valor_retorno,
         "mensagem": "Configuração atualizada.",
     }
 
@@ -77,3 +123,18 @@ def uc_proximas_expirar(db: Session, aviso_dias: int) -> dict:
 def uc_organismos(db: Session) -> dict:
     orgs = service.listar_organismos(db)
     return {"total": len(orgs), "organismos": orgs}
+
+
+def uc_listar_usuarios(db: Session) -> dict:
+    return service.listar_usuarios(db)
+
+
+def uc_set_admin(
+    db: Session, usuario_id: int, is_admin: bool, current_user_id: int
+) -> dict:
+    try:
+        return service.set_admin_usuario(db, usuario_id, is_admin, current_user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
