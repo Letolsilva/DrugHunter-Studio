@@ -5,6 +5,7 @@ Aberto como BackgroundTask do FastAPI.
 Abre sessão própria de banco para não compartilhar com a requisição HTTP.
 """
 
+import glob
 import logging
 import os
 import subprocess
@@ -15,8 +16,58 @@ from app.infra.db.database import SessionLocal, get_config
 from app.infra.email_sender import enviar_email_conclusao
 from app.services.redocking import atualizar_status, marcar_finalizado, salvar_csv_usuario
 from app.domain.models.redocking_job import RedockingJob
+from app.domain.utils.normalizacao import normalizar_target
 
 logger = logging.getLogger("pdb_explorer")
+
+
+def _csv_tem_dados(conteudo: str) -> bool:
+    """True se o CSV tem ao menos 1 linha de dados além do cabeçalho."""
+    linhas = [l.strip() for l in conteudo.splitlines() if l.strip()]
+    return len(linhas) > 1
+
+
+def _montar_path_ferramentas(python_bin: str, db) -> str:
+    """Monta o PATH com as ferramentas externas que o DrugHunter chama por subprocesso.
+
+    O backend roda o subprocesso sem ativar o conda nem ler o ~/.bashrc (que só
+    vale em shell interativo), então obabel/vina (bin do env), chimera e dock6
+    precisam ser colocados no PATH explicitamente. Ordem de resolução de cada
+    ferramenta externa: config no banco → variável de ambiente → autodetecção.
+    """
+    dirs: list[str] = []
+
+    # obabel e vina ficam no bin do env conda — derivado do próprio python_bin
+    env_bin = os.path.dirname(python_bin)
+    if env_bin and os.path.isdir(env_bin):
+        dirs.append(env_bin)
+
+    # Chimera (fora do conda)
+    chimera_dir = get_config(db, "chimera_path") or os.environ.get("CHIMERA_PATH")
+    if not chimera_dir:
+        for padrao in (
+            "/opt/UCSF/Chimera*/bin",
+            str(Path.home() / ".local" / "UCSF-Chimera*" / "bin"),
+            str(Path.home() / "UCSF-Chimera*" / "bin"),
+        ):
+            hits = sorted(glob.glob(padrao))
+            if hits:
+                chimera_dir = hits[-1]
+                break
+    if chimera_dir and os.path.isdir(chimera_dir):
+        dirs.append(chimera_dir)
+
+    # dock6 (sphgen, showbox, grid, dock6)
+    dock6_dir = get_config(db, "dock6_path") or os.environ.get("DOCK6_PATH")
+    if not dock6_dir:
+        cand = Path.home() / "progs" / "dock6" / "bin"
+        if cand.is_dir():
+            dock6_dir = str(cand)
+    if dock6_dir and os.path.isdir(dock6_dir):
+        dirs.append(dock6_dir)
+
+    existing = os.environ.get("PATH", "")
+    return os.pathsep.join(dirs + ([existing] if existing else []))
 
 
 def executar_redocking_background(
@@ -68,6 +119,12 @@ def executar_redocking_background(
 
         python_bin = get_config(db, "python_bin") or os.getenv("PYTHON_BIN", "python3")
 
+        # Monta o PATH com obabel/vina/chimera/dock6 — o subprocesso não herda
+        # o conda ativado nem o ~/.bashrc (que só vale em shell interativo).
+        subprocess_env = os.environ.copy()
+        subprocess_env["PATH"] = _montar_path_ferramentas(python_bin, db)
+        logger.info("Job %d PATH do subprocesso: %s", job_id, subprocess_env["PATH"])
+
         resultado = subprocess.run(
             [
                 python_bin,
@@ -88,6 +145,7 @@ def executar_redocking_background(
             capture_output=True,
             text=True,
             cwd=drug_hunter_dir,
+            env=subprocess_env,
         )
 
         # Limpa o CSV temporário
@@ -96,35 +154,53 @@ def executar_redocking_background(
         except OSError:
             pass
 
-        if resultado.returncode == 0:
+        # Lê o CSV de resultado para verificar artefato (defesa independente do returncode)
+        target_clean = normalizar_target(target)
+        result_csv_path = Path(
+            drug_hunter_dir + base_input_path + "/" + target_clean + "/pdb_codes.csv"
+        )
+        updated_csv: str | None = None
+        try:
+            if result_csv_path.exists():
+                updated_csv = result_csv_path.read_text(encoding="utf-8")
+        except Exception as csv_exc:
+            logger.warning("Job %d: falha ao ler CSV de resultado: %s", job_id, csv_exc)
+
+        sucesso_real = resultado.returncode == 0 and _csv_tem_dados(updated_csv or "")
+
+        if sucesso_real:
             logger.info("Job %d concluído com sucesso", job_id)
             marcar_finalizado(db, job_id, "done")
 
-            # Lê o CSV reescrito pelo DrugHunter (agora inclui coluna RMSD)
-            target_clean = target.replace(" ", "")
-            result_csv_path = Path(
-                drug_hunter_dir + base_input_path + "/" + target_clean + "/pdb_codes.csv"
-            )
-            if result_csv_path.exists():
-                try:
-                    updated_csv = result_csv_path.read_text(encoding="utf-8")
-                    job_obj = db.query(RedockingJob).filter(RedockingJob.id == job_id).first()
-                    if job_obj:
-                        salvar_csv_usuario(db, job_obj.user_id, csv_content=updated_csv)
-                        logger.info("Job %d: CSV com RMSD salvo no banco", job_id)
-                except Exception as csv_exc:
-                    logger.warning("Job %d: falha ao ler CSV com RMSD: %s", job_id, csv_exc)
+            # Só sobrescreve o CSV do usuário se o resultado tem dados
+            job_obj = db.query(RedockingJob).filter(RedockingJob.id == job_id).first()
+            if job_obj and updated_csv:
+                salvar_csv_usuario(db, job_obj.user_id, csv_content=updated_csv)
+                logger.info("Job %d: CSV com RMSD salvo no banco", job_id)
 
             if email_notificacao:
                 enviar_email_conclusao(
                     email_notificacao, job_id, target, "done", None, base_output_path
                 )
         else:
-            erro = (resultado.stderr or resultado.stdout or "Erro desconhecido")[:1000]
+            if resultado.returncode != 0:
+                erro = (resultado.stderr or resultado.stdout or "Erro desconhecido")[:1000]
+            else:
+                # returncode 0 mas sem artefato (falha silenciosa do DrugHunter)
+                erro = (
+                    "O DrugHunter finalizou sem erros reportados, mas não gerou resultados. "
+                    "Verifique se os arquivos .pdb do alvo estão presentes e no formato correto."
+                )
+                logger.warning("Job %d: falha silenciosa — returncode 0 mas CSV sem dados", job_id)
+
+            log_hint = f"\n\nLogs em: {drug_hunter_dir}/logs/"
+            erro_completo = (erro + log_hint)[:1200]
             logger.warning("Job %d falhou: %s", job_id, erro)
-            marcar_finalizado(db, job_id, "error", erro)
+            marcar_finalizado(db, job_id, "error", erro_completo)
             if email_notificacao:
-                enviar_email_conclusao(email_notificacao, job_id, target, "error", erro)
+                enviar_email_conclusao(
+                    email_notificacao, job_id, target, "error", erro_completo
+                )
 
     except Exception as exc:
         msg = str(exc)[:1000]

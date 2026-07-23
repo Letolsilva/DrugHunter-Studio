@@ -30,6 +30,20 @@ export interface CsvLinha {
   rmsd?: string;
 }
 
+export interface ProntidaoItem {
+  codigo: string;
+  presente: boolean;
+  formato_ok: boolean;
+  origem: "pasta" | "cache" | "rcsb" | "faltando" | null;
+}
+
+export interface ProntidaoResponse {
+  pasta: string;
+  itens: ProntidaoItem[];
+  prontos: number;
+  total: number;
+}
+
 /** Parseia uma string CSV (com header) em array de CsvLinha */
 export function parseCsvContent(content: string): CsvLinha[] {
   return content

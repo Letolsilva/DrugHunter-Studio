@@ -6,6 +6,25 @@ from typing import List, Literal, Optional
 from pydantic import BaseModel, ConfigDict
 
 
+class ProntidaoItemResponse(BaseModel):
+    codigo: str
+    presente: bool
+    formato_ok: bool
+    origem: Optional[str] = None  # "pasta" | "cache" | "rcsb" | "faltando"
+
+
+class ProntidaoResponse(BaseModel):
+    pasta: str
+    itens: List[ProntidaoItemResponse]
+    prontos: int
+    total: int
+
+
+class PrepararRequest(BaseModel):
+    target: str
+    base_input_path: str
+
+
 class IniciarRedockingRequest(BaseModel):
     target: str
     base_input_path: str
@@ -46,6 +65,8 @@ class CsvResponse(BaseModel):
 
 class RedockingDefaultsResponse(BaseModel):
     base_input_path: str
+    base_output_path: str
+    charge_type: Literal["am1", "gas"]
     last_target: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)

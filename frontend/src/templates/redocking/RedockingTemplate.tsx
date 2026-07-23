@@ -51,6 +51,10 @@ export default function RedockingTemplate({
   csvFileName,
   dashboard,
   config,
+  targetNormalizado,
+  targetAjustado,
+  prontidao,
+  preparando,
   submitting,
   jobs,
   userEmail,
@@ -65,17 +69,26 @@ export default function RedockingTemplate({
   irParaConfiguracoes,
   handleImportarCsv,
   handleConfigChange,
+  handleVerificarProntidao,
+  handlePreparar,
   handleSubmit,
   handleLogout,
 }: UseRedockingPageReturn) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [modalCsvAberto, setModalCsvAberto] = useState(false);
+  const [erroExpandidoId, setErroExpandidoId] = useState<number | null>(null);
+
+  const todosProntos =
+    prontidao !== null &&
+    prontidao.total > 0 &&
+    prontidao.prontos === prontidao.total;
 
   const canSubmit =
     csvLinhas.length > 0 &&
-    config.target.trim() !== "" &&
+    targetNormalizado !== "" &&
     config.base_input_path.trim() !== "" &&
     config.base_output_path.trim() !== "" &&
+    todosProntos &&
     !submitting;
 
   return (
@@ -370,6 +383,26 @@ export default function RedockingTemplate({
                 placeholder="ex: GlucanSynthase"
                 className="rounded border border-outline bg-surface-secondary px-3 py-2 font-mono text-[12px] text-foreground placeholder:text-foreground-subtle focus:outline-none focus:border-outline-strong"
               />
+              {config.target.trim() !== "" && (
+                <div className="flex flex-col gap-0.5">
+                  <p className="font-mono text-[11px] text-foreground-subtle">
+                    Pasta usada:{" "}
+                    <span className="text-foreground-muted">
+                      {config.base_input_path || "/datasets/PDB"}/
+                      {targetNormalizado || "…"}/
+                    </span>
+                  </p>
+                  {targetAjustado && (
+                    <p className="text-[11px] text-amber-500">
+                      ⚠ Nome ajustado para{" "}
+                      <span className="font-mono font-semibold">
+                        {targetNormalizado}
+                      </span>{" "}
+                      (caracteres inválidos removidos).
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Pasta dos PDBs */}
@@ -433,6 +466,109 @@ export default function RedockingTemplate({
             </div>
           </div>
 
+          {/* Seção Preparar dados */}
+          {csvLinhas.length > 0 &&
+            targetNormalizado !== "" &&
+            config.base_input_path.trim() !== "" && (
+              <div className="rounded-lg border border-outline bg-surface-raised p-4 flex flex-col gap-3">
+                <h3 className="text-[13px] font-semibold text-foreground-muted uppercase tracking-wide">
+                  Preparar dados
+                </h3>
+
+                {/* Pasta alvo */}
+                <div className="flex items-start gap-2">
+                  <span className="text-[12px] text-foreground-subtle shrink-0">
+                    Pasta:
+                  </span>
+                  <span className="font-mono text-[11px] text-foreground-muted break-all select-all">
+                    {prontidao?.pasta ??
+                      `${config.base_input_path}/${targetNormalizado}`}
+                  </span>
+                </div>
+
+                {/* Checklist após verificação */}
+                {prontidao && (
+                  <>
+                    <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
+                      {prontidao.itens.map((item) => {
+                        const ok = item.presente && item.formato_ok;
+                        return (
+                          <div
+                            key={item.codigo}
+                            className="flex items-center gap-2 text-[12px]"
+                          >
+                            <span>{ok ? "🟢" : "🔴"}</span>
+                            <span
+                              className={`font-mono ${ok ? "text-foreground" : "text-red-500"}`}
+                            >
+                              {item.codigo}.pdb
+                            </span>
+                            {!ok && (
+                              <span className="text-[10px] text-red-400">
+                                — arquivo não encontrado
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <p className="text-[12px] text-foreground-muted">
+                      {prontidao.prontos}/{prontidao.total} prontos
+                    </p>
+
+                    {/* Instrução quando há arquivos faltando */}
+                    {prontidao.prontos < prontidao.total && (
+                      <div className="rounded-md border border-red-400/40 bg-red-500/10 px-3 py-2 flex flex-col gap-2">
+                        <p className="text-[12px] font-semibold text-red-400">
+                          Arquivos .pdb ausentes
+                        </p>
+                        <ol className="text-[12px] text-foreground-muted leading-relaxed list-decimal list-inside flex flex-col gap-1">
+                          <li>
+                            Vá até <span className="font-semibold">Busca</span>{" "}
+                            e localize cada código marcado com 🔴.
+                          </li>
+                          <li>
+                            Clique no ícone{" "}
+                            <span className="font-semibold">↓ PDB</span> e
+                            escolha o formato{" "}
+                            <span className="font-mono">Legacy PDB (.pdb)</span>.
+                          </li>
+                          <li>
+                            Na janela de seleção de pasta, navegue até e
+                            selecione{" "}
+                            <span className="font-mono font-semibold break-all">
+                              {prontidao.pasta}
+                            </span>
+                            . O arquivo será salvo com o nome correto
+                            automaticamente.
+                          </li>
+                          <li>
+                            Repita para cada código faltante e clique em{" "}
+                            <span className="font-semibold">
+                              Verificar prontidão
+                            </span>{" "}
+                            novamente.
+                          </li>
+                        </ol>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Botão verificar */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={handleVerificarProntidao}
+                    className="btn-primary text-[12px]"
+                  >
+                    Verificar prontidão
+                  </button>
+                </div>
+              </div>
+            )}
+
           {/* Info do e-mail */}
           {userEmail && (
             <p className="text-[12px] text-foreground-subtle">
@@ -450,6 +586,13 @@ export default function RedockingTemplate({
               type="button"
               onClick={handleSubmit}
               disabled={!canSubmit}
+              title={
+                !canSubmit && csvLinhas.length > 0 && targetNormalizado !== ""
+                  ? !todosProntos
+                    ? "Verifique a prontidão dos arquivos .pdb antes de iniciar"
+                    : "Preencha todos os campos de configuração"
+                  : undefined
+              }
               className={`btn-primary inline-flex items-center gap-2 ${
                 canSubmit
                   ? "opacity-100 cursor-pointer"
@@ -499,44 +642,82 @@ export default function RedockingTemplate({
                 </thead>
                 <tbody>
                   {jobs.map((job, i) => (
-                    <tr
-                      key={job.id}
-                      className="border-b border-outline"
-                      style={{
-                        background:
-                          i % 2 === 0
-                            ? "var(--color-panel)"
-                            : "var(--color-surface-secondary)",
-                      }}
-                    >
-                      <td className="px-4 py-1.5 font-mono text-[12px] text-foreground-subtle">
-                        #{job.id}
-                      </td>
-                      <td className="px-4 py-1.5 font-mono text-[12px] text-foreground">
-                        {job.target}
-                      </td>
-                      <td className="px-4 py-1.5">
-                        <span
-                          className="text-[11px] font-semibold font-mono"
-                          style={{
-                            color:
-                              STATUS_COLOR[job.status] ??
-                              "var(--color-foreground-subtle)",
-                          }}
-                        >
-                          {STATUS_LABEL[job.status] ?? job.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-1.5 font-mono text-[12px] text-foreground-muted">
-                        {job.charge_type}
-                      </td>
-                      <td className="px-4 py-1.5 font-mono text-[12px] text-foreground-subtle">
-                        {formatDate(job.iniciado_em)}
-                      </td>
-                      <td className="px-4 py-1.5 font-mono text-[12px] text-foreground-subtle">
-                        {formatDate(job.finalizado_em)}
-                      </td>
-                    </tr>
+                    <>
+                      <tr
+                        key={job.id}
+                        className="border-b border-outline"
+                        style={{
+                          background:
+                            i % 2 === 0
+                              ? "var(--color-panel)"
+                              : "var(--color-surface-secondary)",
+                        }}
+                      >
+                        <td className="px-4 py-1.5 font-mono text-[12px] text-foreground-subtle">
+                          #{job.id}
+                        </td>
+                        <td className="px-4 py-1.5 font-mono text-[12px] text-foreground">
+                          {job.target}
+                        </td>
+                        <td className="px-4 py-1.5">
+                          {job.status === "error" && job.erro_msg ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setErroExpandidoId(
+                                  erroExpandidoId === job.id ? null : job.id,
+                                )
+                              }
+                              className="flex items-center gap-1 text-[11px] font-semibold font-mono cursor-pointer bg-transparent border-none p-0"
+                              style={{ color: STATUS_COLOR["error"] }}
+                              title="Clique para ver detalhes do erro"
+                            >
+                              {STATUS_LABEL["error"]}
+                              <span className="text-[10px] opacity-60">
+                                {erroExpandidoId === job.id ? "▲" : "▼"}
+                              </span>
+                            </button>
+                          ) : (
+                            <span
+                              className="text-[11px] font-semibold font-mono"
+                              style={{
+                                color:
+                                  STATUS_COLOR[job.status] ??
+                                  "var(--color-foreground-subtle)",
+                              }}
+                            >
+                              {STATUS_LABEL[job.status] ?? job.status}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-1.5 font-mono text-[12px] text-foreground-muted">
+                          {job.charge_type}
+                        </td>
+                        <td className="px-4 py-1.5 font-mono text-[12px] text-foreground-subtle">
+                          {formatDate(job.iniciado_em)}
+                        </td>
+                        <td className="px-4 py-1.5 font-mono text-[12px] text-foreground-subtle">
+                          {formatDate(job.finalizado_em)}
+                        </td>
+                      </tr>
+                      {job.status === "error" &&
+                        job.erro_msg &&
+                        erroExpandidoId === job.id && (
+                          <tr
+                            key={`${job.id}-erro`}
+                            className="border-b border-outline"
+                          >
+                            <td
+                              colSpan={6}
+                              className="px-4 py-3 bg-surface-secondary"
+                            >
+                              <pre className="font-mono text-[11px] text-foreground-subtle whitespace-pre-wrap break-words leading-relaxed border border-outline rounded-lg p-3 bg-panel overflow-x-auto max-h-48">
+                                {job.erro_msg}
+                              </pre>
+                            </td>
+                          </tr>
+                        )}
+                    </>
                   ))}
                 </tbody>
               </table>

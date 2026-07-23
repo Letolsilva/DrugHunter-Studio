@@ -23,6 +23,22 @@ _SMTP_ENV = {
     "smtp_from": "SMTP_FROM",
 }
 
+# Mapa chave → default embutido no build (.deb), para exibir na tela
+from app.infra.email_sender import (
+    _DEFAULT_FROM,
+    _DEFAULT_HOST,
+    _DEFAULT_PORT,
+    _DEFAULT_USER,
+    _default_password,
+)
+
+_SMTP_DEFAULTS = {
+    "smtp_host": _DEFAULT_HOST,
+    "smtp_port": _DEFAULT_PORT,
+    "smtp_user": _DEFAULT_USER,
+    "smtp_from": _DEFAULT_FROM,
+}
+
 
 def _ttl_dias(db: Session) -> int:
     try:
@@ -63,21 +79,33 @@ def stats_cache(db: Session) -> dict:
     }
 
 
+_CHAVES_OCULTAS = {"max_por_proteina"}
+
+_DRUG_HUNTER_DEFAULT = "~/DrugHunter"
+
+
 def listar_configs(db: Session) -> dict:
     """Retorna lista de configs; SMTP usa env vars como fallback."""
     configs = db.query(SystemConfig).all()
     resultado = []
     for c in configs:
+        if c.chave in _CHAVES_OCULTAS:
+            continue
         valor = c.valor
         if c.chave in _SMTP_ENV:
             if c.chave == "smtp_password":
                 # Nunca expõe a senha — retorna sentinela se configurada
                 tem_db = bool(valor)
                 tem_env = bool(os.getenv("SMTP_PASSWORD"))
-                valor = "__set__" if (tem_db or tem_env) else ""
+                tem_default = bool(_default_password())
+                valor = "__set__" if (tem_db or tem_env or tem_default) else ""
             elif not valor:
-                # Fallback para env var nos demais campos SMTP
-                valor = os.getenv(_SMTP_ENV[c.chave], "")
+                # Fallback: env var → default embutido no build
+                valor = os.getenv(_SMTP_ENV[c.chave], "") or _SMTP_DEFAULTS.get(
+                    c.chave, ""
+                )
+        elif c.chave == "drug_hunter_path" and not valor:
+            valor = _DRUG_HUNTER_DEFAULT
         resultado.append({"chave": c.chave, "valor": valor, "descricao": c.descricao})
     return {"configs": resultado}
 

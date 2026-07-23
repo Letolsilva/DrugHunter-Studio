@@ -33,15 +33,21 @@ const LABEL: Record<string, string> = {
 
 const DESCRICAO: Record<string, string> = {
   ttl_dias: "Dias sem consulta para expirar uma proteína do cache (1–365).",
-  max_por_proteina: "Número máximo de estruturas retornadas por proteína (1–500).",
-  limpeza_automatica: "Executar limpeza de TTL automaticamente na inicialização.",
-  drug_hunter_path: "Caminho absoluto para o diretório raiz do DrugHunter.",
-  python_bin: "Interpretador Python usado para executar o DrugHunter (ex: python3). Padrão: python3.",
+  max_por_proteina:
+    "Número máximo de estruturas retornadas por proteína (1–500).",
+  limpeza_automatica:
+    "Executar limpeza de TTL automaticamente na inicialização.",
+  drug_hunter_path:
+    "Caminho absoluto para o diretório raiz do DrugHunter. O instalador coloca em ~/DrugHunter — só altere se instalou em outro lugar.",
+  python_bin:
+    "Interpretador Python usado para executar o DrugHunter (ex: python3). Padrão: python3.",
   smtp_host: "Host do servidor de email (ex: smtp.gmail.com).",
   smtp_port: "Porta de conexão SMTP (587 para TLS, 465 para SSL).",
   smtp_user: "Email usado para autenticar no servidor SMTP.",
-  smtp_password: "Armazenada criptografada no banco. Deixe em branco para manter a senha atual.",
-  smtp_from: "Remetente exibido nos emails (ex: PDB Explorer <email@gmail.com>).",
+  smtp_password:
+    "Armazenada criptografada no banco. Deixe em branco para manter a senha atual.",
+  smtp_from:
+    "Remetente exibido nos emails (ex: PDB Explorer <email@gmail.com>).",
 };
 
 interface SectionProps {
@@ -107,7 +113,7 @@ export default function ConfigTemplate({
     await handleSalvarConfig(chave, valor(chave));
   };
 
-  const cacheChaves = ["ttl_dias", "max_por_proteina", "limpeza_automatica"];
+  const cacheChaves = ["ttl_dias", "limpeza_automatica"];
   const dhChaves = ["drug_hunter_path", "python_bin"];
 
   // Senha: mostra bolinhas quando configurada; entra no modo edição ao clicar "Alterar"
@@ -129,7 +135,6 @@ export default function ConfigTemplate({
             PDB<b className="text-foreground font-extrabold">Explorer</b>
           </span>
           <span className="ml-1 border-l border-outline pl-3 text-[13px] text-foreground-subtle inline-flex items-center gap-1.5">
-            <SettingsIcon size={13} />
             Configurações
           </span>
         </Navbar.Left>
@@ -326,18 +331,23 @@ export default function ConfigTemplate({
                             role="switch"
                             aria-checked={valor(chave) === "true"}
                             onClick={() => {
-                              const next = valor(chave) === "true" ? "false" : "true";
+                              const next =
+                                valor(chave) === "true" ? "false" : "true";
                               setCampo(chave, next);
                               handleSalvarConfig(chave, next);
                             }}
                             disabled={saving[chave]}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer border-none shrink-0 ${
-                              valor(chave) === "true" ? "bg-accent" : "bg-outline-strong"
+                              valor(chave) === "true"
+                                ? "bg-accent"
+                                : "bg-outline-strong"
                             } ${saving[chave] ? "opacity-50" : ""}`}
                           >
                             <span
                               className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                                valor(chave) === "true" ? "translate-x-6" : "translate-x-1"
+                                valor(chave) === "true"
+                                  ? "translate-x-6"
+                                  : "translate-x-1"
                               }`}
                             />
                           </button>
@@ -355,11 +365,20 @@ export default function ConfigTemplate({
                             <Button
                               variant="ghost"
                               onClick={() => salvar(chave)}
-                              disabled={saving[chave] || valor(chave) === getValor(chave)}
+                              disabled={
+                                saving[chave] ||
+                                valor(chave) === getValor(chave)
+                              }
                               className="px-3 py-1.5 text-[12px]"
                             >
                               {saving[chave] ? (
-                                <Spinner style={{ width: 12, height: 12, borderWidth: 2 }} />
+                                <Spinner
+                                  style={{
+                                    width: 12,
+                                    height: 12,
+                                    borderWidth: 2,
+                                  }}
+                                />
                               ) : (
                                 "Salvar"
                               )}
@@ -386,7 +405,9 @@ export default function ConfigTemplate({
                     >
                       {saving["limpar_cache"] ? (
                         <span className="inline-flex items-center gap-1.5">
-                          <Spinner style={{ width: 12, height: 12, borderWidth: 2 }} />
+                          <Spinner
+                            style={{ width: 12, height: 12, borderWidth: 2 }}
+                          />
                           Limpando...
                         </span>
                       ) : (
@@ -424,7 +445,7 @@ export default function ConfigTemplate({
                           onChange={(e) => setCampo(chave, e.target.value)}
                           placeholder={
                             chave === "drug_hunter_path"
-                              ? "/home/usuario/DrugHunter"
+                              ? "~/DrugHunter"
                               : "python3"
                           }
                           className="flex-1 rounded border border-outline bg-surface-secondary px-3 py-2 font-mono text-[12px] text-foreground placeholder:text-foreground-subtle"
@@ -432,11 +453,15 @@ export default function ConfigTemplate({
                         <Button
                           variant="ghost"
                           onClick={() => salvar(chave)}
-                          disabled={saving[chave] || valor(chave) === getValor(chave)}
+                          disabled={
+                            saving[chave] || valor(chave) === getValor(chave)
+                          }
                           className="shrink-0 px-3 py-2 text-[12px]"
                         >
                           {saving[chave] ? (
-                            <Spinner style={{ width: 12, height: 12, borderWidth: 2 }} />
+                            <Spinner
+                              style={{ width: 12, height: 12, borderWidth: 2 }}
+                            />
                           ) : (
                             "Salvar"
                           )}
@@ -466,17 +491,20 @@ export default function ConfigTemplate({
                   {/* Status */}
                   {senhaConfigurada && getValor("smtp_user") ? (
                     <div className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-[12px] border bg-accent-12 border-accent-25 text-accent">
-                      ✓ Email de notificação configurado — o sistema enviará avisos automaticamente
+                      ✓ Email de notificação configurado — o sistema enviará
+                      avisos automaticamente
                     </div>
                   ) : (
                     <div className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-[12px] border bg-surface-secondary border-outline text-foreground-subtle">
-                      Sem configuração de email — o sistema não enviará avisos ao terminar
+                      Sem configuração de email — o sistema não enviará avisos
+                      ao terminar
                     </div>
                   )}
 
                   <p className="text-[12px] text-foreground-subtle -mt-2">
-                    Os avisos são enviados para o email de quem iniciou o processo.
-                    Configure abaixo o email <em>remetente</em> (quem envia).
+                    Os avisos são enviados para o email de quem iniciou o
+                    processo. Configure abaixo o email <em>remetente</em> (quem
+                    envia).
                   </p>
 
                   {/* Email remetente */}
@@ -486,7 +514,8 @@ export default function ConfigTemplate({
                         Email que envia as notificações
                       </label>
                       <span className="text-[12px] text-foreground-subtle">
-                        Endereço de email que vai aparecer como remetente dos avisos.
+                        Endereço de email que vai aparecer como remetente dos
+                        avisos.
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -500,11 +529,16 @@ export default function ConfigTemplate({
                       <Button
                         variant="ghost"
                         onClick={() => salvar("smtp_user")}
-                        disabled={saving["smtp_user"] || valor("smtp_user") === getValor("smtp_user")}
+                        disabled={
+                          saving["smtp_user"] ||
+                          valor("smtp_user") === getValor("smtp_user")
+                        }
                         className="shrink-0 px-3 py-2 text-[12px]"
                       >
                         {saving["smtp_user"] ? (
-                          <Spinner style={{ width: 12, height: 12, borderWidth: 2 }} />
+                          <Spinner
+                            style={{ width: 12, height: 12, borderWidth: 2 }}
+                          />
                         ) : (
                           "Salvar"
                         )}
@@ -520,7 +554,9 @@ export default function ConfigTemplate({
                       </label>
                       <span className="text-[12px] text-foreground-subtle">
                         Para Gmail, use uma{" "}
-                        <strong className="text-foreground-muted">Senha de App</strong>{" "}
+                        <strong className="text-foreground-muted">
+                          Senha de App
+                        </strong>{" "}
                         — não a senha normal da conta. Acesse{" "}
                         <span className="font-mono text-foreground-muted">
                           myaccount.google.com → Segurança → Senhas de app
@@ -549,7 +585,9 @@ export default function ConfigTemplate({
                         <input
                           type="password"
                           value={campos["smtp_password"] ?? ""}
-                          onChange={(e) => setCampo("smtp_password", e.target.value)}
+                          onChange={(e) =>
+                            setCampo("smtp_password", e.target.value)
+                          }
                           placeholder="Cole aqui a senha de app"
                           autoComplete="new-password"
                           className="flex-1 rounded border border-outline bg-surface-secondary px-3 py-2 font-mono text-[12px] text-foreground placeholder:text-foreground-subtle"
@@ -557,13 +595,20 @@ export default function ConfigTemplate({
                         <Button
                           variant="ghost"
                           onClick={() =>
-                            handleSalvarConfig("smtp_password", campos["smtp_password"] ?? "")
+                            handleSalvarConfig(
+                              "smtp_password",
+                              campos["smtp_password"] ?? "",
+                            )
                           }
-                          disabled={saving["smtp_password"] || !campos["smtp_password"]}
+                          disabled={
+                            saving["smtp_password"] || !campos["smtp_password"]
+                          }
                           className="shrink-0 px-3 py-2 text-[12px]"
                         >
                           {saving["smtp_password"] ? (
-                            <Spinner style={{ width: 12, height: 12, borderWidth: 2 }} />
+                            <Spinner
+                              style={{ width: 12, height: 12, borderWidth: 2 }}
+                            />
                           ) : (
                             "Salvar"
                           )}
@@ -586,10 +631,13 @@ export default function ConfigTemplate({
                     <div className="flex flex-col gap-0.5">
                       <label className="text-[13px] font-medium text-foreground">
                         Nome exibido nos emails{" "}
-                        <span className="text-foreground-subtle font-normal">(opcional)</span>
+                        <span className="text-foreground-subtle font-normal">
+                          (opcional)
+                        </span>
                       </label>
                       <span className="text-[12px] text-foreground-subtle">
-                        Nome que aparece como remetente. Deixe em branco para usar o email.
+                        Nome que aparece como remetente. Deixe em branco para
+                        usar o email.
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -603,11 +651,16 @@ export default function ConfigTemplate({
                       <Button
                         variant="ghost"
                         onClick={() => salvar("smtp_from")}
-                        disabled={saving["smtp_from"] || valor("smtp_from") === getValor("smtp_from")}
+                        disabled={
+                          saving["smtp_from"] ||
+                          valor("smtp_from") === getValor("smtp_from")
+                        }
                         className="shrink-0 px-3 py-2 text-[12px]"
                       >
                         {saving["smtp_from"] ? (
-                          <Spinner style={{ width: 12, height: 12, borderWidth: 2 }} />
+                          <Spinner
+                            style={{ width: 12, height: 12, borderWidth: 2 }}
+                          />
                         ) : (
                           "Salvar"
                         )}
@@ -628,7 +681,9 @@ export default function ConfigTemplate({
                         <input
                           type="text"
                           value={valor("smtp_host")}
-                          onChange={(e) => setCampo("smtp_host", e.target.value)}
+                          onChange={(e) =>
+                            setCampo("smtp_host", e.target.value)
+                          }
                           placeholder="smtp.gmail.com"
                           className="rounded border border-outline bg-panel px-3 py-2 font-mono text-[12px] text-foreground placeholder:text-foreground-subtle w-full"
                         />
@@ -640,7 +695,9 @@ export default function ConfigTemplate({
                         <input
                           type="number"
                           value={valor("smtp_port")}
-                          onChange={(e) => setCampo("smtp_port", e.target.value)}
+                          onChange={(e) =>
+                            setCampo("smtp_port", e.target.value)
+                          }
                           placeholder="587"
                           min={1}
                           max={65535}
@@ -662,23 +719,36 @@ export default function ConfigTemplate({
                         className="shrink-0 px-3 py-2 text-[12px]"
                       >
                         {saving["smtp_host"] || saving["smtp_port"] ? (
-                          <Spinner style={{ width: 12, height: 12, borderWidth: 2 }} />
+                          <Spinner
+                            style={{ width: 12, height: 12, borderWidth: 2 }}
+                          />
                         ) : (
                           "Salvar"
                         )}
                       </Button>
                     </div>
                     <p className="text-[11px] text-foreground-subtle leading-relaxed">
-                      Gmail: <span className="font-mono text-foreground-muted">smtp.gmail.com</span>, porta{" "}
-                      <span className="font-mono text-foreground-muted">587</span> ·{" "}
-                      Outlook: <span className="font-mono text-foreground-muted">smtp.office365.com</span>, porta{" "}
-                      <span className="font-mono text-foreground-muted">587</span>
+                      Gmail:{" "}
+                      <span className="font-mono text-foreground-muted">
+                        smtp.gmail.com
+                      </span>
+                      , porta{" "}
+                      <span className="font-mono text-foreground-muted">
+                        587
+                      </span>{" "}
+                      · Outlook:{" "}
+                      <span className="font-mono text-foreground-muted">
+                        smtp.office365.com
+                      </span>
+                      , porta{" "}
+                      <span className="font-mono text-foreground-muted">
+                        587
+                      </span>
                     </p>
                   </div>
                 </div>
               )}
             </Section>
-
           </>
         )}
 

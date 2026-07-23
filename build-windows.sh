@@ -16,6 +16,15 @@ set -e
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 PKG="$ROOT/pdb-explorer-windows-pkg"
 
+# ── Credenciais SMTP ──────────────────────────────────────────────────────────
+SMTP_SECRET_FILE="$ROOT/.smtp_secret"
+if [ -f "$SMTP_SECRET_FILE" ]; then
+    SMTP_PASSWORD="$(cat "$SMTP_SECRET_FILE")"
+else
+    echo "⚠️  Aviso: .smtp_secret não encontrado — notificações por e-mail desativadas no .exe gerado."
+    SMTP_PASSWORD=""
+fi
+
 # ── Verificar makensis ────────────────────────────────────────────────────────
 if ! command -v makensis &>/dev/null; then
     echo "❌ makensis não encontrado. Instale com:"
@@ -45,6 +54,10 @@ mkdir -p "$PKG/backend/pdb_files"
 cp "$ROOT/backend/requirements.txt" "$PKG/backend/"
 cp "$ROOT/backend/.env.example"     "$PKG/backend/"
 cp "$ROOT/backend/redocking.py"     "$PKG/backend/"
+
+# ── Injetar senha SMTP no pacote (nunca no arquivo do repo) ──────────────────
+sed -i "s|%%SMTP_PASSWORD%%|$SMTP_PASSWORD|g" \
+    "$PKG/backend/app/infra/email_sender.py"
 
 # ── Ícone SVG → ICO ───────────────────────────────────────────────────────────
 HAS_ICON=0

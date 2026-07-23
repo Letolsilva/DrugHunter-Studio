@@ -1,6 +1,7 @@
 // domain/interfaces/redocking.interface.ts
 import type {
   IniciarRedockingPayload,
+  ProntidaoResponse,
   RedockingJobModel,
 } from "../models/redocking.model";
 
@@ -20,5 +21,20 @@ export abstract class IRedockingUseCase {
   abstract buscarCsv(token: string): Promise<string | null>;
   abstract buscarDefaults(
     token: string,
-  ): Promise<{ base_input_path: string; last_target: string | null }>;
+  ): Promise<{
+    base_input_path: string;
+    base_output_path: string;
+    charge_type: "am1" | "gas";
+    last_target: string | null;
+  }>;
+  abstract verificarProntidao(
+    target: string,
+    baseInputPath: string,
+    token: string,
+  ): Promise<ProntidaoResponse>;
+  abstract preparar(
+    target: string,
+    baseInputPath: string,
+    token: string,
+  ): Promise<ProntidaoResponse>;
 }
