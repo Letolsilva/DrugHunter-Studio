@@ -10,6 +10,7 @@ import VisualizadorPage from "./pages/VisualizadorPage/VisualizadorPage";
 import VisualizadorCifPage from "./pages/VisualizadorCifPage/VisualizadorCifPage";
 import RedockingPage from "./pages/RedockingPage/RedockingPage";
 import ConfigPage from "./pages/ConfigPage/ConfigPage";
+import AjudaPage from "./pages/AjudaPage/AjudaPage";
 import type { SearchUseCase } from "./data/usecases/search.usecase";
 import type { HistoryUseCase } from "./data/usecases/history.usecase";
 import type { DashboardUseCase } from "./data/usecases/dashboard.usecase";
@@ -156,6 +157,14 @@ export default function AppRoutes({
         element={
           <RotaProtegida>
             <ConfigPage configUseCase={configUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/ajuda"
+        element={
+          <RotaProtegida>
+            <AjudaPage configUseCase={configUseCase} />
           </RotaProtegida>
         }
       />

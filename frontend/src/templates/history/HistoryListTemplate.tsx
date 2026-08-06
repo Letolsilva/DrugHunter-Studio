@@ -73,6 +73,13 @@ export default function HistoryListTemplate({
           >
             Configurações
           </button>
+          <button
+            type="button"
+            onClick={() => navigate("/ajuda")}
+            className="cursor-pointer rounded border-none bg-transparent px-3 py-1.5 font-mono text-[12px] text-foreground-subtle transition-colors hover:text-foreground"
+          >
+            Ajuda
+          </button>
           <Button
             variant="ghost"
             onClick={handleLogout}

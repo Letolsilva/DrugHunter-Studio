@@ -11,6 +11,7 @@ import {
   ClockIcon,
   CloseIcon,
   DownloadIcon,
+  HelpIcon,
   LogoutIcon,
   MenuIcon,
   PauseIcon,
@@ -47,6 +48,7 @@ interface SearchTemplateProps {
   irParaMeusPdbs: () => void;
   irParaRedocking: () => void;
   irParaConfiguracoes: () => void;
+  irParaAjuda: () => void;
   pausar: () => void;
   cancelar: () => void;
   iniciarBusca: (forcarNovo?: boolean) => void;
@@ -78,6 +80,7 @@ export default function SearchTemplate({
   irParaMeusPdbs,
   irParaRedocking,
   irParaConfiguracoes,
+  irParaAjuda,
   pausar,
   cancelar,
   iniciarBusca,
@@ -124,6 +127,12 @@ export default function SearchTemplate({
               icon={<SettingsIcon size={14} />}
               label="Configurações"
               onClick={irParaConfiguracoes}
+              divider
+            />
+            <DropdownMenu.Item
+              icon={<HelpIcon size={14} />}
+              label="Ajuda"
+              onClick={irParaAjuda}
               divider
             />
             <DropdownMenu.Item

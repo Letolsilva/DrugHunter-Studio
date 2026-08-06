@@ -22,6 +22,7 @@ export interface UseConfigPageReturn {
   irParaHistorico: () => void;
   irParaRedocking: () => void;
   irParaMeusPdbs: () => void;
+  irParaAjuda: () => void;
   handleLogout: () => void;
   handleSalvarConfig: (chave: string, valor: string) => Promise<void>;
   handleLimparCache: () => Promise<void>;
@@ -124,6 +125,11 @@ export function useConfigPage(
     navigate("/meus-pdbs");
   }, [navigate]);
 
+  const irParaAjuda = useCallback(() => {
+    setMenuAberto(false);
+    navigate("/ajuda");
+  }, [navigate]);
+
   const handleSalvarConfig = useCallback(
     async (chave: string, valor: string) => {
       const token = localStorage.getItem("access_token") ?? "";
@@ -195,6 +201,7 @@ export function useConfigPage(
     irParaHistorico,
     irParaRedocking,
     irParaMeusPdbs,
+    irParaAjuda,
     handleLogout,
     handleSalvarConfig,
     handleLimparCache,

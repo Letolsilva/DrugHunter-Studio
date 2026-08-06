@@ -46,6 +46,7 @@ export interface UseSearchPageReturn {
   irParaMeusPdbs: () => void;
   irParaRedocking: () => void;
   irParaConfiguracoes: () => void;
+  irParaAjuda: () => void;
   pausar: () => void;
   cancelar: () => void;
   iniciarBusca: (forcarNovo?: boolean) => void;
@@ -118,6 +119,11 @@ export function useSearchPage(
   const irParaConfiguracoes = useCallback(() => {
     setMenuAberto(false);
     navigate("/configuracoes");
+  }, [navigate]);
+
+  const irParaAjuda = useCallback(() => {
+    setMenuAberto(false);
+    navigate("/ajuda");
   }, [navigate]);
 
   const atualizarBarra = useCallback(
@@ -276,6 +282,7 @@ export function useSearchPage(
     irParaMeusPdbs,
     irParaRedocking,
     irParaConfiguracoes,
+    irParaAjuda,
     pausar,
     cancelar,
     iniciarBusca,

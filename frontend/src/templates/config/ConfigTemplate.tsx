@@ -8,6 +8,7 @@ import {
   AppLogoIcon,
   ClockIcon,
   DownloadIcon,
+  HelpIcon,
   LogoutIcon,
   MenuIcon,
   MoonIcon,
@@ -23,7 +24,9 @@ const LABEL: Record<string, string> = {
   max_por_proteina: "Máximo de estruturas por proteína",
   limpeza_automatica: "Limpeza automática",
   drug_hunter_path: "Caminho do DrugHunter",
-  python_bin: "Executável Python",
+  python_bin: "Executável Python (ambiente DH)",
+  chimera_path: "Caminho do Chimera",
+  dock6_path: "Caminho do Dock6",
   smtp_host: "Servidor SMTP",
   smtp_port: "Porta SMTP",
   smtp_user: "Usuário / Email de envio",
@@ -38,9 +41,13 @@ const DESCRICAO: Record<string, string> = {
   limpeza_automatica:
     "Executar limpeza de TTL automaticamente na inicialização.",
   drug_hunter_path:
-    "Caminho absoluto para o diretório raiz do DrugHunter. O instalador coloca em ~/DrugHunter — só altere se instalou em outro lugar.",
+    "Para obter o caminho: abra o gerenciador de arquivos, navegue até a pasta do DrugHunter, clique com o botão direito → Copiar caminho; ou abra um terminal dentro da pasta e execute pwd.",
   python_bin:
-    "Interpretador Python usado para executar o DrugHunter (ex: python3). Padrão: python3.",
+    "Para obter o caminho: ative o ambiente com conda activate DH e execute which python no terminal. Cole o resultado aqui.",
+  chimera_path:
+    "Deixe vazio para detecção automática. Preencha apenas se o botão Testar Configuração (página Ajuda) indicar que o Chimera não foi encontrado.",
+  dock6_path:
+    "Deixe vazio para detecção automática. Preencha apenas se o botão Testar Configuração (página Ajuda) indicar que o Dock6 não foi encontrado.",
   smtp_host: "Host do servidor de email (ex: smtp.gmail.com).",
   smtp_port: "Porta de conexão SMTP (587 para TLS, 465 para SSL).",
   smtp_user: "Email usado para autenticar no servidor SMTP.",
@@ -48,6 +55,13 @@ const DESCRICAO: Record<string, string> = {
     "Armazenada criptografada no banco. Deixe em branco para manter a senha atual.",
   smtp_from:
     "Remetente exibido nos emails (ex: PDB Explorer <email@gmail.com>).",
+};
+
+const PLACEHOLDER: Record<string, string> = {
+  drug_hunter_path: "/home/<seu-usuario>/Área de Trabalho/DrugHunter",
+  python_bin: "/home/<seu-usuario>/progs/anaconda3/envs/DH/bin/python",
+  chimera_path: "/home/<seu-usuario>/progs/UCSF-Chimera64-1.x/bin",
+  dock6_path: "/home/<seu-usuario>/progs/dock6/bin",
 };
 
 interface SectionProps {
@@ -88,6 +102,7 @@ export default function ConfigTemplate({
   irParaHistorico,
   irParaRedocking,
   irParaMeusPdbs,
+  irParaAjuda,
   handleLogout,
   handleSalvarConfig,
   handleLimparCache,
@@ -114,7 +129,7 @@ export default function ConfigTemplate({
   };
 
   const cacheChaves = ["ttl_dias", "limpeza_automatica"];
-  const dhChaves = ["drug_hunter_path", "python_bin"];
+  const dhChaves = ["drug_hunter_path", "python_bin", "chimera_path", "dock6_path"];
 
   // Senha: mostra bolinhas quando configurada; entra no modo edição ao clicar "Alterar"
   const senhaConfigurada = getValor("smtp_password") === "__set__";
@@ -169,6 +184,12 @@ export default function ConfigTemplate({
               icon={<RefreshIcon size={14} />}
               label="Redocking"
               onClick={irParaRedocking}
+              divider
+            />
+            <DropdownMenu.Item
+              icon={<HelpIcon size={14} />}
+              label="Ajuda"
+              onClick={irParaAjuda}
               divider
             />
             <DropdownMenu.Item
@@ -443,11 +464,7 @@ export default function ConfigTemplate({
                           type="text"
                           value={valor(chave)}
                           onChange={(e) => setCampo(chave, e.target.value)}
-                          placeholder={
-                            chave === "drug_hunter_path"
-                              ? "~/DrugHunter"
-                              : "python3"
-                          }
+                          placeholder={PLACEHOLDER[chave] ?? ""}
                           className="flex-1 rounded border border-outline bg-surface-secondary px-3 py-2 font-mono text-[12px] text-foreground placeholder:text-foreground-subtle"
                         />
                         <Button
@@ -469,11 +486,18 @@ export default function ConfigTemplate({
                       </div>
                     </div>
                   ))}
-                  <p className="text-[11px] text-foreground-subtle bg-surface-secondary rounded-lg px-3 py-2.5 border border-outline font-mono leading-relaxed">
-                    Estes valores sobrepõem as variáveis de ambiente{" "}
-                    <span className="text-accent">DRUG_HUNTER_PATH</span> e{" "}
-                    <span className="text-accent">PYTHON_BIN</span> definidas no{" "}
-                    <span className="text-foreground-muted">backend/.env</span>.
+                  <p className="text-[11px] text-foreground-subtle bg-surface-secondary rounded-lg px-3 py-2.5 border border-outline leading-relaxed">
+                    Após preencher, use o botão{" "}
+                    <span className="font-medium text-foreground-muted">Testar Configuração</span>{" "}
+                    na página{" "}
+                    <button
+                      type="button"
+                      onClick={irParaAjuda}
+                      className="cursor-pointer border-none bg-transparent p-0 text-[11px] text-accent underline underline-offset-2"
+                    >
+                      Ajuda
+                    </button>{" "}
+                    para verificar se tudo está correto antes de iniciar um redocking.
                   </p>
                 </div>
               )}

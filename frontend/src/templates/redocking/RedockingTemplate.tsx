@@ -9,6 +9,7 @@ import {
   ArrowLeftIcon,
   ClockIcon,
   DownloadIcon,
+  HelpIcon,
   LogoutIcon,
   MenuIcon,
   SearchIcon,
@@ -67,6 +68,7 @@ export default function RedockingTemplate({
   irParaHistorico,
   irParaMeusPdbs,
   irParaConfiguracoes,
+  irParaAjuda,
   handleImportarCsv,
   handleConfigChange,
   handleVerificarProntidao,
@@ -141,6 +143,12 @@ export default function RedockingTemplate({
               icon={<SettingsIcon size={14} />}
               label="Configurações"
               onClick={irParaConfiguracoes}
+              divider
+            />
+            <DropdownMenu.Item
+              icon={<HelpIcon size={14} />}
+              label="Ajuda"
+              onClick={irParaAjuda}
               divider
             />
             <DropdownMenu.Item

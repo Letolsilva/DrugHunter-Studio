@@ -45,4 +45,20 @@ export class ConfigUseCase extends IConfigUseCase {
       { token },
     );
   }
+
+  async validarDrugHunter(token: string): Promise<ValidacaoDHResponse> {
+    const res = await this.httpClient.get<ValidacaoDHResponse>("/admin/validar-drughunter", { token });
+    return res.data;
+  }
+}
+
+export interface CheckItemDH {
+  nome: string;
+  ok: boolean;
+  mensagem: string;
+  como_corrigir: string | null;
+}
+
+export interface ValidacaoDHResponse {
+  checks: CheckItemDH[];
 }

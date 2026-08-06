@@ -18,6 +18,7 @@ export { RefreshIcon } from "./RefreshIcon";
 export { SearchIcon } from "./SearchIcon";
 export { TrashIcon } from "./TrashIcon";
 export { WarningIcon } from "./WarningIcon";
+export { HelpIcon } from "./HelpIcon";
 export { SettingsIcon } from "./SettingsIcon";
 export { SunIcon } from "./SunIcon";
 export { MoonIcon } from "./MoonIcon";

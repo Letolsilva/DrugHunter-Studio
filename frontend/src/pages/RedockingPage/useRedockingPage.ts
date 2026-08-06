@@ -74,6 +74,7 @@ export interface UseRedockingPageReturn {
   irParaHistorico: () => void;
   irParaMeusPdbs: () => void;
   irParaConfiguracoes: () => void;
+  irParaAjuda: () => void;
   handleImportarCsv: (file: File) => void;
   handleConfigChange: (field: string, value: string) => void;
   handleVerificarProntidao: () => Promise<void>;
@@ -319,6 +320,11 @@ export function useRedockingPage(
     navigate("/configuracoes");
   }, [navigate]);
 
+  const irParaAjuda = useCallback(() => {
+    setMenuAberto(false);
+    navigate("/ajuda");
+  }, [navigate]);
+
   const targetNormalizado = useMemo(
     () => normalizarTarget(config.target),
     [config.target],
@@ -425,6 +431,7 @@ export function useRedockingPage(
     irParaHistorico,
     irParaMeusPdbs,
     irParaConfiguracoes,
+    irParaAjuda,
     handleImportarCsv,
     handleConfigChange,
     handleVerificarProntidao,

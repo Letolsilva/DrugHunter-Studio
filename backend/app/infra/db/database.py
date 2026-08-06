@@ -73,8 +73,18 @@ CONFIGS_PADRAO = [
     },
     {
         "chave": "python_bin",
-        "valor": "python3",
+        "valor": "",
         "descricao": "Interpretador Python usado para executar o DrugHunter",
+    },
+    {
+        "chave": "chimera_path",
+        "valor": "",
+        "descricao": "Caminho para o diretório bin do UCSF Chimera (vazio = detecção automática)",
+    },
+    {
+        "chave": "dock6_path",
+        "valor": "",
+        "descricao": "Caminho para o diretório bin do Dock6 (vazio = detecção automática)",
     },
     {
         "chave": "smtp_host",

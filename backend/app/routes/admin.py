@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.infra.db.database import get_db
 from app.core.deps import get_usuario_admin
 from app.domain.models import User
-from app.domain.schemas.admin import ConfigUpdate, AdminToggle
+from app.domain.schemas.admin import ConfigUpdate, AdminToggle, ValidacaoDrugHunterResponse
 from app.usecases import admin as uc
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
@@ -75,6 +75,14 @@ def listar_usuarios(
 ):
     """Lista todos os usuários cadastrados."""
     return uc.uc_listar_usuarios(db)
+
+
+@router.get("/validar-drughunter", response_model=ValidacaoDrugHunterResponse)
+def validar_drughunter(
+    db: Session = Depends(get_db), admin: User = Depends(get_usuario_admin)
+):
+    """Verifica se o ambiente do DrugHunter está corretamente configurado."""
+    return uc.uc_validar_drughunter(db)
 
 
 @router.patch("/users/{usuario_id}")
