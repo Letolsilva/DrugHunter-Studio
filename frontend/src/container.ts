@@ -11,6 +11,8 @@ import { VisualizadorUseCase } from "./data/usecases/visualizador.usecase";
 import { VisualizadorCifUseCase } from "./data/usecases/visualizador_cif.usecase";
 import { RedockingUseCase } from "./data/usecases/redocking.usecase";
 import { ConfigUseCase } from "./data/usecases/config.usecase";
+import { HomeUseCase } from "./data/usecases/home.usecase";
+import { ChemblUseCase } from "./data/usecases/chembl.usecase";
 
 const httpClient = new HTTPClient();
 
@@ -23,3 +25,5 @@ export const visualizadorUseCase = new VisualizadorUseCase(httpClient);
 export const visualizadorCifUseCase = new VisualizadorCifUseCase(httpClient);
 export const redockingUseCase = new RedockingUseCase(httpClient);
 export const configUseCase = new ConfigUseCase(httpClient);
+export const homeUseCase = new HomeUseCase(httpClient);
+export const chemblUseCase = new ChemblUseCase(httpClient);

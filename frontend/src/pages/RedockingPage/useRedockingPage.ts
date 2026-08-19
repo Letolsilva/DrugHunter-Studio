@@ -302,12 +302,12 @@ export function useRedockingPage(
 
   const irParaBusca = useCallback(() => {
     setMenuAberto(false);
-    navigate("/search");
+    navigate("/busca-pdb");
   }, [navigate]);
 
   const irParaHistorico = useCallback(() => {
     setMenuAberto(false);
-    navigate("/historico");
+    navigate("/busca-pdb");
   }, [navigate]);
 
   const irParaMeusPdbs = useCallback(() => {

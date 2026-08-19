@@ -77,7 +77,15 @@ def _verificar_resultado(
         erros += _extrair_erros_log(Path(cwd) / "logs" / nome, pos)
 
     if not tem_dados:
-        resumo = "\n".join(erros[-10:]) if erros else "CSV sem resultados — nenhuma linha com RMSD gerada."
+        if erros:
+            resumo = "\n".join(erros[-10:])
+        else:
+            resumo = (
+                "Nenhum resultado de RMSD foi gerado. Causas comuns:\n"
+                "• Ligante não adequado para docking (HOH, ZN, EDO, ACT, SO4, PO4, GOL e íons em geral não são processados pelo Vina).\n"
+                "• Arquivo .pdb ausente ou corrompido na pasta do alvo.\n"
+                "• Falha silenciosa do DrugHunter — verifique os logs em logs/redocking.log e logs/docking.log."
+            )
         return False, resumo
 
     return True, ""

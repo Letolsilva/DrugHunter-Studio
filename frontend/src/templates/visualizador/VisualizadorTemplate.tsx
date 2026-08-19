@@ -1,6 +1,7 @@
 // templates/visualizador/VisualizadorTemplate.tsx
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "../../components/layout";
+import { MiddleBar } from "../../components/nav/MiddleBar";
 import { Button } from "../../components/ui/Button";
 import { Spinner } from "../../components/ui/Spinner";
 import {
@@ -45,7 +46,7 @@ export default function VisualizadorTemplate({
 }: Props) {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen flex flex-col bg-surface-primary select-none">
+    <div className="min-h-screen flex flex-col bg-surface-primary">
       <Navbar>
         <Navbar.Left>
           <button
@@ -56,16 +57,26 @@ export default function VisualizadorTemplate({
           >
             <ArrowLeftIcon size={16} />
           </button>
-          <span className="text-[17px] font-medium text-foreground-muted inline-flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => navigate("/home")}
+            className="cursor-pointer rounded border-none bg-transparent text-[17px] font-medium text-foreground-muted inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
+            title="Início"
+          >
             <AppLogoIcon size={17} className="text-foreground-muted" />
             PDB<b className="text-foreground font-extrabold">Explorer</b>
-          </span>
+          </button>
           {arvore && (
             <span className="ml-1 border-l border-outline pl-3 font-mono text-[12px] text-foreground-subtle">
               {arvore.pdb_id}
             </span>
           )}
         </Navbar.Left>
+
+        <Navbar.Middle>
+          <MiddleBar activeModule={null} />
+        </Navbar.Middle>
+
         <Navbar.Right>
           <button
             type="button"

@@ -13,6 +13,8 @@ import {
   visualizadorCifUseCase,
   redockingUseCase,
   configUseCase,
+  homeUseCase,
+  chemblUseCase,
 } from "./container";
 
 export default function App() {
@@ -28,6 +30,8 @@ export default function App() {
           visualizadorCifUseCase={visualizadorCifUseCase}
           redockingUseCase={redockingUseCase}
           configUseCase={configUseCase}
+          homeUseCase={homeUseCase}
+          chemblUseCase={chemblUseCase}
         />
         <GlobalAccumulatedPanel />
         <GlobalRedockingIndicator />

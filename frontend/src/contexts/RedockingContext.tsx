@@ -16,6 +16,7 @@ import type {
 } from "../domain/models/redocking.model";
 import { parseCsvContent } from "../domain/models/redocking.model";
 import type { RedockingUseCase } from "../data/usecases/redocking.usecase";
+import { HttpError } from "../infra/http/httpClient";
 
 interface RedockingContextValue {
   // Job ativo
@@ -70,15 +71,37 @@ export function RedockingProvider({
     (jobId: number) => {
       stopPolling();
       intervalRef.current = setInterval(async () => {
-        const token = localStorage.getItem("access_token") ?? "";
+        let token = localStorage.getItem("access_token") ?? "";
         try {
           const updated = await redockingUseCase.statusJob(jobId, token);
           setActiveJobState(updated);
           if (updated.status === "done" || updated.status === "error") {
             stopPolling();
           }
-        } catch {
-          // ignora erros transientes de rede no polling
+        } catch (err) {
+          if (err instanceof HttpError && err.status === 401) {
+            // Token expirou — tenta renovar uma vez
+            try {
+              const refreshToken = localStorage.getItem("refresh_token");
+              if (!refreshToken) { stopPolling(); return; }
+              const res = await fetch("/api/auth/refresh", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ refresh_token: refreshToken }),
+              });
+              if (!res.ok) { stopPolling(); return; }
+              const tokens = await res.json();
+              localStorage.setItem("access_token", tokens.access_token);
+              if (tokens.refresh_token) localStorage.setItem("refresh_token", tokens.refresh_token);
+              token = tokens.access_token;
+              const updated = await redockingUseCase.statusJob(jobId, token);
+              setActiveJobState(updated);
+              if (updated.status === "done" || updated.status === "error") stopPolling();
+            } catch {
+              stopPolling();
+            }
+          }
+          // outros erros (rede) são ignorados — próximo ciclo tenta de novo
         }
       }, 10_000);
     },

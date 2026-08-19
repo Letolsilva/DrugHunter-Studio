@@ -1,6 +1,8 @@
 // templates/config/ConfigTemplate.tsx
 import { useState, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { Navbar, DropdownMenu } from "../../components/layout";
+import { MiddleBar } from "../../components/nav/MiddleBar";
 import { Button } from "../../components/ui/Button";
 import { Spinner } from "../../components/ui/Spinner";
 import { Toast } from "../../components/ui/Toast";
@@ -13,7 +15,6 @@ import {
   MenuIcon,
   MoonIcon,
   RefreshIcon,
-  SearchIcon,
   SettingsIcon,
   SunIcon,
 } from "../../components/icons";
@@ -98,7 +99,6 @@ export default function ConfigTemplate({
   menuAberto,
   menuRef,
   toggleMenu,
-  irParaBusca,
   irParaHistorico,
   irParaRedocking,
   irParaMeusPdbs,
@@ -113,6 +113,7 @@ export default function ConfigTemplate({
   togglingAdmin,
   handleToggleAdmin,
 }: UseConfigPageReturn) {
+  const navigate = useNavigate();
   const getValor = (chave: string) =>
     configs.find((c) => c.chave === chave)?.valor ?? "";
 
@@ -142,17 +143,26 @@ export default function ConfigTemplate({
     });
 
   return (
-    <div className="min-h-screen flex flex-col bg-surface-primary select-none">
+    <div className="min-h-screen flex flex-col bg-surface-primary">
       <Navbar>
         <Navbar.Left>
-          <span className="text-[17px] font-medium text-foreground-muted inline-flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => navigate("/home")}
+            className="cursor-pointer rounded border-none bg-transparent text-[17px] font-medium text-foreground-muted inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
+            title="Início"
+          >
             <AppLogoIcon size={17} className="text-foreground-muted" />
             PDB<b className="text-foreground font-extrabold">Explorer</b>
-          </span>
+          </button>
           <span className="ml-1 border-l border-outline pl-3 text-[13px] text-foreground-subtle inline-flex items-center gap-1.5">
             Configurações
           </span>
         </Navbar.Left>
+
+        <Navbar.Middle>
+          <MiddleBar activeModule={null} />
+        </Navbar.Middle>
 
         <Navbar.Right>
           <DropdownMenu
@@ -162,12 +172,6 @@ export default function ConfigTemplate({
             buttonTitle="Menu"
             trigger={<MenuIcon size={25} />}
           >
-            <DropdownMenu.Item
-              icon={<SearchIcon size={14} />}
-              label="Busca"
-              onClick={irParaBusca}
-              divider
-            />
             <DropdownMenu.Item
               icon={<ClockIcon size={14} />}
               label="Histórico"

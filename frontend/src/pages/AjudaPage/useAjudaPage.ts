@@ -23,7 +23,7 @@ export function useAjudaPage(configUseCase: ConfigUseCase): UseAjudaPageReturn {
   const [validando, setValidando] = useState(false);
   const [checks, setChecks] = useState<CheckItemDH[] | null>(null);
   const [erroValidacao, setErroValidacao] = useState<string | null>(null);
-  const irParaBusca = useCallback(() => navigate("/search"), [navigate]);
+  const irParaBusca = useCallback(() => navigate("/busca-pdb"), [navigate]);
   const irParaRedocking = useCallback(() => navigate("/redocking"), [navigate]);
   const irParaConfiguracoes = useCallback(() => navigate("/configuracoes"), [navigate]);
 

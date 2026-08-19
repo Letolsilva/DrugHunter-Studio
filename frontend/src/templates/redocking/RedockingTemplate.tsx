@@ -1,6 +1,8 @@
 // templates/redocking/RedockingTemplate.tsx
 import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Navbar, DropdownMenu } from "../../components/layout";
+import { MiddleBar } from "../../components/nav/MiddleBar";
 import { Button } from "../../components/ui/Button";
 import { Spinner } from "../../components/ui/Spinner";
 import { Toast } from "../../components/ui/Toast";
@@ -12,7 +14,6 @@ import {
   HelpIcon,
   LogoutIcon,
   MenuIcon,
-  SearchIcon,
   SettingsIcon,
 } from "../../components/icons";
 import { ResolutionBarChart } from "../../components/charts/ResolutionBarChart";
@@ -76,6 +77,7 @@ export default function RedockingTemplate({
   handleSubmit,
   handleLogout,
 }: UseRedockingPageReturn) {
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [modalCsvAberto, setModalCsvAberto] = useState(false);
   const [erroExpandidoId, setErroExpandidoId] = useState<number | null>(null);
@@ -94,7 +96,7 @@ export default function RedockingTemplate({
     !submitting;
 
   return (
-    <div className="min-h-screen flex flex-col bg-surface-primary select-none">
+    <div className="min-h-screen flex flex-col bg-surface-primary">
       <Navbar>
         <Navbar.Left>
           <button
@@ -105,15 +107,32 @@ export default function RedockingTemplate({
           >
             <ArrowLeftIcon size={16} />
           </button>
-          <span className="text-[17px] font-medium text-foreground-muted inline-flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => navigate("/home")}
+            className="cursor-pointer rounded border-none bg-transparent text-[17px] font-medium text-foreground-muted inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
+            title="Início"
+          >
             <AppLogoIcon size={17} className="text-foreground-muted" />
             PDB<b className="text-foreground font-extrabold">Explorer</b>
-          </span>
+          </button>
           <span className="ml-1 border-l border-outline pl-3 text-[13px] text-foreground-subtle">
             Redocking
           </span>
         </Navbar.Left>
+
+        <Navbar.Middle>
+          <MiddleBar activeModule={null} />
+        </Navbar.Middle>
+
         <Navbar.Right>
+          <button
+            type="button"
+            onClick={irParaConfiguracoes}
+            className="cursor-pointer rounded border-none bg-transparent px-3 py-1.5 font-mono text-[12px] text-foreground-subtle transition-colors hover:text-foreground"
+          >
+            Configurações
+          </button>
           <DropdownMenu
             isOpen={menuAberto}
             menuRef={menuRef}
@@ -121,12 +140,6 @@ export default function RedockingTemplate({
             buttonTitle="Menu"
             trigger={<MenuIcon size={25} />}
           >
-            <DropdownMenu.Item
-              icon={<SearchIcon size={14} />}
-              label="Busca"
-              onClick={irParaBusca}
-              divider
-            />
             <DropdownMenu.Item
               icon={<ClockIcon size={14} />}
               label="Histórico"
@@ -137,12 +150,6 @@ export default function RedockingTemplate({
               icon={<DownloadIcon size={14} />}
               label="Meus PDBs"
               onClick={irParaMeusPdbs}
-              divider
-            />
-            <DropdownMenu.Item
-              icon={<SettingsIcon size={14} />}
-              label="Configurações"
-              onClick={irParaConfiguracoes}
               divider
             />
             <DropdownMenu.Item

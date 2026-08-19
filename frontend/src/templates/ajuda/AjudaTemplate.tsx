@@ -1,15 +1,19 @@
 // templates/ajuda/AjudaTemplate.tsx
-import { useState } from "react";
-import { Navbar } from "../../components/layout";
+import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Navbar, DropdownMenu } from "../../components/layout";
+import { MiddleBar } from "../../components/nav/MiddleBar";
 import { Button } from "../../components/ui/Button";
 import { Spinner } from "../../components/ui/Spinner";
 import {
   AppLogoIcon,
+  ClockIcon,
+  DownloadIcon,
   HelpIcon,
-  SearchIcon,
+  LogoutIcon,
+  MenuIcon,
   RefreshIcon,
   SettingsIcon,
-  LogoutIcon,
 } from "../../components/icons";
 import type { UseAjudaPageReturn } from "../../pages/AjudaPage/useAjudaPage";
 import type { CheckItemDH } from "../../data/usecases/config.usecase";
@@ -114,51 +118,60 @@ export default function AjudaTemplate({
   erroValidacao,
   handleValidar,
 }: UseAjudaPageReturn) {
+  const navigate = useNavigate();
+  const [menuAberto, setMenuAberto] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [osTab, setOsTab] = useState<"linux" | "windows">("linux");
 
   return (
     <div className="min-h-screen flex flex-col bg-surface-primary">
       <Navbar className="select-none">
         <Navbar.Left>
-          <span className="text-[17px] font-medium text-foreground-muted inline-flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => navigate("/home")}
+            className="cursor-pointer rounded border-none bg-transparent text-[17px] font-medium text-foreground-muted inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
+            title="Início"
+          >
             <AppLogoIcon size={17} className="text-foreground-muted" />
             PDB<b className="text-foreground font-extrabold">Explorer</b>
-          </span>
+          </button>
           <span className="ml-1 border-l border-outline pl-3 text-[13px] text-foreground-subtle inline-flex items-center gap-1.5">
             <HelpIcon size={13} />
             Ajuda
           </span>
         </Navbar.Left>
 
+        <Navbar.Middle>
+          <MiddleBar activeModule={null} />
+        </Navbar.Middle>
+
         <Navbar.Right>
-          <button
-            type="button"
-            onClick={irParaBusca}
-            className="cursor-pointer rounded border-none bg-transparent px-3 py-1.5 font-mono text-[12px] text-foreground-subtle transition-colors hover:text-foreground"
+          <DropdownMenu
+            isOpen={menuAberto}
+            menuRef={menuRef}
+            onToggle={() => setMenuAberto((v) => !v)}
+            buttonTitle="Menu"
+            trigger={<MenuIcon size={25} />}
           >
-            Busca
-          </button>
-          <button
-            type="button"
-            onClick={irParaRedocking}
-            className="cursor-pointer rounded border-none bg-transparent px-3 py-1.5 font-mono text-[12px] text-foreground-subtle transition-colors hover:text-foreground"
-          >
-            Redocking
-          </button>
-          <button
-            type="button"
-            onClick={irParaConfiguracoes}
-            className="cursor-pointer rounded border-none bg-transparent px-3 py-1.5 font-mono text-[12px] text-foreground-subtle transition-colors hover:text-foreground"
-          >
-            Configurações
-          </button>
-          <Button
-            variant="ghost"
-            onClick={handleLogout}
-            style={{ padding: "6px 14px", fontSize: 13 }}
-          >
-            Sair
-          </Button>
+            <DropdownMenu.Item
+              icon={<RefreshIcon size={14} />}
+              label="Redocking"
+              onClick={() => { setMenuAberto(false); irParaRedocking(); }}
+              divider
+            />
+            <DropdownMenu.Item
+              icon={<SettingsIcon size={14} />}
+              label="Configurações"
+              onClick={() => { setMenuAberto(false); irParaConfiguracoes(); }}
+              divider
+            />
+            <DropdownMenu.Item
+              icon={<LogoutIcon size={14} />}
+              label="Sair"
+              onClick={handleLogout}
+            />
+          </DropdownMenu>
         </Navbar.Right>
       </Navbar>
 

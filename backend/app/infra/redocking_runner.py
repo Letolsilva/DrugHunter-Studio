@@ -117,6 +117,15 @@ def executar_redocking_background(
             drug_hunter_dir,
         )
 
+        # Verifica se existem arquivos .pdb no diretório do target antes de começar.
+        target_dir = Path(drug_hunter_dir) / base_input_path.lstrip("/") / normalizar_target(target)
+        pdb_files = list(target_dir.glob("*.pdb")) if target_dir.is_dir() else []
+        if not pdb_files:
+            raise FileNotFoundError(
+                f"Nenhum arquivo .pdb encontrado em {target_dir}. "
+                "Copie os arquivos .pdb do alvo para essa pasta antes de executar o redocking."
+            )
+
         python_bin = get_config(db, "python_bin") or os.getenv("PYTHON_BIN", "python3")
 
         # Monta o PATH com obabel/vina/chimera/dock6 — o subprocesso não herda

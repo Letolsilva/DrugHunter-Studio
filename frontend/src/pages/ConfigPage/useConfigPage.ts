@@ -107,12 +107,12 @@ export function useConfigPage(
 
   const irParaBusca = useCallback(() => {
     setMenuAberto(false);
-    navigate("/search");
+    navigate("/busca-pdb");
   }, [navigate]);
 
   const irParaHistorico = useCallback(() => {
     setMenuAberto(false);
-    navigate("/historico");
+    navigate("/busca-pdb");
   }, [navigate]);
 
   const irParaRedocking = useCallback(() => {

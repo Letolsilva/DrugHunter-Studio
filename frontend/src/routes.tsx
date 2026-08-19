@@ -2,6 +2,9 @@
 import { Routes, Route, Navigate, type ReactNode } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import AuthPage from "./pages/AuthPage/AuthPage";
+import HomePage from "./pages/HomePage/HomePage";
+import ChemblPage from "./pages/ChemblPage/ChemblPage";
+import ChemblResultsPage from "./pages/ChemblResultsPage/ChemblResultsPage";
 import SearchPage from "./pages/SearchPage/SearchPage";
 import HistoryListPage from "./pages/HistoryListPage/HistoryListPage";
 import HistoryDashboardPage from "./pages/HistoryDashboardPage/HistoryDashboardPage";
@@ -19,6 +22,8 @@ import type { VisualizadorUseCase } from "./data/usecases/visualizador.usecase";
 import type { VisualizadorCifUseCase } from "./data/usecases/visualizador_cif.usecase";
 import type { RedockingUseCase } from "./data/usecases/redocking.usecase";
 import type { ConfigUseCase } from "./data/usecases/config.usecase";
+import type { HomeUseCase } from "./data/usecases/home.usecase";
+import type { ChemblUseCase } from "./data/usecases/chembl.usecase";
 
 interface RotaProtegidaProps {
   children: ReactNode;
@@ -62,6 +67,8 @@ interface AppRoutesProps {
   visualizadorCifUseCase: VisualizadorCifUseCase;
   redockingUseCase: RedockingUseCase;
   configUseCase: ConfigUseCase;
+  homeUseCase: HomeUseCase;
+  chemblUseCase: ChemblUseCase;
 }
 
 export default function AppRoutes({
@@ -73,6 +80,8 @@ export default function AppRoutes({
   visualizadorCifUseCase,
   redockingUseCase,
   configUseCase,
+  homeUseCase,
+  chemblUseCase,
 }: AppRoutesProps) {
   const { user, loading } = useAuth();
 
@@ -82,30 +91,51 @@ export default function AppRoutes({
         path="/"
         element={
           loading ? null : user ? (
-            <Navigate to="/search" replace />
+            <Navigate to="/home" replace />
           ) : (
             <AuthPage />
           )
         }
       />
       <Route
-        path="/search"
+        path="/home"
+        element={
+          <RotaProtegida>
+            <HomePage homeUseCase={homeUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/chembl"
+        element={
+          <RotaProtegida>
+            <ChemblPage chemblUseCase={chemblUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/chembl/:jobId/resultados"
+        element={
+          <RotaProtegida>
+            <ChemblResultsPage chemblUseCase={chemblUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/busca-pdb"
         element={
           <RotaProtegida>
             <SearchPage
               searchUseCase={searchUseCase}
               dashboardUseCase={dashboardUseCase}
+              historyUseCase={historyUseCase}
             />
           </RotaProtegida>
         }
       />
       <Route
         path="/historico"
-        element={
-          <RotaProtegida>
-            <HistoryListPage historyUseCase={historyUseCase} />
-          </RotaProtegida>
-        }
+        element={<Navigate to="/busca-pdb" replace />}
       />
       <Route
         path="/historico/:id"
