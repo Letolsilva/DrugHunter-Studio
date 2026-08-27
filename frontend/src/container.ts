@@ -13,6 +13,7 @@ import { RedockingUseCase } from "./data/usecases/redocking.usecase";
 import { ConfigUseCase } from "./data/usecases/config.usecase";
 import { HomeUseCase } from "./data/usecases/home.usecase";
 import { ChemblUseCase } from "./data/usecases/chembl.usecase";
+import { AdmetUseCase } from "./data/usecases/admet.usecase";
 
 const httpClient = new HTTPClient();
 
@@ -27,3 +28,4 @@ export const redockingUseCase = new RedockingUseCase(httpClient);
 export const configUseCase = new ConfigUseCase(httpClient);
 export const homeUseCase = new HomeUseCase(httpClient);
 export const chemblUseCase = new ChemblUseCase(httpClient);
+export const admetUseCase = new AdmetUseCase(httpClient);

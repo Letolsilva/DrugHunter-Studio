@@ -38,6 +38,7 @@ from app.routes.download import router as download_router
 from app.routes.redocking import router as redocking_router
 from app.routes.home import router as home_router
 from app.routes.chembl import router as chembl_router
+from app.routes.admet import router as admet_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("pdb_explorer")
@@ -102,6 +103,7 @@ app.include_router(download_router)
 app.include_router(redocking_router)
 app.include_router(home_router)
 app.include_router(chembl_router)
+app.include_router(admet_router)
 
 
 @app.get("/health")

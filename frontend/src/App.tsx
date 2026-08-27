@@ -15,6 +15,7 @@ import {
   configUseCase,
   homeUseCase,
   chemblUseCase,
+  admetUseCase,
 } from "./container";
 
 export default function App() {
@@ -32,6 +33,7 @@ export default function App() {
           configUseCase={configUseCase}
           homeUseCase={homeUseCase}
           chemblUseCase={chemblUseCase}
+          admetUseCase={admetUseCase}
         />
         <GlobalAccumulatedPanel />
         <GlobalRedockingIndicator />

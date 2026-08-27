@@ -14,6 +14,7 @@ from app.domain.models.pdb_download import UserPdbDownload
 from app.domain.models.redocking_job import RedockingJob
 from app.domain.models.user_pdb_csv import UserPdbCsv
 from app.domain.models.chembl_job import ChemblJob, ChemblJobItem
+from app.domain.models.admet_result import AdmetResult
 
 __all__ = [
     "Base",
@@ -27,4 +28,5 @@ __all__ = [
     "UserPdbCsv",
     "ChemblJob",
     "ChemblJobItem",
+    "AdmetResult",
 ]

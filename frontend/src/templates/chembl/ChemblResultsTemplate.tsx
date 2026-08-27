@@ -57,6 +57,7 @@ export default function ChemblResultsTemplate(props: UseChemblResultsPageReturn)
     networks, networksLoading, selectedNetwork, onOpenNetwork, onCloseNetwork, getPlotUrl,
     selectedMol, onSelectMol, onCloseMol,
     handleLogout, voltarChembl,
+    admetStatusByItem, onRunAdmet,
   } = props;
 
   const navigate = useNavigate();
@@ -239,7 +240,7 @@ export default function ChemblResultsTemplate(props: UseChemblResultsPageReturn)
 
             {/* ── Cards de resumo ──────────────────────────────────────────── */}
             {!molLoading && summary && (
-              <div className="flex gap-3 flex-wrap">
+              <div className="flex gap-3 flex-wrap items-center">
                 <SummaryCard label="Total" value={summary.total.toLocaleString("pt-BR")} />
                 <SummaryCard label="Com pChEMBL" value={summary.comPchembl.toLocaleString("pt-BR")} />
                 <SummaryCard label="pChEMBL médio" value={summary.pchemblMedio} />
@@ -249,6 +250,62 @@ export default function ChemblResultsTemplate(props: UseChemblResultsPageReturn)
                   highlight={summary.ativos > 0}
                 />
                 <SummaryCard label="Tipos de ensaio" value={summary.tiposUnicos} />
+
+                {/* Botões ADMET — um por item, estado inteligente */}
+                {job?.items && job.items.length > 0 && summary.total > 0 && (
+                  <div className="ml-auto flex gap-2 flex-wrap">
+                    {job.items.map((item) => {
+                      const admetStatus = admetStatusByItem[item.id] ?? "none";
+                      if (admetStatus === "running") {
+                        return (
+                          <button
+                            key={item.id}
+                            disabled
+                            className="flex items-center gap-1.5 rounded-xl border px-4 py-3 font-mono text-[12px] font-semibold opacity-70 cursor-not-allowed"
+                            style={{
+                              borderColor: "var(--color-outline)",
+                              color: "var(--color-foreground-subtle)",
+                              background: "transparent",
+                            }}
+                          >
+                            <span className="spinner" style={{ width: 12, height: 12, borderWidth: 2 }} />
+                            Analisando...
+                          </button>
+                        );
+                      }
+                      if (admetStatus === "done") {
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={() => onRunAdmet(item.id)}
+                            className="flex items-center gap-1.5 rounded-xl border px-4 py-3 font-mono text-[12px] font-semibold transition-all hover:opacity-80"
+                            style={{
+                              borderColor: "#22c55e44",
+                              color: "#22c55e",
+                              background: "#22c55e12",
+                            }}
+                          >
+                            Ver ADMET →
+                          </button>
+                        );
+                      }
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => onRunAdmet(item.id)}
+                          className="flex items-center gap-1.5 rounded-xl border px-4 py-3 font-mono text-[12px] font-semibold transition-all hover:bg-surface-secondary"
+                          style={{
+                            borderColor: "var(--color-accent-25)",
+                            color: "var(--color-accent)",
+                            background: "var(--color-accent-12)",
+                          }}
+                        >
+                          Análise ADMET →
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 

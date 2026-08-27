@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import type { ChemblUseCase } from "../../data/usecases/chembl.usecase";
+import type { AdmetUseCase } from "../../data/usecases/admet.usecase";
 import type {
   ChemblJobModel,
   ChemblMoleculeModel,
@@ -78,12 +79,17 @@ export interface UseChemblResultsPageReturn {
 
   handleLogout: () => void;
   voltarChembl: () => void;
+
+  // ADMET
+  admetStatusByItem: Record<number, "none" | "running" | "done">;
+  onRunAdmet: (itemId: number) => void;
 }
 
 const PER_PAGE = 50;
 
 export function useChemblResultsPage(
   chemblUseCase: ChemblUseCase,
+  admetUseCase: AdmetUseCase,
 ): UseChemblResultsPageReturn {
   const { jobId } = useParams<{ jobId: string }>();
   const location = useLocation();
@@ -314,6 +320,47 @@ export function useChemblResultsPage(
   const onSelectMol = useCallback((mol: ChemblMoleculeModel) => setSelectedMol(mol), []);
   const onCloseMol = useCallback(() => setSelectedMol(null), []);
 
+  // ── ADMET — status por item ───────────────────────────────────────────────
+  const [admetStatusByItem, setAdmetStatusByItem] = useState<Record<number, "none" | "running" | "done">>({});
+
+  const refreshAdmetStatus = useCallback(() => {
+    if (job?.status !== "done" || !job.items.length) return;
+    job.items.forEach((it) => {
+      admetUseCase.getByItem(it.id, token()).then((result) => {
+        setAdmetStatusByItem((prev) => ({
+          ...prev,
+          [it.id]: result ? (result.status === "done" ? "done" : "running") : "none",
+        }));
+      }).catch(() => {});
+    });
+  }, [job?.status, job?.items, admetUseCase]);
+
+  // Consulta inicial
+  useEffect(() => { refreshAdmetStatus(); }, [refreshAdmetStatus]);
+
+  // Polling enquanto algum item estiver "running"
+  useEffect(() => {
+    const hasRunning = Object.values(admetStatusByItem).some((s) => s === "running");
+    if (!hasRunning) return;
+    const interval = setInterval(refreshAdmetStatus, 4000);
+    return () => clearInterval(interval);
+  }, [admetStatusByItem, refreshAdmetStatus]);
+
+  const onRunAdmet = useCallback(
+    (itemId: number) => {
+      const status = admetStatusByItem[itemId];
+      if (status === "done") {
+        // Busca o result_id para navegar direto
+        admetUseCase.getByItem(itemId, token()).then((r) => {
+          if (r) navigate(`/admet/${r.id}`);
+        });
+      } else {
+        navigate(`/admet?item_id=${itemId}`);
+      }
+    },
+    [admetStatusByItem, navigate],
+  );
+
   // ── Navbar ────────────────────────────────────────────────────────────────
   const handleLogout = useCallback(() => { logout(); navigate("/"); }, [logout, navigate]);
   const voltarChembl = useCallback(() => navigate("/chembl"), [navigate]);
@@ -337,5 +384,6 @@ export function useChemblResultsPage(
     networks, networksLoading, selectedNetwork, onOpenNetwork, onCloseNetwork, getPlotUrl,
     selectedMol, onSelectMol, onCloseMol,
     handleLogout, voltarChembl,
+    admetStatusByItem, onRunAdmet,
   };
 }

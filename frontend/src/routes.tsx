@@ -5,6 +5,7 @@ import AuthPage from "./pages/AuthPage/AuthPage";
 import HomePage from "./pages/HomePage/HomePage";
 import ChemblPage from "./pages/ChemblPage/ChemblPage";
 import ChemblResultsPage from "./pages/ChemblResultsPage/ChemblResultsPage";
+import AdmetPage from "./pages/AdmetPage/AdmetPage";
 import SearchPage from "./pages/SearchPage/SearchPage";
 import HistoryListPage from "./pages/HistoryListPage/HistoryListPage";
 import HistoryDashboardPage from "./pages/HistoryDashboardPage/HistoryDashboardPage";
@@ -24,6 +25,7 @@ import type { RedockingUseCase } from "./data/usecases/redocking.usecase";
 import type { ConfigUseCase } from "./data/usecases/config.usecase";
 import type { HomeUseCase } from "./data/usecases/home.usecase";
 import type { ChemblUseCase } from "./data/usecases/chembl.usecase";
+import type { AdmetUseCase } from "./data/usecases/admet.usecase";
 
 interface RotaProtegidaProps {
   children: ReactNode;
@@ -69,6 +71,7 @@ interface AppRoutesProps {
   configUseCase: ConfigUseCase;
   homeUseCase: HomeUseCase;
   chemblUseCase: ChemblUseCase;
+  admetUseCase: AdmetUseCase;
 }
 
 export default function AppRoutes({
@@ -82,6 +85,7 @@ export default function AppRoutes({
   configUseCase,
   homeUseCase,
   chemblUseCase,
+  admetUseCase,
 }: AppRoutesProps) {
   const { user, loading } = useAuth();
 
@@ -117,7 +121,7 @@ export default function AppRoutes({
         path="/chembl/:jobId/resultados"
         element={
           <RotaProtegida>
-            <ChemblResultsPage chemblUseCase={chemblUseCase} />
+            <ChemblResultsPage chemblUseCase={chemblUseCase} admetUseCase={admetUseCase} />
           </RotaProtegida>
         }
       />
@@ -195,6 +199,22 @@ export default function AppRoutes({
         element={
           <RotaProtegida>
             <AjudaPage configUseCase={configUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/admet/:resultId"
+        element={
+          <RotaProtegida>
+            <AdmetPage admetUseCase={admetUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/admet"
+        element={
+          <RotaProtegida>
+            <AdmetPage admetUseCase={admetUseCase} />
           </RotaProtegida>
         }
       />
