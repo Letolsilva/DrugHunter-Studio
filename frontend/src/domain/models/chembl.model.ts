@@ -30,6 +30,7 @@ export interface ChemblItemConfig {
   /** ID local para controle do grupo no frontend — não vai ao banco */
   id: string;
   target_names: string[];
+  chembl_search_id: string; // ID ChEMBL opcional para busca (ex: CHEMBL1914)
   target_filters: ChemblTargetFilters;
   bioact_filters: ChemblBioactFilters;
   mol_filters: ChemblMolFilters;

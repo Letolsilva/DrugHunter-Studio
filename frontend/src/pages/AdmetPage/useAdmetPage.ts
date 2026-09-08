@@ -240,6 +240,19 @@ export function useAdmetPage(
     }).catch(() => setConsensusStatus("none"));
   }, [result?.id, result?.status]);  // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Polling automático enquanto o consenso estiver rodando
+  useEffect(() => {
+    if (!consensusUseCase || !result || consensusStatus !== "running" || !consensusJobId) return;
+    const interval = setInterval(() => {
+      consensusUseCase.getByAdmet(result.id, token).then((job) => {
+        if (!isMounted.current || !job) return;
+        if (job.status === "done") { setConsensusStatus("done"); clearInterval(interval); }
+        else if (job.status === "error") { setConsensusStatus("error"); clearInterval(interval); }
+      }).catch(() => {});
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [consensusStatus, consensusJobId, result?.id]);  // eslint-disable-line react-hooks/exhaustive-deps
+
   const onGoConsensus = useCallback(() => {
     if (!result) return;
     if (consensusStatus === "done" || consensusStatus === "running") {

@@ -37,6 +37,7 @@ class ChemblSimFilters(BaseModel):
 class ChemblItemRequest(BaseModel):
     target_name: str
     folder_name: str
+    chembl_search_id: Optional[str] = None  # ID ChEMBL para busca (ex: CHEMBL1914) quando o nome não é encontrado
     target_filters: ChemblTargetFilters = Field(default_factory=ChemblTargetFilters)
     bioact_filters: ChemblBioactFilters = Field(default_factory=ChemblBioactFilters)
     mol_filters: ChemblMolFilters = Field(default_factory=ChemblMolFilters)

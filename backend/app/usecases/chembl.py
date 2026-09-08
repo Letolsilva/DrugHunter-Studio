@@ -163,66 +163,86 @@ def uc_listar_moleculas(
 
 def uc_analise_status(db: Session, job_id: int, user_id: int) -> Optional[dict]:
     """Verifica se a análise molecular foi executada para o job."""
+    import re
+    import time
+
     job = svc.get_job_by_id(db, job_id, user_id)
     if not job:
         return None
 
     analysis_dir = Path(job.base_output_path) / "ChEMBL" / "analysis"
+    similarity_dir = analysis_dir / "Similarity"
+    maxcomp_dir = analysis_dir / "data" / "maxcomp"
 
-    # Análise existe se ao menos um alvo tem seu arquivo _MOLS.csv ou _SIMS.csv
-    job_has_analysis = any(
-        (analysis_dir / f"{item.folder_name}_MOLS.csv").exists()
-        or (analysis_dir / f"{item.folder_name}_SIMS.csv").exists()
-        for item in job.items
-    )
+    # Identifica quais itens do job têm arquivos de análise iniciados (root MOLS/SIMS)
+    # e, desses, quais ainda não têm maxcomp concluído (potencialmente em andamento).
+    _STALE_SECONDS = 15 * 60  # > 15 min sem maxcomp → análise parou, não está rodando
+    now = time.time()
 
-    if not job_has_analysis:
+    items_with_analysis: list[str] = []  # itens que têm arquivos _MOLS/_SIMS no root
+    incomplete_mtimes: list[float] = []  # mtimes dos itens sem maxcomp correspondente
+
+    for item in job.items:
+        folder = item.folder_name
+        mols_f = analysis_dir / f"{folder}_MOLS.csv"
+        sims_f = analysis_dir / f"{folder}_SIMS.csv"
+
+        if not (mols_f.exists() or sims_f.exists()):
+            continue  # item ainda não tem arquivos de análise
+
+        items_with_analysis.append(folder)
+
+        item_mtime = max(f.stat().st_mtime for f in [mols_f, sims_f] if f.exists())
+        item_maxcomp = list(maxcomp_dir.glob(f"*{folder}*.csv")) if maxcomp_dir.is_dir() else []
+
+        # Maxcomp está desatualizado se não existe ou é mais antigo que o root file
+        maxcomp_current = (
+            bool(item_maxcomp)
+            and max(f.stat().st_mtime for f in item_maxcomp) >= item_mtime
+        )
+        if not maxcomp_current:
+            incomplete_mtimes.append(item_mtime)
+
+    if not items_with_analysis:
         return {
             "has_analysis": False,
             "analysis_running": False,
             "centroids_count": 0,
             "similarity_files": [],
             "mcc_ids": [],
+            "mcc_sims_ids": [],
+            "mcc_mols_ids": [],
         }
 
-    # Timestamp do arquivo mais recente deste job
-    mols_files = [
-        analysis_dir / f"{item.folder_name}_MOLS.csv"
-        for item in job.items
-        if (analysis_dir / f"{item.folder_name}_MOLS.csv").exists()
-    ]
-    job_mols_mtime = max((f.stat().st_mtime for f in mols_files), default=0)
-
-    similarity_dir = analysis_dir / "Similarity"
-    maxcomp_dir = analysis_dir / "data" / "maxcomp"
-
-    # Análise completa quando data/maxcomp/ existe com arquivos gerados após os CSVs do job
-    maxcomp_files = list(maxcomp_dir.glob("*.csv")) if maxcomp_dir.is_dir() else []
-    analysis_complete = (
-        bool(maxcomp_files)
-        and max(f.stat().st_mtime for f in maxcomp_files) >= job_mols_mtime
-        and similarity_dir.is_dir()
-        and any(similarity_dir.glob("*.csv"))
+    # analysis_running apenas quando arquivos foram atualizados recentemente
+    analysis_running = bool(incomplete_mtimes) and any(
+        now - mt < _STALE_SECONDS for mt in incomplete_mtimes
     )
 
-    if not analysis_complete:
+    # Mostra qualquer dado disponível: Similarity files existindo basta para has_analysis.
+    # maxcomp pode ser de uma run anterior — continua válido para colorir a rede.
+    similarity_files = [f.name for f in similarity_dir.glob("*.csv")] if similarity_dir.is_dir() else []
+    has_analysis = bool(similarity_files)
+
+    if not has_analysis:
         return {
             "has_analysis": False,
-            "analysis_running": True,
+            "analysis_running": analysis_running,
             "centroids_count": 0,
             "similarity_files": [],
             "mcc_ids": [],
+            "mcc_sims_ids": [],
+            "mcc_mols_ids": [],
         }
 
-    similarity_files = [f.name for f in similarity_dir.glob("*.csv")]
+    # Lê maxcomp disponível (mesmo de runs anteriores) para coloração MCC
+    all_maxcomp = list(maxcomp_dir.glob("*.csv")) if maxcomp_dir.is_dir() else []
 
-    # IDs do MCC separados por tipo (SIMS / MOLS), lendo data/maxcomp/ com .unique()
-    import re
     mcc_sims: set[str] = set()
     mcc_mols: set[str] = set()
     try:
         import pandas as pd
-        for f in maxcomp_files:
+        for f in all_maxcomp:
             stem = f.stem  # ex: Tanimoto_morgan_CHEMBL203_SIMS
             match = re.search(r"_(SIMS|MOLS)$", stem)
             analysis_type = match.group(1) if match else None
@@ -240,8 +260,8 @@ def uc_analise_status(db: Session, job_id: int, user_id: int) -> Optional[dict]:
     mcc_ids = list(mcc_sims | mcc_mols)
 
     return {
-        "has_analysis": bool(similarity_files),
-        "analysis_running": False,
+        "has_analysis": True,
+        "analysis_running": analysis_running,
         "centroids_count": len(mcc_ids),
         "similarity_files": similarity_files,
         "mcc_ids": mcc_ids,
@@ -329,6 +349,7 @@ async def uc_iniciar_grupo(
             "item_id": item_ids[i],
             "target_name": it.target_name,
             "folder_name": it.folder_name,
+            "chembl_search_id": it.chembl_search_id or None,
             "target_filters": it.target_filters.model_dump(),
             "bioact_filters": it.bioact_filters.model_dump(),
             "mol_filters": it.mol_filters.model_dump(),

@@ -20,6 +20,7 @@ function makeItem(): ChemblItemConfig {
   return {
     id: makeId(),
     target_names: [],
+    chembl_search_id: "",
     target_filters: { ...DEFAULT_TARGET_FILTERS, type__in: ["SINGLE PROTEIN"] },
     bioact_filters: { ...DEFAULT_BIOACT_FILTERS },
     mol_filters: { ...DEFAULT_MOL_FILTERS },
@@ -94,6 +95,7 @@ export function useChemblPage(chemblUseCase: ChemblUseCase): UseChemblPageReturn
       items: flatTargets.map(({ targetName, item: it }) => ({
         target_name: targetName,
         folder_name: targetName.replace(/\s+/g, "_").replace(/[^A-Za-z0-9_-]/g, ""),
+        chembl_search_id: it.chembl_search_id.trim() || undefined,
         target_filters: it.target_filters,
         bioact_filters: it.bioact_filters,
         mol_filters: it.mol_filters,

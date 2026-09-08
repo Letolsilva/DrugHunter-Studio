@@ -5,6 +5,7 @@ export interface AdmetResultModel {
   status: "pending" | "running" | "done" | "error";
   source_type: string;
   chembl_job_item_id: number | null;
+  target: string | null;
   base_output_path: string;
   total_molecules: number | null;
   excluded_toxic: number | null;

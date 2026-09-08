@@ -16,11 +16,24 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import get_usuario_atual
 from app.domain.models import User
+from app.domain.models.chembl_job import ChemblJobItem
 from app.domain.schemas.admet import AdmetRunRequest, AdmetResultResponse, AdmetMoleculesListResponse
 from app.infra.db.database import get_db
 from app.usecases import admet as uc
 
 router = APIRouter(prefix="/api/admet", tags=["ADMET"])
+
+
+def _to_response(db: Session, result) -> AdmetResultResponse:
+    """Constrói AdmetResultResponse incluindo o nome do alvo (folder_name do ChemblJobItem)."""
+    target: Optional[str] = None
+    if result.chembl_job_item_id:
+        item = db.get(ChemblJobItem, result.chembl_job_item_id)
+        if item:
+            target = item.folder_name
+    data = AdmetResultResponse.model_validate(result)
+    data.target = target
+    return data
 
 
 @router.post("/run", response_model=AdmetResultResponse, status_code=status.HTTP_202_ACCEPTED)
@@ -40,7 +53,7 @@ def iniciar_admet(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except PermissionError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
-    return AdmetResultResponse.model_validate(result)
+    return _to_response(db, result)
 
 
 @router.get("/results/by-item/{item_id}", response_model=AdmetResultResponse)
@@ -53,7 +66,7 @@ def get_result_by_item(
     result = uc.uc_get_result_by_item(db, item_id, usuario)
     if result is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Nenhum resultado ADMET para este item.")
-    return AdmetResultResponse.model_validate(result)
+    return _to_response(db, result)
 
 
 @router.get("/results/{result_id}", response_model=AdmetResultResponse)
@@ -66,7 +79,7 @@ def get_result(
     result = uc.uc_get_result(db, result_id, usuario)
     if result is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Resultado não encontrado.")
-    return AdmetResultResponse.model_validate(result)
+    return _to_response(db, result)
 
 
 @router.get("/results/{result_id}/molecules")

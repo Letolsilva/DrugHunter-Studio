@@ -73,6 +73,9 @@ def main():
 
     dh_dir = args["dh_dir"]
     target_name = args["target_name"]
+    # Se fornecido, usa como termo de busca no ChEMBL (ex: CHEMBL1914);
+    # o folder/arquivo continua sendo gerado a partir do target_name original.
+    search_term = args.get("chembl_search_id") or target_name
     output_path = args["output_path"]   # caminho absoluto para a pasta do alvo
     target_filters = args.get("target_filters", {})
     bioact_filters = args.get("bioact_filters", {})
@@ -98,13 +101,13 @@ def main():
         t = Targets()
         t.set_outputpath(targets_dir)
 
-        t.search(target_name, _clean_target(target_name, target_filters))
+        t.search(search_term, _clean_target(search_term, target_filters))
 
-        targets_csv = dh_dir + targets_dir + target_name.upper() + ".csv"
+        targets_csv = dh_dir + targets_dir + search_term.upper() + ".csv"
 
         if not os.path.exists(targets_csv):
             emit({"type": "error", "msg": (
-                f"Nenhum alvo encontrado no ChEMBL para '{target_name}'. "
+                f"Nenhum alvo encontrado no ChEMBL para '{search_term}'. "
                 "Verifique o nome do alvo e os filtros (organismo, tipo de alvo)."
             )})
             sys.exit(1)
@@ -118,7 +121,7 @@ def main():
         # molecule_type não é filtro válido no endpoint de bioatividade (é pós-filtro do DH)
         # standard_type__in com lista é suportado pelo cliente ChEMBL via lookup __in
         bioact_clean = {k: v for k, v in _clean(bioact_filters).items() if k != "molecule_type"}
-        b.search(target_name, bioact_clean)
+        b.search(search_term, bioact_clean)
 
         bioact_files = [f for f in os.listdir(dh_dir + bioact_dir) if f.endswith(".csv")]
         if not bioact_files:

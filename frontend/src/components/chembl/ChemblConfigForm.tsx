@@ -232,6 +232,20 @@ export function ChemblConfigForm({ item, index, onChange, onRemove, canRemove }:
         />
       </div>
 
+      {/* ID ChEMBL de busca (opcional) */}
+      <div className="flex flex-col gap-1">
+        <span className="font-mono text-[10px] uppercase tracking-wider text-foreground-subtle">
+          ID ChEMBL para busca <span className="normal-case opacity-60">(opcional — preencha se o nome não for encontrado, ex: CHEMBL1914)</span>
+        </span>
+        <input
+          type="text"
+          value={item.chembl_search_id}
+          onChange={(e) => onChange(item.id, { chembl_search_id: e.target.value })}
+          placeholder="ex: CHEMBL1914"
+          className="rounded border border-outline bg-surface-primary px-3 py-1.5 font-mono text-[12px] text-foreground placeholder:text-foreground-subtle focus:outline-none focus:border-outline-strong"
+        />
+      </div>
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {/* Filtros de alvo */}
         <div className="flex flex-col gap-2">

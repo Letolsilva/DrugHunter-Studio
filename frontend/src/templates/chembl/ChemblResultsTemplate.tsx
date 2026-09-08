@@ -597,6 +597,19 @@ export default function ChemblResultsTemplate(props: UseChemblResultsPageReturn)
                             </span>
                           )}
                         </div>
+                        {/* Mensagem de erro do item */}
+                        {it.status === "error" && it.error_msg && (
+                          <div
+                            className="ml-3.5 rounded px-2.5 py-1.5 font-mono text-[11px] leading-snug"
+                            style={{
+                              background: "var(--color-red-12)",
+                              color: "var(--color-red)",
+                              border: "1px solid var(--color-red-15)",
+                            }}
+                          >
+                            {it.error_msg}
+                          </div>
+                        )}
                         {/* Botões de rede (aparecem após análise) */}
                         {!networksLoading && (simsNet || molsNet) && (
                           <div className="flex flex-col gap-1.5 pl-3.5">

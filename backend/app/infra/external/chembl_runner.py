@@ -10,6 +10,7 @@ Emite eventos SSE conforme o progresso de cada alvo no grupo.
 import asyncio
 import json
 import logging
+import os
 from pathlib import Path
 from typing import AsyncGenerator, List
 
@@ -31,6 +32,7 @@ async def _run_item_subprocess(
     bioact_filters: dict,
     mol_filters: dict,
     sim_filters: dict,
+    chembl_search_id: str | None = None,
 ) -> AsyncGenerator[dict, None]:
     """
     Executa um alvo via subprocesso com o Python do DH.
@@ -44,13 +46,19 @@ async def _run_item_subprocess(
         "bioact_filters": bioact_filters,
         "mol_filters": mol_filters,
         "sim_filters": sim_filters,
+        "chembl_search_id": chembl_search_id or None,
     }, ensure_ascii=False)
+
+    dh_bin = str(Path(python_bin).parent)
+    env = os.environ.copy()
+    env["PATH"] = dh_bin + os.pathsep + env.get("PATH", "")
 
     proc = await asyncio.create_subprocess_exec(
         python_bin, _WORKER_PATH, args_json,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
         cwd=dh_dir,
+        env=env,
     )
 
     try:
@@ -115,6 +123,7 @@ async def run_chembl_group(
         item_id = item["item_id"]
         target_name = item["target_name"]
         folder_name = item["folder_name"]
+        chembl_search_id = item.get("chembl_search_id") or None
         target_filters = item.get("target_filters", {})
         bioact_filters = item.get("bioact_filters", {})
         mol_filters = item.get("mol_filters", {})
@@ -145,6 +154,7 @@ async def run_chembl_group(
                 bioact_filters=bioact_filters,
                 mol_filters=mol_filters,
                 sim_filters=sim_filters,
+                chembl_search_id=chembl_search_id,
             ):
                 etype = event.get("type")
                 if etype == "etapa":

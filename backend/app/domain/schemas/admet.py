@@ -41,6 +41,7 @@ class AdmetResultResponse(BaseModel):
     status: str
     source_type: str
     chembl_job_item_id: Optional[int]
+    target: Optional[str] = None
     base_output_path: str
     total_molecules: Optional[int]
     excluded_toxic: Optional[int]
