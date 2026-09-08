@@ -16,6 +16,7 @@ import {
   homeUseCase,
   chemblUseCase,
   admetUseCase,
+  consensusUseCase,
 } from "./container";
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
           homeUseCase={homeUseCase}
           chemblUseCase={chemblUseCase}
           admetUseCase={admetUseCase}
+          consensusUseCase={consensusUseCase}
         />
         <GlobalAccumulatedPanel />
         <GlobalRedockingIndicator />

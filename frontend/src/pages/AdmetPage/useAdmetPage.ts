@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import type { AdmetUseCase } from "../../data/usecases/admet.usecase";
+import type { ConsensusUseCase } from "../../data/usecases/consensus.usecase";
 import type { AdmetMoleculeModel, AdmetResultModel } from "../../domain/models/admet.model";
 
 export interface UseAdmetPageReturn {
@@ -31,9 +32,16 @@ export interface UseAdmetPageReturn {
   handleLogout: () => void;
   voltarChembl: () => void;
   onRerun: () => void;
+
+  // Consenso
+  consensusStatus: "none" | "running" | "done" | "error";
+  onGoConsensus: () => void;
 }
 
-export function useAdmetPage(admetUseCase: AdmetUseCase): UseAdmetPageReturn {
+export function useAdmetPage(
+  admetUseCase: AdmetUseCase,
+  consensusUseCase?: ConsensusUseCase,
+): UseAdmetPageReturn {
   const { resultId } = useParams<{ resultId: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -216,6 +224,31 @@ export function useAdmetPage(admetUseCase: AdmetUseCase): UseAdmetPageReturn {
 
   const voltarChembl = useCallback(() => navigate(-1), [navigate]);
 
+  // ── Consenso — status + navegação ─────────────────────────────────────────
+  const [consensusStatus, setConsensusStatus] = useState<"none" | "running" | "done" | "error">("none");
+  const [consensusJobId, setConsensusJobId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!consensusUseCase || !result || result.status !== "done") return;
+    consensusUseCase.getByAdmet(result.id, token).then((job) => {
+      if (!isMounted.current) return;
+      if (!job) { setConsensusStatus("none"); return; }
+      setConsensusJobId(job.id);
+      if (job.status === "done") setConsensusStatus("done");
+      else if (job.status === "error") setConsensusStatus("error");
+      else setConsensusStatus("running");
+    }).catch(() => setConsensusStatus("none"));
+  }, [result?.id, result?.status]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  const onGoConsensus = useCallback(() => {
+    if (!result) return;
+    if (consensusStatus === "done" || consensusStatus === "running") {
+      if (consensusJobId) navigate(`/consensus/${consensusJobId}`);
+    } else {
+      navigate(`/consensus?admet_id=${result.id}`);
+    }
+  }, [result, consensusStatus, consensusJobId, navigate]);
+
   // Reexecuta o ADMET para o mesmo item (reset + nova análise)
   const onRerun = useCallback(async () => {
     if (!result?.chembl_job_item_id) return;
@@ -257,5 +290,7 @@ export function useAdmetPage(admetUseCase: AdmetUseCase): UseAdmetPageReturn {
     handleLogout,
     voltarChembl,
     onRerun,
+    consensusStatus,
+    onGoConsensus,
   };
 }

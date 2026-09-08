@@ -41,6 +41,8 @@ export default function AdmetTemplate(props: UseAdmetPageReturn) {
     handleLogout,
     voltarChembl,
     onRerun,
+    consensusStatus,
+    onGoConsensus,
   } = props;
 
   const navigate = useNavigate();
@@ -136,8 +138,46 @@ export default function AdmetTemplate(props: UseAdmetPageReturn) {
         {/* Resultados */}
         {result?.status === "done" && !loading && (
           <div className="flex flex-col gap-6">
-            {/* Cards de resumo */}
-            <AdmetSummaryCards result={result} />
+            {/* Cards de resumo + botão Consenso */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <AdmetSummaryCards result={result} />
+              <div className="ml-auto">
+                {consensusStatus === "running" ? (
+                  <button
+                    disabled
+                    className="flex items-center gap-1.5 rounded-xl border px-4 py-3 font-mono text-[12px] font-semibold opacity-70 cursor-not-allowed"
+                    style={{ borderColor: "var(--color-outline)", color: "var(--color-foreground-subtle)", background: "transparent" }}
+                  >
+                    <span className="spinner" style={{ width: 12, height: 12, borderWidth: 2 }} />
+                    Processando...
+                  </button>
+                ) : consensusStatus === "done" ? (
+                  <button
+                    onClick={onGoConsensus}
+                    className="flex items-center gap-1.5 rounded-xl border px-4 py-3 font-mono text-[12px] font-semibold transition-all hover:opacity-80"
+                    style={{ borderColor: "#22c55e44", color: "#22c55e", background: "#22c55e12" }}
+                  >
+                    Ver Consenso →
+                  </button>
+                ) : consensusStatus === "error" ? (
+                  <button
+                    onClick={onGoConsensus}
+                    className="flex items-center gap-1.5 rounded-xl border px-4 py-3 font-mono text-[12px] font-semibold transition-all hover:opacity-80"
+                    style={{ borderColor: "#ef444444", color: "#ef4444", background: "#ef444412" }}
+                  >
+                    Consenso com erro
+                  </button>
+                ) : (
+                  <button
+                    onClick={onGoConsensus}
+                    className="flex items-center gap-1.5 rounded-xl border px-4 py-3 font-mono text-[12px] font-semibold transition-all hover:bg-surface-secondary"
+                    style={{ borderColor: "var(--color-accent-25)", color: "var(--color-accent)", background: "var(--color-accent-12)" }}
+                  >
+                    Docking de Consenso →
+                  </button>
+                )}
+              </div>
+            </div>
 
             {/* Downloads + Rodar novamente */}
             <div className="rounded-xl border border-outline bg-panel p-4 flex items-center justify-between gap-4 flex-wrap">

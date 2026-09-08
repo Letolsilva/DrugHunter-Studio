@@ -15,6 +15,7 @@ from app.domain.models.redocking_job import RedockingJob
 from app.domain.models.user_pdb_csv import UserPdbCsv
 from app.domain.models.chembl_job import ChemblJob, ChemblJobItem
 from app.domain.models.admet_result import AdmetResult
+from app.domain.models.consensus_job import ConsensusJob
 
 __all__ = [
     "Base",
@@ -29,4 +30,5 @@ __all__ = [
     "ChemblJob",
     "ChemblJobItem",
     "AdmetResult",
+    "ConsensusJob",
 ]
