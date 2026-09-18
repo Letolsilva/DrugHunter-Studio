@@ -246,7 +246,50 @@ def uc_validar_drughunter(db: Session) -> dict:
             "como_corrigir": "Corrija os itens marcados em vermelho acima e teste novamente.",
         })
 
-    # 5. UCSF Chimera
+    # 5. Conflito bson/pymongo — pacote standalone 'bson' do PyPI quebra o pymongo
+    #    Sintoma: "module 'bson' has no attribute 'encode'" ao rodar o ChEMBL/ADMET
+    if python_ok:
+        try:
+            result_bson = subprocess.run(
+                [python_bin, "-c",
+                 "import bson; print('conflict' if not hasattr(bson, 'encode') else 'ok')"],
+                capture_output=True, text=True, timeout=10,
+            )
+            bson_output = result_bson.stdout.strip()
+            if result_bson.returncode != 0 or bson_output == "ok":
+                # bson não instalado OU é o bson do pymongo (tem encode) → sem conflito
+                bson_ok = True
+                bson_msg = "Nenhum conflito detectado"
+            else:
+                # bson standalone instalado sem o atributo encode → conflito real
+                bson_ok = False
+                bson_msg = (
+                    "Pacote 'bson' standalone detectado — causa o erro "
+                    "\"module 'bson' has no attribute 'encode'\" ao rodar análises."
+                )
+        except subprocess.TimeoutExpired:
+            bson_ok = True  # não bloqueia se o check travar
+            bson_msg = "Não verificado (timeout)"
+        checks.append({
+            "nome": "Conflito bson/pymongo",
+            "ok": bson_ok,
+            "mensagem": bson_msg,
+            "como_corrigir": None if bson_ok else (
+                "Abra um terminal e execute os dois comandos abaixo, um de cada vez:\n"
+                "  1. conda activate DrugHunter\n"
+                "  2. pip uninstall bson -y\n"
+                "Depois clique em 'Verificar ambiente' novamente para confirmar."
+            ),
+        })
+    else:
+        checks.append({
+            "nome": "Conflito bson/pymongo",
+            "ok": False,
+            "mensagem": "Não verificado — configure o executável Python primeiro.",
+            "como_corrigir": "Corrija o item 'Executável Python' acima e teste novamente.",
+        })
+
+    # 7. UCSF Chimera
     chimera_dir = chimera_cfg
     if not chimera_dir:
         for padrao in (
@@ -270,7 +313,7 @@ def uc_validar_drughunter(db: Session) -> dict:
         ),
     })
 
-    # 6. Dock6
+    # 8. Dock6
     dock6_dir = dock6_cfg
     if not dock6_dir:
         cand = Path.home() / "progs" / "dock6" / "bin"

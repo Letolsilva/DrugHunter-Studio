@@ -119,6 +119,7 @@ class ChemblAnalysisStatusResponse(BaseModel):
     mcc_ids: List[str] = Field(default_factory=list)
     mcc_sims_ids: List[str] = Field(default_factory=list)
     mcc_mols_ids: List[str] = Field(default_factory=list)
+    dh_failed_targets: List[str] = Field(default_factory=list)
 
 
 class SimBin(BaseModel):

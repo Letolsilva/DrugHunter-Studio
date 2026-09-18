@@ -1,5 +1,6 @@
 // routes.tsx
-import { Routes, Route, Navigate, type ReactNode } from "react-router-dom";
+import { type ReactNode } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import AuthPage from "./pages/AuthPage/AuthPage";
 import HomePage from "./pages/HomePage/HomePage";
@@ -7,6 +8,8 @@ import ChemblPage from "./pages/ChemblPage/ChemblPage";
 import ChemblResultsPage from "./pages/ChemblResultsPage/ChemblResultsPage";
 import AdmetPage from "./pages/AdmetPage/AdmetPage";
 import ConsensusPage from "./pages/ConsensusPage/ConsensusPage";
+import ClusteringPage from "./pages/ClusteringPage/ClusteringPage";
+import NeuroDockPage from "./pages/NeuroDockPage/NeuroDockPage";
 import SearchPage from "./pages/SearchPage/SearchPage";
 import HistoryListPage from "./pages/HistoryListPage/HistoryListPage";
 import HistoryDashboardPage from "./pages/HistoryDashboardPage/HistoryDashboardPage";
@@ -28,6 +31,8 @@ import type { HomeUseCase } from "./data/usecases/home.usecase";
 import type { ChemblUseCase } from "./data/usecases/chembl.usecase";
 import type { AdmetUseCase } from "./data/usecases/admet.usecase";
 import type { ConsensusUseCase } from "./data/usecases/consensus.usecase";
+import type { ClusteringUseCase } from "./data/usecases/clustering.usecase";
+import type { NeuroDockUseCase } from "./data/usecases/neurodock.usecase";
 
 interface RotaProtegidaProps {
   children: ReactNode;
@@ -75,6 +80,8 @@ interface AppRoutesProps {
   chemblUseCase: ChemblUseCase;
   admetUseCase: AdmetUseCase;
   consensusUseCase: ConsensusUseCase;
+  clusteringUseCase: ClusteringUseCase;
+  neuroDockUseCase: NeuroDockUseCase;
 }
 
 export default function AppRoutes({
@@ -90,6 +97,8 @@ export default function AppRoutes({
   chemblUseCase,
   admetUseCase,
   consensusUseCase,
+  clusteringUseCase,
+  neuroDockUseCase,
 }: AppRoutesProps) {
   const { user, loading } = useAuth();
 
@@ -238,6 +247,47 @@ export default function AppRoutes({
           </RotaProtegida>
         }
       />
+      <Route
+        path="/clustering/:jobId"
+        element={
+          <RotaProtegida>
+            <ClusteringPage clusteringUseCase={clusteringUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/clustering"
+        element={
+          <RotaProtegida>
+            <ClusteringPage clusteringUseCase={clusteringUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/neurodock/:modelId/prediction/:predId"
+        element={
+          <RotaProtegida>
+            <NeuroDockPage neuroDockUseCase={neuroDockUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/neurodock/:modelId"
+        element={
+          <RotaProtegida>
+            <NeuroDockPage neuroDockUseCase={neuroDockUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/neurodock"
+        element={
+          <RotaProtegida>
+            <NeuroDockPage neuroDockUseCase={neuroDockUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route path="/predicao" element={<Navigate to="/chembl" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

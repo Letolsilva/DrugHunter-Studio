@@ -181,6 +181,8 @@ def uc_analise_status(db: Session, job_id: int, user_id: int) -> Optional[dict]:
 
     items_with_analysis: list[str] = []  # itens que têm arquivos _MOLS/_SIMS no root
     incomplete_mtimes: list[float] = []  # mtimes dos itens sem maxcomp correspondente
+    # Alvos que têm Similarity mas não têm maxcomp após o tempo de espera (falha silenciosa do DH)
+    dh_failed_targets: list[str] = []
 
     for item in job.items:
         folder = item.folder_name
@@ -203,6 +205,18 @@ def uc_analise_status(db: Session, job_id: int, user_id: int) -> Optional[dict]:
         if not maxcomp_current:
             incomplete_mtimes.append(item_mtime)
 
+        # Falha silenciosa do DrugHunter: Similarity existe mas nenhum maxcomp foi gerado.
+        # Checa apenas existência — mtime não é confiável porque o worker regenera
+        # os arquivos raiz (_MOLS/_SIMS) de todos os alvos em cada run.
+        has_similarity = similarity_dir.is_dir() and bool(
+            list(similarity_dir.glob(f"*{folder}*.csv"))
+        )
+        has_maxcomp = maxcomp_dir.is_dir() and bool(
+            list(maxcomp_dir.glob(f"*{folder}*.csv"))
+        )
+        if has_similarity and not has_maxcomp:
+            dh_failed_targets.append(folder)
+
     if not items_with_analysis:
         return {
             "has_analysis": False,
@@ -212,6 +226,7 @@ def uc_analise_status(db: Session, job_id: int, user_id: int) -> Optional[dict]:
             "mcc_ids": [],
             "mcc_sims_ids": [],
             "mcc_mols_ids": [],
+            "dh_failed_targets": [],
         }
 
     # analysis_running apenas quando arquivos foram atualizados recentemente
@@ -233,6 +248,7 @@ def uc_analise_status(db: Session, job_id: int, user_id: int) -> Optional[dict]:
             "mcc_ids": [],
             "mcc_sims_ids": [],
             "mcc_mols_ids": [],
+            "dh_failed_targets": dh_failed_targets,
         }
 
     # Lê maxcomp disponível (mesmo de runs anteriores) para coloração MCC
@@ -267,6 +283,7 @@ def uc_analise_status(db: Session, job_id: int, user_id: int) -> Optional[dict]:
         "mcc_ids": mcc_ids,
         "mcc_sims_ids": list(mcc_sims),
         "mcc_mols_ids": list(mcc_mols),
+        "dh_failed_targets": dh_failed_targets,
     }
 
 

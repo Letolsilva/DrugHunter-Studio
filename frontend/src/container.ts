@@ -15,6 +15,8 @@ import { HomeUseCase } from "./data/usecases/home.usecase";
 import { ChemblUseCase } from "./data/usecases/chembl.usecase";
 import { AdmetUseCase } from "./data/usecases/admet.usecase";
 import { ConsensusUseCase } from "./data/usecases/consensus.usecase";
+import { ClusteringUseCase } from "./data/usecases/clustering.usecase";
+import { NeuroDockUseCase } from "./data/usecases/neurodock.usecase";
 
 const httpClient = new HTTPClient();
 
@@ -31,3 +33,5 @@ export const homeUseCase = new HomeUseCase(httpClient);
 export const chemblUseCase = new ChemblUseCase(httpClient);
 export const admetUseCase = new AdmetUseCase(httpClient);
 export const consensusUseCase = new ConsensusUseCase(httpClient);
+export const clusteringUseCase = new ClusteringUseCase(httpClient);
+export const neuroDockUseCase = new NeuroDockUseCase(httpClient);

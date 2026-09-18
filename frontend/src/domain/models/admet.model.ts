@@ -1,5 +1,13 @@
 // domain/models/admet.model.ts
 
+export interface AdmetResultSummary {
+  id: number;
+  status: string;
+  total_molecules: number | null;
+  target: string | null;
+  created_at: string;
+}
+
 export interface AdmetResultModel {
   id: number;
   status: "pending" | "running" | "done" | "error";

@@ -90,6 +90,15 @@ def buscar_por_item(
     )
 
 
+def listar_por_usuario(db: Session, user_id: int):
+    return (
+        db.query(AdmetResult)
+        .filter(AdmetResult.user_id == user_id, AdmetResult.status == "done")
+        .order_by(AdmetResult.created_at.desc())
+        .all()
+    )
+
+
 def marcar_concluido(
     db: Session,
     result_id: int,

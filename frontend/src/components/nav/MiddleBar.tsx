@@ -1,8 +1,8 @@
 // components/nav/MiddleBar.tsx
 import { Link, useLocation } from "react-router-dom";
-import { ProteinTargetIcon, BioactivityIcon, PredictionIcon, DynamicsIcon } from "../icons";
+import { ProteinTargetIcon, BioactivityIcon, DynamicsIcon } from "../icons";
 
-type ActiveModule = "pdb" | "chembl" | "zinc" | null;
+type ActiveModule = "pdb" | "chembl" | null;
 
 interface MiddleBarProps {
   activeModule: ActiveModule;
@@ -63,7 +63,12 @@ export function MiddleBar({ activeModule }: MiddleBarProps) {
     location.pathname.startsWith("/visualizador");
 
   const isChembl =
-    activeModule === "chembl" || location.pathname.startsWith("/chembl");
+    activeModule === "chembl" ||
+    location.pathname.startsWith("/chembl") ||
+    location.pathname.startsWith("/admet") ||
+    location.pathname.startsWith("/consensus") ||
+    location.pathname.startsWith("/clustering") ||
+    location.pathname.startsWith("/neurodock");
 
   return (
     <div className="flex items-center gap-1">
@@ -78,13 +83,6 @@ export function MiddleBar({ activeModule }: MiddleBarProps) {
         icon={<BioactivityIcon size={18} />}
         label="Bioatividade"
         active={isChembl}
-      />
-      <NavItem
-        icon={<PredictionIcon size={18} />}
-        label="Predição"
-        active={false}
-        disabled
-        tooltip="Em breve"
       />
       <NavItem
         icon={<DynamicsIcon size={18} />}

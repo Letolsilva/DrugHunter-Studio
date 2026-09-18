@@ -13,6 +13,7 @@ from app.core.deps import get_usuario_atual
 from app.domain.models import User
 from app.domain.models.search import Search
 from app.domain.models.redocking_job import RedockingJob
+from app.domain.models.chembl_job import ChemblJob, ChemblJobItem
 from app.infra.email_sender import _DEFAULT_HOST, _DEFAULT_USER, _default_password
 
 router = APIRouter(prefix="/api/home", tags=["Home"])
@@ -64,6 +65,22 @@ def get_status(
         .first()
     )
 
+    # Último ChEMBL: pega o job mais recente e o primeiro item concluído (ou qualquer item)
+    ultimo_chembl_job = (
+        db.query(ChemblJob)
+        .filter(ChemblJob.user_id == usuario.id)
+        .order_by(ChemblJob.created_at.desc())
+        .first()
+    )
+    ultimo_chembl_item = None
+    if ultimo_chembl_job:
+        ultimo_chembl_item = (
+            db.query(ChemblJobItem)
+            .filter(ChemblJobItem.job_id == ultimo_chembl_job.id)
+            .order_by(ChemblJobItem.id.asc())
+            .first()
+        )
+
     return {
         "ambiente": {
             "drug_hunter": dh_ok,
@@ -76,7 +93,11 @@ def get_status(
                 "data": ultima_busca.criado_em.isoformat() if ultima_busca else None,
                 "total": ultima_busca.total_resultados if ultima_busca else None,
             },
-            "ultimo_chembl": None,
+            "ultimo_chembl": {
+                "target": ultimo_chembl_item.target_name if ultimo_chembl_item else None,
+                "status": ultimo_chembl_job.status if ultimo_chembl_job else None,
+                "data": ultimo_chembl_job.created_at.isoformat() if ultimo_chembl_job else None,
+            } if ultimo_chembl_job else None,
             "ultimo_redocking": {
                 "target": ultimo_redocking.target if ultimo_redocking else None,
                 "status": ultimo_redocking.status if ultimo_redocking else None,

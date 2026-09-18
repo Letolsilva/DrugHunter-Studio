@@ -18,6 +18,7 @@ export interface AnalysisStatus {
   mcc_ids: string[];
   mcc_sims_ids: string[];
   mcc_mols_ids: string[];
+  dh_failed_targets: string[];
 }
 
 export interface ChemblSummary {

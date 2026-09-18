@@ -17,6 +17,8 @@ import {
   chemblUseCase,
   admetUseCase,
   consensusUseCase,
+  clusteringUseCase,
+  neuroDockUseCase,
 } from "./container";
 
 export default function App() {
@@ -36,6 +38,8 @@ export default function App() {
           chemblUseCase={chemblUseCase}
           admetUseCase={admetUseCase}
           consensusUseCase={consensusUseCase}
+          clusteringUseCase={clusteringUseCase}
+          neuroDockUseCase={neuroDockUseCase}
         />
         <GlobalAccumulatedPanel />
         <GlobalRedockingIndicator />

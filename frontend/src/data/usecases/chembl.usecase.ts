@@ -63,7 +63,7 @@ export class ChemblUseCase extends IChemblUseCase {
   async getAnalysisStatus(
     jobId: number,
     token: string,
-  ): Promise<{ has_analysis: boolean; analysis_running: boolean; centroids_count: number; similarity_files: string[]; mcc_ids: string[]; mcc_sims_ids: string[]; mcc_mols_ids: string[] }> {
+  ): Promise<{ has_analysis: boolean; analysis_running: boolean; centroids_count: number; similarity_files: string[]; mcc_ids: string[]; mcc_sims_ids: string[]; mcc_mols_ids: string[]; dh_failed_targets: string[] }> {
     const res = await this.httpClient.get<{
       has_analysis: boolean;
       analysis_running: boolean;
@@ -72,6 +72,7 @@ export class ChemblUseCase extends IChemblUseCase {
       mcc_ids: string[];
       mcc_sims_ids: string[];
       mcc_mols_ids: string[];
+      dh_failed_targets: string[];
     }>(`/chembl/jobs/${jobId}/analysis-status`, { token });
     return res.data;
   }

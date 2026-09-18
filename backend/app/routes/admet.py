@@ -17,7 +17,8 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_usuario_atual
 from app.domain.models import User
 from app.domain.models.chembl_job import ChemblJobItem
-from app.domain.schemas.admet import AdmetRunRequest, AdmetResultResponse, AdmetMoleculesListResponse
+from app.domain.schemas.admet import AdmetRunRequest, AdmetResultResponse, AdmetMoleculesListResponse, AdmetResultSummary
+from app.services import admet as svc
 from app.infra.db.database import get_db
 from app.usecases import admet as uc
 
@@ -34,6 +35,30 @@ def _to_response(db: Session, result) -> AdmetResultResponse:
     data = AdmetResultResponse.model_validate(result)
     data.target = target
     return data
+
+
+@router.get("/results/list", response_model=list[AdmetResultSummary])
+def listar_resultados(
+    db: Session = Depends(get_db),
+    usuario: User = Depends(get_usuario_atual),
+):
+    """Lista todos os resultados ADMET (done) do usuário, com alvo quando disponível."""
+    results = svc.listar_por_usuario(db, usuario.id)
+    summaries = []
+    for r in results:
+        target: Optional[str] = None
+        if r.chembl_job_item_id:
+            item = db.get(ChemblJobItem, r.chembl_job_item_id)
+            if item:
+                target = item.folder_name
+        summaries.append(AdmetResultSummary(
+            id=r.id,
+            status=r.status,
+            total_molecules=r.total_molecules,
+            target=target,
+            created_at=r.created_at,
+        ))
+    return summaries
 
 
 @router.post("/run", response_model=AdmetResultResponse, status_code=status.HTTP_202_ACCEPTED)

@@ -56,6 +56,16 @@ class AdmetResultResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class AdmetResultSummary(BaseModel):
+    id: int
+    status: str
+    total_molecules: Optional[int]
+    target: Optional[str] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class AdmetMoleculesListResponse(BaseModel):
     molecules: List[AdmetMoleculeResponse]
     total: int

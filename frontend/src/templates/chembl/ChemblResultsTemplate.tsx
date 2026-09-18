@@ -610,6 +610,22 @@ export default function ChemblResultsTemplate(props: UseChemblResultsPageReturn)
                             {it.error_msg}
                           </div>
                         )}
+                        {/* Aviso de falha silenciosa do DrugHunter */}
+                        {!networksLoading && analysisStatus?.dh_failed_targets?.includes(it.folder_name) && (
+                          <div
+                            className="ml-3.5 rounded px-2.5 py-1.5 font-mono text-[11px] leading-snug"
+                            style={{
+                              background: "rgba(234,179,8,0.08)",
+                              color: "#ca8a04",
+                              border: "1px solid rgba(234,179,8,0.25)",
+                            }}
+                          >
+                            O DrugHunter não conseguiu gerar a análise de grafos para este alvo.
+                            Provável causa: número de moléculas muito alto para o cálculo de subestrutura comum (MCS).
+                            Os dados de similaridade foram gerados — é uma limitação interna do DrugHunter.
+                          </div>
+                        )}
+
                         {/* Botões de rede (aparecem após análise) */}
                         {!networksLoading && (simsNet || molsNet) && (
                           <div className="flex flex-col gap-1.5 pl-3.5">

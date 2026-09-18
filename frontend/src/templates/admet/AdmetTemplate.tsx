@@ -126,6 +126,7 @@ export default function AdmetTemplate(props: UseAdmetPageReturn) {
           <div className="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 flex items-center justify-between gap-4">
             <p className="font-mono text-[12px] text-red-400">{error}</p>
             <button
+              type="button"
               onClick={onRerun}
               className="cursor-pointer shrink-0 font-mono text-[11px] rounded-lg border px-3 py-1.5 transition-colors hover:bg-surface-secondary"
               style={{ borderColor: "var(--color-outline)", color: "var(--color-foreground-subtle)" }}
@@ -177,6 +178,7 @@ export default function AdmetTemplate(props: UseAdmetPageReturn) {
                   </button>
                 )}
               </div>
+
             </div>
 
             {/* Downloads + Rodar novamente */}
@@ -187,6 +189,7 @@ export default function AdmetTemplate(props: UseAdmetPageReturn) {
                 hasToxic={(result.excluded_toxic ?? 0) > 0}
               />
               <button
+                type="button"
                 onClick={onRerun}
                 className="cursor-pointer shrink-0 font-mono text-[11px] rounded-lg border px-3 py-1.5 transition-colors hover:bg-surface-secondary"
                 style={{ borderColor: "var(--color-outline)", color: "var(--color-foreground-subtle)" }}

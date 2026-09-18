@@ -1,7 +1,7 @@
 // data/usecases/admet.usecase.ts
 import { IAdmetUseCase } from "../../domain/interfaces/admet.interface";
 import type { IHTTPClient } from "../../infra/interfaces/httpClient.interface";
-import type { AdmetMoleculesResponse, AdmetResultModel } from "../../domain/models/admet.model";
+import type { AdmetMoleculesResponse, AdmetResultModel, AdmetResultSummary } from "../../domain/models/admet.model";
 import { HttpError } from "../../infra/http/httpClient";
 
 export class AdmetUseCase extends IAdmetUseCase {
@@ -62,5 +62,13 @@ export class AdmetUseCase extends IAdmetUseCase {
 
   downloadUrl(resultId: number, tipo: string, _token: string): string {
     return `/api/admet/results/${resultId}/download/${tipo}`;
+  }
+
+  async listResults(token: string): Promise<AdmetResultSummary[]> {
+    const res = await this.httpClient.get<AdmetResultSummary[]>(
+      "/admet/results/list",
+      { token },
+    );
+    return res.data;
   }
 }

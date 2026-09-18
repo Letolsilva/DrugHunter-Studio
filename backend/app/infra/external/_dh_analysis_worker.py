@@ -248,7 +248,41 @@ def main():
         emit({"type": "error", "msg": f"Erro na análise de grafos: {exc}"})
         sys.exit(1)
 
-    emit({"type": "done"})
+    # ── Verifica alvos sem maxcomp (falha silenciosa do DrugHunter) ───────────
+    # O DrugHunter engole exceções internas (ex: MCS muito grande) sem propagar.
+    # Detectamos aqui quais alvos têm Similarity mas não geraram maxcomp.
+    similarity_dir = os.path.join(analysis_dir, "Similarity")
+    maxcomp_dir    = os.path.join(analysis_dir, "data", "maxcomp")
+    prefix = f"{metric_name}_{fingerprint_name}_"
+    failed_targets = []
+    if os.path.isdir(similarity_dir):
+        for sim_file in os.listdir(similarity_dir):
+            if not sim_file.endswith(".csv") or not sim_file.startswith(prefix):
+                continue
+            stem = sim_file.rsplit(".", 1)[0]
+            maxcomp_file = os.path.join(maxcomp_dir, sim_file)
+            if not os.path.exists(maxcomp_file):
+                # Extrai o nome do alvo removendo prefixo e sufixo _SIMS/_MOLS
+                target_part = stem[len(prefix):]
+                for suffix in ("_SIMS", "_MOLS"):
+                    if target_part.endswith(suffix):
+                        target_part = target_part[: -len(suffix)]
+                        break
+                if target_part not in failed_targets:
+                    failed_targets.append(target_part)
+
+    if failed_targets:
+        emit({
+            "type": "partial_failure",
+            "targets": failed_targets,
+            "msg": (
+                f"O DrugHunter não gerou maxcomp/plots para: {', '.join(failed_targets)}. "
+                "Provável causa: componente conectado muito grande para cálculo de MCS (rdFMCS.FindMCS sem timeout). "
+                "Trata-se de uma limitação interna do DrugHunter."
+            ),
+        })
+
+    emit({"type": "done", "failed_targets": failed_targets})
 
 
 if __name__ == "__main__":

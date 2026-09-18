@@ -102,6 +102,7 @@ def buscar_por_admet(db: Session, admet_result_id: int, user_id: int) -> Optiona
                 ConsensusJob.user_id == user_id,
             )
         )
+        .order_by(ConsensusJob.id.desc())
         .first()
     )
 

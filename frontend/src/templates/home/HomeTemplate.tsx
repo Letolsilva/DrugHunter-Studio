@@ -12,7 +12,6 @@ import {
   HelpIcon,
   LogoutIcon,
   MenuIcon,
-  PredictionIcon,
   ProteinTargetIcon,
   RefreshIcon,
   SettingsIcon,
@@ -261,16 +260,8 @@ export default function HomeTemplate({ userName, status, loading, handleLogout }
             <ModuleCard
               icon={<BioactivityIcon size={20} />}
               title="Bioatividade"
-              description="Scraping de compostos bioativos no ChEMBL e análise de fingerprints moleculares."
+              description="ChEMBL → ADMET → Consenso → Clustering → NeuroDock: pipeline completo de triagem."
               to="/chembl"
-            />
-            <PipelineArrow />
-            <ModuleCard
-              icon={<PredictionIcon size={20} />}
-              title="Predição"
-              description="Predição de atividade de compostos ZINC via modelo de consenso treinado."
-              disabled
-              badge="Em breve"
             />
             <PipelineArrow />
             <ModuleCard

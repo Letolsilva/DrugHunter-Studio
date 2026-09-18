@@ -44,6 +44,7 @@ export interface UseConsensusPageReturn {
 
   onDownload: () => void;
   onRerun: () => void;
+  onGoCluster: () => void;
   handleLogout: () => void;
   voltarAdmet: () => void;
 }
@@ -210,6 +211,13 @@ export function useConsensusPage(
     if (admetId === null) return;
     setSubmitting(true);
     setSubmitError(null);
+    // Apaga clustering + neurodock downstream somente ao confirmar o novo run
+    try {
+      await fetch(`/api/clustering/by-admet/${admetId}`, {
+        method: "DELETE",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+    } catch {/* silencia */}
     try {
       const newJob = await consensusUseCase.iniciar(
         admetId,
@@ -242,6 +250,14 @@ export function useConsensusPage(
 
   const onRerun = useCallback(async () => {
     if (!job || job.admet_result_id === null) return;
+    // Para o polling imediatamente para não sobrescrever o estado de setup
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+    // Não apaga clustering downstream aqui — preserva dados até o usuário confirmar com "Iniciar"
+    setError(null);
+    setResultRows([]);
     // Pré-preenche o formulário com os dados do job atual e volta ao setup
     setPdbId(job.pdb_id);
     setLigandResname(job.ligand_resname);
@@ -251,8 +267,6 @@ export function useConsensusPage(
     setBaseDockingOutputPath("/resultados/consenso");
     setChargeType(job.charge_type);
     setPrepareComplex(job.prepare_complex);
-    setError(null);
-    setResultRows([]);
     // Carrega o admetResult se ainda não está disponível
     if (!admetResult) {
       try {
@@ -264,6 +278,11 @@ export function useConsensusPage(
     }
     if (isMounted.current) setMode("setup");
   }, [job, admetResult, admetUseCase, token]);
+
+  const onGoCluster = useCallback(() => {
+    if (!job?.admet_result_id) return;
+    navigate(`/clustering?admet_id=${job.admet_result_id}`);
+  }, [job, navigate]);
 
   const handleLogout = useCallback(() => { logout(); navigate("/"); }, [logout, navigate]);
   const voltarAdmet = useCallback(() => navigate(-1), [navigate]);
@@ -308,6 +327,7 @@ export function useConsensusPage(
         .catch(() => alert("Erro ao baixar o CSV. Tente novamente."));
     },
     onRerun,
+    onGoCluster,
     handleLogout,
     voltarAdmet,
   };
