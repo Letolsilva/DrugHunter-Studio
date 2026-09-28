@@ -6,7 +6,7 @@ Inclui seed das configs padrão no SystemConfig.
 """
 
 import os
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import sessionmaker
 from app.domain.models import Base, SystemConfig
 
@@ -117,7 +117,23 @@ CONFIGS_PADRAO = [
 def criar_tabelas():
     """Cria tabelas e popula configs padrão se ainda não existirem."""
     Base.metadata.create_all(bind=engine)
+    _migrate_schema()
     _seed_configs()
+
+
+def _migrate_schema():
+    """Migrações incrementais de schema para bancos existentes.
+
+    create_all() não altera tabelas já criadas. Cada bloco aqui trata uma
+    coluna adicionada após o deploy inicial — idempotente, seguro rodar sempre.
+    """
+    with engine.connect() as conn:
+        # md_jobs: consensus_job_id adicionado quando redocking foi renomeado para consenso
+        cols = {row[1] for row in conn.execute(text("PRAGMA table_info(md_jobs)"))}
+        if "md_jobs" in {r[0] for r in conn.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))}:
+            if "consensus_job_id" not in cols:
+                conn.execute(text("ALTER TABLE md_jobs ADD COLUMN consensus_job_id INTEGER REFERENCES consensus_jobs(id)"))
+                conn.commit()
 
 
 def _seed_configs():

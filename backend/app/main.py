@@ -42,6 +42,7 @@ from app.routes.admet import router as admet_router
 from app.routes.consensus import router as consensus_router
 from app.routes.clustering import router as clustering_router
 from app.routes.neurodock import router as neurodock_router
+from app.routes.molecular_dynamics import router as molecular_dynamics_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("pdb_explorer")
@@ -110,6 +111,7 @@ app.include_router(admet_router)
 app.include_router(consensus_router)
 app.include_router(clustering_router)
 app.include_router(neurodock_router)
+app.include_router(molecular_dynamics_router)
 
 
 @app.get("/health")

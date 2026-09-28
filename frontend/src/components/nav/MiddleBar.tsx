@@ -2,7 +2,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { ProteinTargetIcon, BioactivityIcon, DynamicsIcon } from "../icons";
 
-type ActiveModule = "pdb" | "chembl" | null;
+type ActiveModule = "pdb" | "chembl" | "dynamics" | null;
 
 interface MiddleBarProps {
   activeModule: ActiveModule;
@@ -70,6 +70,10 @@ export function MiddleBar({ activeModule }: MiddleBarProps) {
     location.pathname.startsWith("/clustering") ||
     location.pathname.startsWith("/neurodock");
 
+  const isDynamics =
+    activeModule === "dynamics" ||
+    location.pathname.startsWith("/dinamica-molecular");
+
   return (
     <div className="flex items-center gap-1">
       <NavItem
@@ -85,11 +89,10 @@ export function MiddleBar({ activeModule }: MiddleBarProps) {
         active={isChembl}
       />
       <NavItem
+        to="/dinamica-molecular"
         icon={<DynamicsIcon size={18} />}
         label="Din. Molecular"
-        active={false}
-        disabled
-        tooltip="Em breve"
+        active={isDynamics}
       />
     </div>
   );

@@ -258,6 +258,7 @@ export function useConsensusPage(
     // Não apaga clustering downstream aqui — preserva dados até o usuário confirmar com "Iniciar"
     setError(null);
     setResultRows([]);
+    setMaxMols(null);   // reseta o limite para evitar submeter valor de run anterior
     // Pré-preenche o formulário com os dados do job atual e volta ao setup
     setPdbId(job.pdb_id);
     setLigandResname(job.ligand_resname);

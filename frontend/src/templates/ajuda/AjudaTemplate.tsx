@@ -289,14 +289,95 @@ export default function AjudaTemplate({
               Isso cria o ambiente <Code>DH</Code> com todos os pacotes necessários.
             </Step>
 
+            <Step n={4} title="Dependências para Dinâmica Molecular (recomendado)">
+              O módulo de Dinâmica Molecular funciona sem as ferramentas abaixo, usando alternativas
+              automáticas — mas para{" "}
+              <strong className="text-foreground-muted">resultados de maior qualidade e adequados para publicação</strong>,
+              instale as duas:
+              <div className="flex flex-col gap-3 mt-3">
+                {/* Open Babel */}
+                <div className="rounded-lg border border-outline bg-surface-secondary px-4 py-3 flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] font-semibold text-foreground-muted">
+                      4.1 — Open Babel (preparação do ligante)
+                    </span>
+                    <span className="font-mono text-[10px] text-foreground-subtle rounded-full border border-outline px-2 py-0.5">
+                      fallback: RDKit
+                    </span>
+                  </div>
+                  <p>
+                    Converte o ligante de PDB → MOL para parameterização. Sem ele, o PDB Explorer
+                    usa RDKit, que produz resultados equivalentes na maioria dos casos.
+                  </p>
+                  <CodeBlock>{"conda activate DH\nconda install -c conda-forge openbabel"}</CodeBlock>
+                  <p>Verificar:</p>
+                  <CodeBlock>{"obabel --version"}</CodeBlock>
+                </div>
+
+                {/* AmberTools */}
+                <div className="rounded-lg border border-outline bg-surface-secondary px-4 py-3 flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] font-semibold text-foreground-muted">
+                      4.2 — AmberTools (cargas AM1-BCC do campo de força)
+                    </span>
+                    <span className="font-mono text-[10px] text-foreground-subtle rounded-full border border-outline px-2 py-0.5">
+                      fallback: MMFF94
+                    </span>
+                  </div>
+                  <p>
+                    Calcula as cargas parciais AM1-BCC do ligante, necessárias para parameterizar
+                    o campo de força OpenFF. Sem ele, o PDB Explorer usa cargas MMFF94 (via RDKit),
+                    adequadas para exploração mas não recomendadas para MD de publicação.
+                  </p>
+                  <CodeBlock>{"conda activate DH\nconda install -c conda-forge ambertools"}</CodeBlock>
+                  <p>
+                    Após instalar, o PDB Explorer detecta o AmberTools automaticamente pelo caminho
+                    do Python configurado em{" "}
+                    <strong className="text-foreground-muted">Configurações → Executável Python</strong>.
+                    Nenhuma configuração adicional é necessária.
+                  </p>
+                  <p>Verificar:</p>
+                  <CodeBlock>{"conda activate DH\nantechamber -h"}</CodeBlock>
+                </div>
+
+                {/* Kaleido */}
+                <div className="rounded-lg border border-outline bg-surface-secondary px-4 py-3 flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] font-semibold text-foreground-muted">
+                      4.3 — Kaleido (gráficos da análise de trajetória)
+                    </span>
+                    <span className="font-mono text-[10px] text-red-400 rounded-full border border-red-300/40 bg-red-500/10 px-2 py-0.5">
+                      obrigatório para análise
+                    </span>
+                  </div>
+                  <p>
+                    Necessário para gerar os gráficos de RMSD, RMSF, raio de giração e pontes de
+                    hidrogênio ao final da análise de trajetória. Sem ele, a análise conclui mas
+                    nenhum gráfico PNG é gerado.
+                  </p>
+                  <CodeBlock>{"conda activate DH\npip install kaleido==0.2.1 --force-reinstall"}</CodeBlock>
+                  <p>Verificar (deve imprimir o caminho do executável sem erro):</p>
+                  <CodeBlock>{"conda activate DH\npython -c \"from kaleido.scopes.plotly import PlotlyScope; print(PlotlyScope().executable_path())\""}</CodeBlock>
+                </div>
+
+                <div className="rounded-lg border border-yellow-400/30 bg-yellow-500/5 px-4 py-3 text-[11px] text-foreground-subtle leading-relaxed">
+                  <strong className="text-foreground-muted">Resumo de qualidade:</strong>
+                  {" "}Sem as ferramentas, a simulação roda com fallbacks automáticos (RDKit + MMFF94)
+                  e é útil para exploração inicial. Com Open Babel + AmberTools instalados,
+                  as cargas AM1-BCC e a preparação do ligante são feitas com máxima fidelidade química.
+                  O Kaleido é necessário para visualizar os gráficos de análise de trajetória.
+                </div>
+              </div>
+            </Step>
+
             {osTab === "linux" ? (
-              <Step n={4} title="Executar o instalador">
+              <Step n={5} title="Executar o instalador">
                 Ainda dentro da pasta <Code>DrugHunter</Code>, execute:
                 <CodeBlock>{"./install.sh"}</CodeBlock>
                 O instalador configura o Chimera, Dock6 e demais dependências automaticamente.
               </Step>
             ) : (
-              <Step n={4} title="Instalação manual (Windows)">
+              <Step n={5} title="Instalação manual (Windows)">
                 No Windows, o <Code>install.sh</Code> não é compatível. Os itens dos passos 2.1,
                 2.2 já foram instalados manualmente. Instale também o{" "}
                 <strong className="text-foreground-muted">DMS</strong> conforme indicado na
@@ -304,7 +385,8 @@ export default function AjudaTemplate({
               </Step>
             )}
 
-            <Step n={5} title="Configurar o PDB Explorer">
+            <Step n={6} title="Configurar o PDB Explorer">
+
               Vá em{" "}
               <button
                 type="button"
@@ -356,7 +438,7 @@ export default function AjudaTemplate({
               </div>
             </Step>
 
-            <Step n={6} title="Verificar a instalação">
+            <Step n={7} title="Verificar a instalação">
               Use o botão abaixo para checar se tudo está configurado corretamente.
             </Step>
           </div>

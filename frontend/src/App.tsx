@@ -19,6 +19,7 @@ import {
   consensusUseCase,
   clusteringUseCase,
   neuroDockUseCase,
+  molecularDynamicsUseCase,
 } from "./container";
 
 export default function App() {
@@ -40,6 +41,7 @@ export default function App() {
           consensusUseCase={consensusUseCase}
           clusteringUseCase={clusteringUseCase}
           neuroDockUseCase={neuroDockUseCase}
+          molecularDynamicsUseCase={molecularDynamicsUseCase}
         />
         <GlobalAccumulatedPanel />
         <GlobalRedockingIndicator />

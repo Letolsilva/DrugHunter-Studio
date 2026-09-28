@@ -93,9 +93,17 @@ def _combinar_moleculas(
     total = len(combined)
 
     if max_mols is not None and max_mols > 0:
-        # Ordena pelas N melhores por MW crescente (moléculas menores = melhores leads)
+        # Ordena pelas N melhores por MW crescente (moléculas menores = melhores leads).
+        # nsmallest pula NaN — separamos as com MW válido das sem MW e completamos se necessário.
         if "mw" in combined.columns:
-            combined = combined.nsmallest(max_mols, "mw").reset_index(drop=True)
+            has_mw = combined[combined["mw"].notna()]
+            no_mw  = combined[combined["mw"].isna()]
+            top_mw = has_mw.nsmallest(max_mols, "mw")
+            if len(top_mw) < max_mols:
+                extra = no_mw.head(max_mols - len(top_mw))
+                combined = pd.concat([top_mw, extra], ignore_index=True)
+            else:
+                combined = top_mw.reset_index(drop=True)
         else:
             combined = combined.head(max_mols)
         logger.info(

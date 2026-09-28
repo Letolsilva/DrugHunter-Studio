@@ -38,7 +38,11 @@ from pathlib import Path
 
 
 def emit(msg: dict):
-    print(json.dumps(msg, ensure_ascii=False), flush=True)
+    try:
+        print(json.dumps(msg, ensure_ascii=False), flush=True)
+    except (BrokenPipeError, OSError):
+        # Pipe fechado pelo processo pai — silencia; o resultado já foi gravado em disco.
+        pass
 
 
 def _install_chimera_shim(tmp_dir: str) -> None:
@@ -386,12 +390,13 @@ def main():
                 result = _subproc.run(
                     command, cwd=cwd, shell=shell,
                     start_new_session=True,
+                    stdin=_subproc.DEVNULL,
                     stdout=_subproc.PIPE, stderr=_subproc.PIPE,
                 )
                 with open("/tmp/dh_dock6_debug.log", "a") as _lf:
                     _lf.write(f"\n=== CMD: {command}  exit={result.returncode} ===\n")
-                    _lf.write(f"STDOUT: {result.stdout.decode('utf-8', errors='replace')[:3000]}\n")
-                    _lf.write(f"STDERR: {result.stderr.decode('utf-8', errors='replace')[:3000]}\n")
+                    _lf.write(f"STDOUT: {result.stdout.decode('utf-8', errors='replace')[:20000]}\n")
+                    _lf.write(f"STDERR: {result.stderr.decode('utf-8', errors='replace')[:20000]}\n")
                 if check and result.returncode != 0:
                     raise _subproc.CalledProcessError(result.returncode, command, result.stdout, result.stderr)
                 return True
@@ -414,6 +419,44 @@ def main():
 
         _DH_Dock6.perform_subprocess = _logging_perform_subprocess
         emit({"type": "log", "msg": "Logging de subprocess do Dock6 ativado → /tmp/dh_dock6_debug.log"})
+
+        # Dock6 v6.13 renomeou 'num_scored_conformers' → 'num_final_scored_poses'.
+        # O template do DrugHunter usa o nome antigo; o dock6 não o reconhece e falha com:
+        #   "num_final_scored_poses [1] (): ERROR: Parameter must be an integer > 0"
+        # Patch: substitui o nome antigo pelo correto no arquivo .in gerado antes de rodar o dock6.
+        _orig_generate_docking_script = _DH_Dock6.generate_docking_script
+
+        def _fixed_generate_docking_script(self_dock6, input_template: str, output_script: str, **kwargs):
+            _orig_generate_docking_script(self_dock6, input_template, output_script, **kwargs)
+            try:
+                with open(output_script, "r") as _f:
+                    _content = _f.read()
+                # dock6 v6.13: num_scored_conformers → num_final_scored_poses (renomeado)
+                _fixed = _content.replace(
+                    "num_scored_conformers",
+                    "num_final_scored_poses",
+                )
+                # dock6 v6.13: num_preclustered_conformers é novo parâmetro obrigatório
+                # não presente no template do DrugHunter — injeta após num_final_scored_poses
+                if "num_preclustered_conformers" not in _fixed:
+                    _fixed = _fixed.replace(
+                        "num_final_scored_poses",
+                        "num_final_scored_poses",  # mantém a linha
+                    )
+                    import re as _re2
+                    _fixed = _re2.sub(
+                        r"(num_final_scored_poses\s+\d+)",
+                        r"\1\nnum_preclustered_conformers                              1",
+                        _fixed,
+                    )
+                if _fixed != _content:
+                    with open(output_script, "w") as _f:
+                        _f.write(_fixed)
+            except OSError:
+                pass
+
+        _DH_Dock6.generate_docking_script = _fixed_generate_docking_script
+        emit({"type": "log", "msg": "Patch dock6 v6.13: num_scored_conformers → num_final_scored_poses + num_preclustered_conformers"})
 
         # Patcha generate_consensus para ler scores do energy_min/ em vez do flex/.
         # O flex docking (dock6 anchor-and-grow) termina com exit=0 mas não escreve mol2 de

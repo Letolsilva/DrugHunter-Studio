@@ -19,6 +19,8 @@ from app.domain.models.consensus_job import ConsensusJob
 from app.domain.models.clustering_job import ClusteringJob
 from app.domain.models.neurodock_model import NeuroDockModel
 from app.domain.models.neurodock_prediction import NeuroDockPrediction
+from app.domain.models.md_job import MDJob
+from app.domain.models.md_analysis_job import MdAnalysisJob
 
 __all__ = [
     "Base",
@@ -37,4 +39,6 @@ __all__ = [
     "ClusteringJob",
     "NeuroDockModel",
     "NeuroDockPrediction",
+    "MDJob",
+    "MdAnalysisJob",
 ]

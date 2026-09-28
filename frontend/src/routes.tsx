@@ -33,6 +33,8 @@ import type { AdmetUseCase } from "./data/usecases/admet.usecase";
 import type { ConsensusUseCase } from "./data/usecases/consensus.usecase";
 import type { ClusteringUseCase } from "./data/usecases/clustering.usecase";
 import type { NeuroDockUseCase } from "./data/usecases/neurodock.usecase";
+import MolecularDynamicsPage from "./pages/MolecularDynamicsPage/MolecularDynamicsPage";
+import type { MolecularDynamicsUseCase } from "./data/usecases/molecular_dynamics.usecase";
 
 interface RotaProtegidaProps {
   children: ReactNode;
@@ -82,6 +84,7 @@ interface AppRoutesProps {
   consensusUseCase: ConsensusUseCase;
   clusteringUseCase: ClusteringUseCase;
   neuroDockUseCase: NeuroDockUseCase;
+  molecularDynamicsUseCase: MolecularDynamicsUseCase;
 }
 
 export default function AppRoutes({
@@ -99,6 +102,7 @@ export default function AppRoutes({
   consensusUseCase,
   clusteringUseCase,
   neuroDockUseCase,
+  molecularDynamicsUseCase,
 }: AppRoutesProps) {
   const { user, loading } = useAuth();
 
@@ -284,6 +288,22 @@ export default function AppRoutes({
         element={
           <RotaProtegida>
             <NeuroDockPage neuroDockUseCase={neuroDockUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/dinamica-molecular/:jobId"
+        element={
+          <RotaProtegida>
+            <MolecularDynamicsPage molecularDynamicsUseCase={molecularDynamicsUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/dinamica-molecular"
+        element={
+          <RotaProtegida>
+            <MolecularDynamicsPage molecularDynamicsUseCase={molecularDynamicsUseCase} />
           </RotaProtegida>
         }
       />
