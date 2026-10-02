@@ -268,8 +268,7 @@ export default function HomeTemplate({ userName, status, loading, handleLogout }
               icon={<DynamicsIcon size={20} />}
               title="Dinâmica Molecular"
               description="Simulação de dinâmica molecular e análise de trajetórias."
-              disabled
-              badge="Futuro"
+              to="/dinamica-molecular"
             />
           </div>
         </section>

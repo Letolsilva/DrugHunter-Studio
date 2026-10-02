@@ -5,6 +5,7 @@ import { Navbar, DropdownMenu } from "../../components/layout";
 import { MiddleBar } from "../../components/nav/MiddleBar";
 import { Spinner } from "../../components/ui/Spinner";
 import {
+  AppLogoIcon,
   ArrowLeftIcon,
   CloseIcon,
   HelpIcon,
@@ -56,10 +57,194 @@ function AuthImg({
   );
 }
 
-function AuthIframe({ src, token, title, style }: { src: string; token: string; title: string; style?: React.CSSProperties }) {
+function AuthIframe({ src, token, title, style, className }: { src: string; token: string; title: string; style?: React.CSSProperties; className?: string }) {
   const blobUrl = useAuthBlobUrl(src, token);
-  if (!blobUrl) return <div className="rounded-lg border border-outline flex items-center justify-center" style={{ height: 520 }}><span className="font-mono text-[11px] text-foreground-subtle">Carregando visualização...</span></div>;
-  return <iframe src={blobUrl} title={title} className="w-full rounded-lg border border-outline" style={style} sandbox="allow-scripts" />;
+  if (!blobUrl) return <div className={className ?? "rounded-lg border border-outline"} style={{ display: "flex", alignItems: "center", justifyContent: "center", height: (style?.height as number) ?? 520 }}><span className="font-mono text-[11px] text-foreground-subtle">Carregando visualização...</span></div>;
+  return <iframe src={blobUrl} title={title} className={className ?? "w-full rounded-lg border border-outline"} style={style} sandbox="allow-scripts allow-same-origin" />;
+}
+
+function AuthNewTabLink({ src, token, label }: { src: string; token: string; label: string }) {
+  const blobUrl = useAuthBlobUrl(src, token);
+  if (!blobUrl) return <span className="font-mono text-[10px] opacity-30">↗ {label}</span>;
+  return (
+    <a
+      href={blobUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="font-mono text-[10px] flex items-center gap-1 transition-opacity hover:opacity-70"
+      style={{ color: "var(--color-accent)" }}
+    >
+      ↗ {label}
+    </a>
+  );
+}
+
+// ── Parser DCD binário → NGL Frames ─────────────────────────────────────────
+function parseDcdToFrames(NGL: any, buffer: ArrayBuffer): any {
+  const frames = new NGL.Frames("trajectory", "local");
+  const dv = new DataView(buffer);
+  const le = true;
+  const header = new Int32Array(buffer, 0, 24);
+  let hasBox = false, hasFour = false;
+  if (header[22] !== 0) {
+    if (header[12] !== 0) hasBox = true;
+    if (header[13] === 1) hasFour = true;
+  }
+  const NSET = header[2], ISTART = header[3];
+  const DELTA = header[22] !== 0 ? dv.getFloat32(44, le) : dv.getFloat64(44, le);
+  let o = 92;
+  const titleSize = dv.getInt32(o, le); o += titleSize + 8;
+  const NATOM = dv.getInt32(o + 4, le); o += 12;
+  const coordBytes = NATOM * 4;
+  const coordinates: Float32Array[] = [];
+  const boxes: Float32Array[] = [];
+  for (let i = 0; i < NSET; i++) {
+    if (hasBox) {
+      o += 4;
+      const box = new Float32Array(9);
+      box[0] = dv.getFloat64(o, le); box[4] = dv.getFloat64(o + 16, le); box[8] = dv.getFloat64(o + 40, le);
+      boxes.push(box); o += 48; o += 4;
+    }
+    const coords = new Float32Array(3 * NATOM);
+    for (let axis = 0; axis < 3; axis++) {
+      o += 4;
+      for (let j = 0; j < NATOM; j++) coords[3 * j + axis] = dv.getFloat32(o + j * 4, le);
+      o += coordBytes; o += 4;
+    }
+    coordinates.push(coords);
+    if (hasFour) { o += 4 + dv.getInt32(o, le) + 4; }
+  }
+  if (DELTA) { frames.deltaTime = 20.45482949774598 * DELTA; if (ISTART >= 1) frames.timeOffset = (ISTART - 1) * frames.deltaTime; }
+  frames.coordinates = coordinates; frames.boxes = boxes;
+  return frames;
+}
+
+type TrajStatus = "loading" | "ready" | "error";
+
+function TrajectoryViewer({ jobId, token, topologyFile }: { jobId: number | undefined; token: string; topologyFile: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const stageRef    = useRef<any>(null);
+  const trajRef     = useRef<any>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [status, setStatus]           = useState<TrajStatus>("loading");
+  const [frame, setFrame]             = useState(0);
+  const [totalFrames, setTotalFrames] = useState(0);
+  const [playing, setPlaying]         = useState(false);
+  const [speed, setSpeed]             = useState(80);
+
+  useEffect(() => {
+    if (!containerRef.current || !jobId) return;
+    let cancelled = false;
+    const dl = (f: string) => `/api/molecular-dynamics/job/${jobId}/download/${encodeURIComponent(f)}`;
+    async function init() {
+      const NGL = await import("ngl");
+      if (cancelled || !containerRef.current) return;
+      const stage = new NGL.Stage(containerRef.current, { backgroundColor: "#0d0d0d", tooltip: false } as any);
+      stageRef.current = stage;
+      const ro = new ResizeObserver(() => stage.handleResize());
+      ro.observe(containerRef.current!);
+      // Impede o scroll da página quando o wheel acontece dentro do viewer (NGL já lida com zoom no canvas)
+      const stopWheel = (e: WheelEvent) => e.preventDefault();
+      containerRef.current.addEventListener("wheel", stopWheel, { passive: false });
+      (stageRef.current as any)._stopWheel = stopWheel;
+      const fetchBuf = async (url: string) => {
+        const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.arrayBuffer();
+      };
+      const [pdbBuf, dcdBuf] = await Promise.all([fetchBuf(dl(topologyFile)), fetchBuf(dl("trajectory.dcd"))]);
+      if (cancelled) return;
+      const pdbUrl = URL.createObjectURL(new Blob([pdbBuf], { type: "chemical/x-pdb" }));
+      const comp = await (stage as any).loadFile(pdbUrl, { ext: "pdb" });
+      URL.revokeObjectURL(pdbUrl);
+      if (cancelled) return;
+      comp.addRepresentation("cartoon", { color: "chainname", opacity: 0.9 });
+      comp.addRepresentation("licorice", { sele: "not protein and not water and not ion", color: "element", multipleBond: "symmetric" });
+      const frames = parseDcdToFrames(NGL, dcdBuf);
+      const tc = comp.addTrajectory(frames, { centerPbc: true, removePbc: true, superpose: true }) as any;
+      const nFrames = tc.trajectory.frameCount;
+      if (nFrames === 0) throw new Error("DCD sem frames");
+      trajRef.current = tc.trajectory;
+      setTotalFrames(nFrames);
+      comp.autoView();
+      setStatus("ready");
+    }
+    init().catch((err) => { console.error("[TrajectoryViewer]", err); if (!cancelled) setStatus("error"); });
+    return () => {
+      cancelled = true;
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (containerRef.current && stageRef.current?._stopWheel) {
+        containerRef.current.removeEventListener("wheel", stageRef.current._stopWheel);
+      }
+      stageRef.current?.dispose();
+    };
+  }, [jobId, token, topologyFile]);
+
+  const goToFrame = useCallback((n: number) => { trajRef.current?.setFrame(n); setFrame(n); }, []);
+
+  const togglePlay = useCallback(() => {
+    if (playing) { if (intervalRef.current) clearInterval(intervalRef.current); intervalRef.current = null; setPlaying(false); }
+    else {
+      setPlaying(true);
+      intervalRef.current = setInterval(() => {
+        setFrame((prev) => { const next = (prev + 1) % Math.max(totalFrames, 1); trajRef.current?.setFrame(next); return next; });
+      }, speed);
+    }
+  }, [playing, totalFrames, speed]);
+
+  useEffect(() => {
+    if (!playing) return;
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setFrame((prev) => { const next = (prev + 1) % Math.max(totalFrames, 1); trajRef.current?.setFrame(next); return next; });
+    }, speed);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [speed, playing, totalFrames]);
+
+  const btnBase = "font-mono text-[10px] rounded-lg border px-2.5 py-1 transition-colors";
+  const btnStyle = { borderColor: "var(--color-outline)", color: "var(--color-foreground-subtle)" };
+  const btnActiveStyle = { borderColor: "var(--color-accent-25)", color: "var(--color-accent)", background: "var(--color-accent-12)" };
+
+  return (
+    <div className="rounded-xl border border-outline bg-panel overflow-hidden">
+      <div className="px-4 py-3 border-b border-outline flex items-center justify-between">
+        <p className="font-mono text-[10px] text-foreground-subtle uppercase tracking-wider">Trajetória de Simulação</p>
+        <span className="font-mono text-[9px] text-foreground-subtle opacity-50">{topologyFile} + trajectory.dcd</span>
+      </div>
+      <div className="relative" style={{ height: 480, background: "#0d0d0d" }}>
+        <div ref={containerRef} className="absolute inset-0" />
+        {status === "loading" && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+            <Spinner style={{ width: 22, height: 22, borderWidth: 2 }} />
+            <span className="font-mono text-[10px] text-foreground-subtle">Carregando trajetória…</span>
+          </div>
+        )}
+        {status === "error" && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="font-mono text-[11px] text-foreground-subtle opacity-60">Não foi possível carregar a trajetória. Verifique o console.</span>
+          </div>
+        )}
+      </div>
+      {status === "ready" && (
+        <div className="px-4 py-3 border-t border-outline flex items-center gap-3 flex-wrap">
+          <button onClick={togglePlay} className={btnBase} style={playing ? btnActiveStyle : btnStyle}>
+            {playing ? "⏸ Pausar" : "▶ Play"}
+          </button>
+          <input type="range" min={0} max={Math.max(totalFrames - 1, 0)} value={frame}
+            onChange={(e) => goToFrame(Number(e.target.value))} className="flex-1"
+            style={{ accentColor: "var(--color-accent)", minWidth: 120 }} />
+          <span className="font-mono text-[10px] text-foreground-subtle whitespace-nowrap">{frame + 1} / {totalFrames}</span>
+          <div className="flex items-center gap-1.5 ml-auto">
+            <span className="font-mono text-[9px] text-foreground-subtle opacity-60">Vel.</span>
+            {([160, 80, 40, 16] as const).map((ms) => {
+              const labels: Record<number, string> = { 160: "0.5×", 80: "1×", 40: "2×", 16: "5×" };
+              return <button key={ms} onClick={() => setSpeed(ms)} className={btnBase} style={speed === ms ? btnActiveStyle : btnStyle}>{labels[ms]}</button>;
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // ── Download autenticado ──────────────────────────────────────────────────────
@@ -553,12 +738,25 @@ export default function MolecularDynamicsTemplate(props: Props) {
       <Navbar>
         <Navbar.Left>
           <button
-            className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 font-mono text-[12px] text-foreground-subtle hover:bg-surface-secondary transition-colors"
+            type="button"
             onClick={() => navigate("/dinamica-molecular")}
+            className="cursor-pointer rounded border-none bg-transparent p-[4px_6px] text-foreground-subtle transition-colors hover:text-foreground"
+            title="Voltar"
           >
-            <ArrowLeftIcon size={14} />
-            Voltar
+            <ArrowLeftIcon size={16} />
           </button>
+          <button
+            type="button"
+            onClick={() => navigate("/home")}
+            className="cursor-pointer rounded border-none bg-transparent text-[17px] font-medium text-foreground-muted inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
+            title="Início"
+          >
+            <AppLogoIcon size={17} className="text-foreground-muted" />
+            PDB<b className="text-foreground font-extrabold">Explorer</b>
+          </button>
+          <span className="ml-1 border-l border-outline pl-3 text-[13px] text-foreground-subtle">
+            Din. Molecular
+          </span>
         </Navbar.Left>
         <Navbar.Middle>
           <MiddleBar activeModule={null} />
@@ -835,6 +1033,14 @@ export default function MolecularDynamicsTemplate(props: Props) {
             {/* Estruturas da simulação (PDB + log) */}
             <SimulationFilesSection job={job} outputFiles={outputFiles} token={token} />
 
+            {/* Visualizador de trajetória 3D */}
+            {outputFiles.includes("trajectory.dcd") && (() => {
+              const pdbFiles = outputFiles.filter((f) => f.endsWith(".pdb"));
+              const topology = pdbFiles.find((f) => f.includes("complex_min")) ?? pdbFiles[0];
+              if (!topology || !job?.id) return null;
+              return <TrajectoryViewer jobId={job.id} token={token} topologyFile={topology} />;
+            })()}
+
             {/* Gráficos em grid 2 colunas */}
             {(() => {
               const pngs = analysisFiles.analysis.filter((f) => f.endsWith(".png"));
@@ -878,10 +1084,20 @@ export default function MolecularDynamicsTemplate(props: Props) {
               if (!htmlFiles.length) return null;
               return (
                 <div className="rounded-xl border border-outline bg-panel overflow-hidden">
-                  <div className="px-4 py-3 border-b border-outline">
+                  <div className="px-4 py-3 border-b border-outline flex items-center justify-between flex-wrap gap-2">
                     <p className="font-mono text-[10px] text-foreground-subtle uppercase tracking-wider">
                       Visualização 3D Interativa
                     </p>
+                    <div className="flex items-center gap-3">
+                      {htmlFiles.map((f) => (
+                        <AuthNewTabLink
+                          key={f}
+                          src={getAnaliseViewUrl("visualization", f)}
+                          token={token}
+                          label={htmlFiles.length === 1 ? "Abrir em nova aba" : f}
+                        />
+                      ))}
+                    </div>
                   </div>
                   <div className="p-4 flex flex-col gap-3">
                     {htmlFiles.map((f) => (
