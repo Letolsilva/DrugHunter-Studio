@@ -30,7 +30,7 @@ export abstract class IChemblUseCase {
   abstract getAnalysisStatus(
     jobId: number,
     token: string,
-  ): Promise<{ has_analysis: boolean; analysis_running: boolean; centroids_count: number; similarity_files: string[]; mcc_ids: string[]; mcc_sims_ids: string[]; mcc_mols_ids: string[] }>;
+  ): Promise<{ has_analysis: boolean; analysis_running: boolean; centroids_count: number; similarity_files: string[]; mcc_ids: string[]; mcc_sims_ids: string[]; mcc_mols_ids: string[]; dh_failed_targets: string[]; analysis_error: string | null }>;
 
   abstract getNetworks(jobId: number, token: string): Promise<{ networks: NetworkInfo[] }>;
 

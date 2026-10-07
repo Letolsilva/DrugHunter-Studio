@@ -74,6 +74,15 @@ def buscar_job(db: Session, job_id: int, user_id: int) -> Optional[RedockingJob]
     )
 
 
+def deletar_job(db: Session, job_id: int, user_id: int) -> bool:
+    job = buscar_job(db, job_id, user_id)
+    if not job:
+        return False
+    db.delete(job)
+    db.commit()
+    return True
+
+
 def salvar_csv_usuario(
     db: Session,
     user_id: int,

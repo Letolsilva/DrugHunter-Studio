@@ -196,6 +196,47 @@ export default function ChemblResultsTemplate(props: UseChemblResultsPageReturn)
               ))}
             </div>
           </div>
+        ) : job?.status === "error" && job.items.every((it) => it.status === "error") ? (
+          /* ── Todos os itens falharam — estado de erro total ──────────────── */
+          <div className="flex flex-col gap-4">
+            <div className="rounded-xl border border-red-400/30 bg-red-500/10 px-5 py-4 flex flex-col gap-3">
+              <div>
+                <p className="font-mono text-[14px] font-semibold text-red-400 mb-1">
+                  Falha na coleta de bioatividades
+                </p>
+                <p className="font-mono text-[12px] text-red-400/80">
+                  Nenhum alvo foi processado com sucesso. Verifique os erros abaixo e tente novamente.
+                </p>
+              </div>
+              <div className="flex flex-col gap-2">
+                {job.items.map((it) => (
+                  <div key={it.id} className="flex flex-col gap-1">
+                    <span className="font-mono text-[12px] text-foreground-subtle">{it.target_name}</span>
+                    {it.error_msg && (
+                      <div
+                        className="rounded px-2.5 py-1.5 font-mono text-[11px] leading-snug"
+                        style={{
+                          background: "var(--color-red-12)",
+                          color: "var(--color-red)",
+                          border: "1px solid var(--color-red-15)",
+                        }}
+                      >
+                        {it.error_msg}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={voltarChembl}
+                className="cursor-pointer self-start font-mono text-[12px] rounded-lg border px-4 py-2 transition-colors hover:bg-surface-secondary"
+                style={{ borderColor: "var(--color-outline)", color: "var(--color-foreground-subtle)" }}
+              >
+                ← Novo job ChEMBL
+              </button>
+            </div>
+          </div>
         ) : (
           <>
             {/* ── Cabeçalho ───────────────────────────────────────────────── */}
@@ -681,6 +722,29 @@ export default function ChemblResultsTemplate(props: UseChemblResultsPageReturn)
                     );
                   })}
                 </div>
+
+                {/* Erro na análise — com botão de nova tentativa */}
+                {analysisStatus?.analysis_error && (
+                  <div
+                    className="rounded-xl border px-4 py-3 flex flex-col gap-2"
+                    style={{ borderColor: "rgba(239,68,68,0.35)", background: "rgba(239,68,68,0.08)" }}
+                  >
+                    <span className="font-mono text-[11px] font-bold uppercase tracking-wider" style={{ color: "#dc2626" }}>
+                      Erro na análise molecular
+                    </span>
+                    <p className="font-mono text-[11px]" style={{ color: "#b91c1c" }}>
+                      {analysisStatus.analysis_error}
+                    </p>
+                    <button
+                      onClick={onRunAnalysis}
+                      disabled={analysisLoading || analysisSubmitted}
+                      className="self-start font-mono text-[11px] font-semibold rounded-lg border px-3 py-1.5 transition-all hover:opacity-80 disabled:opacity-40"
+                      style={{ borderColor: "#dc2626", color: "#dc2626" }}
+                    >
+                      Rodar novamente
+                    </button>
+                  </div>
+                )}
 
                 {/* Análise molecular */}
                 {job && (

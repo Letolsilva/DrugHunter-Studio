@@ -90,6 +90,7 @@ def enviar_email_conclusao(
     status: str,
     erro_msg: str | None,
     base_output_path: str = "",
+    modulo: str = "Redocking",
 ) -> None:
     host, port, user, password, from_addr = _get_smtp_config()
 
@@ -99,27 +100,32 @@ def enviar_email_conclusao(
         )
         return
 
+    modulo_lower = modulo.lower()
+
     if status == "done":
-        assunto = f"[PDB Explorer] Redocking concluído — {target}"
+        assunto = f"[PDB Explorer] {modulo} concluído — {target}"
         corpo = (
             f"Olá,\n\n"
-            f'O job de redocking do alvo "{target}" (ID: {job_id}) foi concluído com sucesso.\n\n'
+            f'O job de {modulo_lower} do alvo "{target}" (ID: {job_id}) foi concluído com sucesso.\n\n'
             f"Acesse o PDB Explorer para ver os resultados em: {base_output_path}\n\n"
             f"—\nPDB Explorer"
         )
     else:
-        assunto = f"[PDB Explorer] Erro no redocking — {target}"
+        assunto = f"[PDB Explorer] Erro em {modulo} — {target}"
         corpo = (
             f"Olá,\n\n"
-            f'O job de redocking do alvo "{target}" (ID: {job_id}) falhou.\n\n'
+            f'O job de {modulo_lower} do alvo "{target}" (ID: {job_id}) falhou.\n\n'
             f"── Resumo do erro ──\n"
             f"{erro_msg or 'Erro desconhecido.'}\n\n"
-            f"── O que verificar ──\n"
-            f"• Os arquivos .pdb do alvo estão na pasta correta?\n"
-            f"• O Chimera e o Vina estão instalados e no PATH configurado?\n"
-            f"• O nome do ligante e RESNUM batem com o que está no PDB?\n\n"
-            f"—\nPDB Explorer"
         )
+        if modulo == "Redocking":
+            corpo += (
+                f"── O que verificar ──\n"
+                f"• Os arquivos .pdb do alvo estão na pasta correta?\n"
+                f"• O Chimera e o Vina estão instalados e no PATH configurado?\n"
+                f"• O nome do ligante e RESNUM batem com o que está no PDB?\n\n"
+            )
+        corpo += "—\nPDB Explorer"
 
     msg = MIMEText(corpo, "plain", "utf-8")
     msg["Subject"] = assunto

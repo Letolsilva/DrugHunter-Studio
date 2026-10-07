@@ -85,6 +85,14 @@ def validar_drughunter(
     return uc.uc_validar_drughunter(db)
 
 
+@router.post("/corrigir-bson")
+def corrigir_bson(
+    db: Session = Depends(get_db), admin: User = Depends(get_usuario_admin)
+):
+    """Remove o pacote bson standalone do env DH para resolver conflito com pymongo."""
+    return uc.uc_corrigir_bson(db)
+
+
 @router.patch("/users/{usuario_id}")
 def set_admin(
     usuario_id: int,

@@ -23,8 +23,11 @@ def run_md_worker(
     receptor_input_path: str,
     output_path: str,
     params: dict,
-) -> None:
-    """Executa a simulação de dinâmica molecular via subprocesso. Lança RuntimeError em falha."""
+) -> list[str]:
+    """
+    Executa a simulação de dinâmica molecular via subprocesso. Lança RuntimeError em falha.
+    Retorna lista de avisos não-fatais emitidos pelo worker (ex: fallback de cargas AM1-BCC).
+    """
     if not python_bin:
         raise RuntimeError(
             "Python do DrugHunter não configurado. "
@@ -55,6 +58,8 @@ def run_md_worker(
 
     done_event: Optional[dict] = None
     error_msg: Optional[str] = None
+    warnings: list[str] = []
+    stderr_lines: list[str] = []
 
     def _drain_stderr():
         assert proc.stderr is not None
@@ -62,6 +67,7 @@ def run_md_worker(
             line = raw.decode("utf-8", errors="replace").strip()
             if line:
                 logger.warning("MD worker stderr: %s", line)
+                stderr_lines.append(line)
 
     stderr_thread = threading.Thread(target=_drain_stderr, daemon=True)
     stderr_thread.start()
@@ -87,7 +93,9 @@ def run_md_worker(
         elif etype == "log":
             logger.info("MD [worker]: %s", event.get("msg"))
         elif etype == "warn":
-            logger.warning("MD [worker]: %s", event.get("msg"))
+            msg = event.get("msg", "")
+            logger.warning("MD [worker]: %s", msg)
+            warnings.append(msg)
 
     proc.wait()
     stderr_thread.join(timeout=5)
@@ -96,9 +104,15 @@ def run_md_worker(
         raise RuntimeError(error_msg)
 
     if proc.returncode != 0 and done_event is None:
+        stderr_snippet = "\n".join(stderr_lines[-10:])[:400]
         raise RuntimeError(
-            f"Worker de dinâmica molecular encerrou com código {proc.returncode}. Veja o log."
+            "Falha inesperada na simulação de dinâmica molecular. Verifique se o AmberTools e o Open Babel estão instalados (veja a página de Ajuda)."
+            + (f" Detalhe: {stderr_snippet}" if stderr_snippet else "")
         )
 
     if done_event is None:
-        raise RuntimeError("Worker de dinâmica molecular encerrou sem reportar conclusão.")
+        raise RuntimeError(
+            "O processo de simulação parou inesperadamente. Tente rodar novamente."
+        )
+
+    return warnings

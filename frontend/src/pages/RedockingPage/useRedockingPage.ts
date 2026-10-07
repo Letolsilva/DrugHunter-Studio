@@ -81,6 +81,7 @@ export interface UseRedockingPageReturn {
   handlePreparar: () => Promise<void>;
   handleSubmit: () => Promise<void>;
   handleLogout: () => void;
+  onDeleteJob: (jobId: number) => Promise<void>;
 }
 
 export function useRedockingPage(
@@ -410,6 +411,16 @@ export function useRedockingPage(
     };
   }, [csvLinhas]);
 
+  const onDeleteJob = useCallback(async (jobId: number) => {
+    const token = localStorage.getItem("access_token") ?? "";
+    try {
+      await redockingUseCase.deletarJob(jobId, token);
+      setJobs((prev) => prev.filter((j) => j.id !== jobId));
+    } catch {
+      showToast("Não foi possível remover o job.", "error");
+    }
+  }, [redockingUseCase, showToast]);
+
   return {
     csvLinhas,
     csvFileName,
@@ -438,5 +449,6 @@ export function useRedockingPage(
     handlePreparar,
     handleSubmit,
     handleLogout,
+    onDeleteJob,
   };
 }

@@ -152,10 +152,43 @@ def main():
         s.set_outputpath(sims_dir)
         s.search(_clean(sim_filters))
 
+        # ── Etapa 5: DrugBank — combina moléculas + similares ─────────────────
+        # Chama fileHandling.prepare_datamols() do DH (mesmo que load_chembl faz).
+        # Grava {stem}_MOLS/SIMS/FULL.csv em DrugBank/ (pasta compartilhada, nível acima do alvo).
+        emit({"type": "etapa", "etapa": "drugbank"})
+        from kernel.utilities import fileHandling
+
+        drugbank_abs = os.path.join(os.path.dirname(output_path), "DrugBank")
+        drugbank_dir = _rel(dh_dir, drugbank_abs)
+        folder_name = os.path.basename(output_path)
+
+        fh = fileHandling(output_path=drugbank_dir)
+        fh.prepare_datamols(
+            target=folder_name,
+            inputpath_mols=mols_dir,
+            inputpath_similars=sims_dir,
+        )
+
+        # prepare_datamols captura exceções internamente e falha silenciosamente.
+        # Verificamos o arquivo de saída para detectar falha e propagar como erro visível.
+        full_csv = os.path.join(drugbank_abs, f"{folder_name}_FULL.csv")
+        if not os.path.exists(full_csv):
+            raise RuntimeError(
+                f"prepare_datamols não criou {full_csv}. "
+                "Verifique kernel.utilities no log do DrugHunter."
+            )
+
         emit({"type": "done", "molecules_count": mol_count})
 
     except Exception as exc:
-        emit({"type": "error", "msg": str(exc)})
+        msg = str(exc)
+        if "bson" in msg.lower() or ("has no attribute" in msg and "encode" in msg):
+            emit({"type": "error", "msg": (
+                "Conflito de pacotes detectado (bson/pymongo). "
+                "Acesse a página de Ajuda → clique em 'Testar Configuração' para corrigir automaticamente."
+            )})
+        else:
+            emit({"type": "error", "msg": msg})
         sys.exit(1)
 
 

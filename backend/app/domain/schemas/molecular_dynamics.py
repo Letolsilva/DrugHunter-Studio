@@ -132,6 +132,7 @@ class MDJobResponse(BaseModel):
     base_output_path: Optional[str]
     output_path_absolute: Optional[str] = None
     error_msg: Optional[str]
+    warnings: list[str] = []
     created_at: datetime
     finished_at: Optional[datetime]
     params: Optional[dict] = None

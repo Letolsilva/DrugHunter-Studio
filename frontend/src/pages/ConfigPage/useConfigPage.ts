@@ -26,6 +26,8 @@ export interface UseConfigPageReturn {
   handleLogout: () => void;
   handleSalvarConfig: (chave: string, valor: string) => Promise<void>;
   handleLimparCache: () => Promise<void>;
+  handleDetectarPath: (chave: "chimera_path" | "dock6_path") => Promise<void>;
+  detectandoPath: Record<string, boolean>;
   toast: string | null;
   toastVariant: "success" | "error";
   usuarios: UsuarioItemModel[];
@@ -53,6 +55,7 @@ export function useConfigPage(
   const [usuarios, setUsuarios] = useState<UsuarioItemModel[]>([]);
   const [loadingUsuarios, setLoadingUsuarios] = useState(false);
   const [togglingAdmin, setTogglingAdmin] = useState<Record<number, boolean>>({});
+  const [detectandoPath, setDetectandoPath] = useState<Record<string, boolean>>({});
 
   const showToast = useCallback(
     (msg: string, variant: "success" | "error" = "success") => {
@@ -165,6 +168,40 @@ export function useConfigPage(
     }
   }, [configUseCase, showToast]);
 
+  const handleDetectarPath = useCallback(
+    async (chave: "chimera_path" | "dock6_path") => {
+      const token = localStorage.getItem("access_token") ?? "";
+      setDetectandoPath((prev) => ({ ...prev, [chave]: true }));
+      try {
+        const data = await configUseCase.validarDrugHunter(token);
+        const nomeCheck = chave === "chimera_path" ? "UCSF Chimera" : "Dock6";
+        const check = data.checks.find((c) => c.nome === nomeCheck);
+        if (check?.path_detectado) {
+          await configUseCase.setConfig(chave, check.path_detectado, token);
+          setConfigs((prev) =>
+            prev.map((c) =>
+              c.chave === chave ? { ...c, valor: check.path_detectado! } : c,
+            ),
+          );
+          showToast(
+            `Caminho detectado e salvo automaticamente.`,
+            "success",
+          );
+        } else {
+          showToast(
+            `${nomeCheck} não encontrado automaticamente. Preencha o caminho manualmente.`,
+            "error",
+          );
+        }
+      } catch {
+        showToast("Erro ao detectar caminho.", "error");
+      } finally {
+        setDetectandoPath((prev) => ({ ...prev, [chave]: false }));
+      }
+    },
+    [configUseCase, showToast],
+  );
+
   const handleToggleAdmin = useCallback(
     async (usuarioId: number, isAdmin: boolean) => {
       const token = localStorage.getItem("access_token") ?? "";
@@ -205,6 +242,8 @@ export function useConfigPage(
     handleLogout,
     handleSalvarConfig,
     handleLimparCache,
+    handleDetectarPath,
+    detectandoPath,
     toast,
     toastVariant,
     usuarios,

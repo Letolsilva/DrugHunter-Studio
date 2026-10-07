@@ -26,3 +26,4 @@ export { ProteinTargetIcon } from "./ProteinTargetIcon";
 export { BioactivityIcon } from "./BioactivityIcon";
 export { PredictionIcon } from "./PredictionIcon";
 export { DynamicsIcon } from "./DynamicsIcon";
+export { CopyIcon } from "./CopyIcon";

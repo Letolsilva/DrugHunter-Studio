@@ -128,11 +128,20 @@ def _migrate_schema():
     coluna adicionada após o deploy inicial — idempotente, seguro rodar sempre.
     """
     with engine.connect() as conn:
+        tables = {r[0] for r in conn.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))}
+
         # md_jobs: consensus_job_id adicionado quando redocking foi renomeado para consenso
-        cols = {row[1] for row in conn.execute(text("PRAGMA table_info(md_jobs)"))}
-        if "md_jobs" in {r[0] for r in conn.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))}:
+        if "md_jobs" in tables:
+            cols = {row[1] for row in conn.execute(text("PRAGMA table_info(md_jobs)"))}
             if "consensus_job_id" not in cols:
                 conn.execute(text("ALTER TABLE md_jobs ADD COLUMN consensus_job_id INTEGER REFERENCES consensus_jobs(id)"))
+                conn.commit()
+
+        # consensus_jobs: result_json era coluna planejada que nunca foi usada — remove dead code
+        if "consensus_jobs" in tables:
+            cols = {row[1] for row in conn.execute(text("PRAGMA table_info(consensus_jobs)"))}
+            if "result_json" in cols:
+                conn.execute(text("ALTER TABLE consensus_jobs DROP COLUMN result_json"))
                 conn.commit()
 
 

@@ -27,6 +27,7 @@ export abstract class IRedockingUseCase {
     charge_type: "am1" | "gas";
     last_target: string | null;
   }>;
+  abstract deletarJob(jobId: number, token: string): Promise<void>;
   abstract verificarProntidao(
     target: string,
     baseInputPath: string,

@@ -19,10 +19,20 @@ from app.domain.models.chembl_job import ChemblJobItem
 from app.domain.models.consensus_job import ConsensusJob
 from app.domain.models.redocking_job import RedockingJob
 from app.infra.db.database import SessionLocal, get_config
+from app.infra.email_sender import enviar_email_conclusao
 from app.infra.external.consensus_runner import run_consensus_worker
 from app.services import consensus as svc
 
 logger = logging.getLogger("pdb_explorer")
+
+
+def _resolve_path(dh_dir: str, stored_path: str) -> Path:
+    """Resolve stored_path relativo ao dh_dir, com fallback para caminhos absolutos legados."""
+    p = Path(stored_path)
+    if p.is_absolute() and p.exists():
+        return p
+    return Path(dh_dir) / stored_path.lstrip("/")
+
 
 # Jobs de consenso ativos neste processo. Se o servidor reiniciar, o set fica vazio
 # e qualquer job ainda "running" no banco é detectado como órfão.
@@ -88,7 +98,7 @@ def _combinar_moleculas(
     )
 
     if combined.empty:
-        raise RuntimeError("Conjunto de moléculas vazio após deduplicação.")
+        raise RuntimeError("Nenhuma molécula válida encontrada para docking após remover duplicatas. Verifique os dados ADMET.")
 
     total = len(combined)
 
@@ -126,25 +136,28 @@ def _executar_pipeline(job_id: int, max_mols: Optional[int] = None) -> None:
             logger.error("ConsensusJob %s não encontrado.", job_id)
             return
 
+        _user = db.query(User).filter(User.id == job.user_id).first()
+        email_notificacao = _user.email if _user else None
+
         admet_result = db.query(AdmetResult).filter(AdmetResult.id == job.admet_result_id).first()
         if not admet_result:
-            raise RuntimeError(f"AdmetResult {job.admet_result_id} não encontrado.")
+            raise RuntimeError("Resultado ADMET não encontrado. Execute a análise ADMET antes de iniciar o docking.")
 
         item = db.query(ChemblJobItem).filter(ChemblJobItem.id == admet_result.chembl_job_item_id).first()
         if not item:
-            raise RuntimeError(f"ChemblJobItem não encontrado para AdmetResult {admet_result.id}.")
-
-        admet_dir = Path(admet_result.base_output_path) / "ChEMBL" / item.folder_name / "ADMET"
-        categories = json.loads(job.selected_categories) if job.selected_categories else ["all"]
-
-        # Pasta destino de molecules.csv: base_selected_mols/target/
-        out_mol_dir = Path(job.base_selected_mols) / job.target
-        mol_count = _combinar_moleculas(admet_dir, item.folder_name, categories, out_mol_dir, max_mols)
-        svc.atualizar_mol_count(db, job_id, mol_count)
+            raise RuntimeError("Dados ChEMBL não encontrados. O job ChEMBL associado pode ter sido removido.")
 
         dh_dir = get_config(db, "drug_hunter_path") or ""
+        admet_dir = _resolve_path(dh_dir, admet_result.base_output_path) / "ChEMBL" / item.folder_name / "ADMET"
+        categories = json.loads(job.selected_categories) if job.selected_categories else ["all"]
+
+        # Pasta destino de molecules.csv: base_output/ChEMBL/target/ (absoluto)
+        out_mol_dir = _resolve_path(dh_dir, admet_result.base_output_path) / "ChEMBL" / job.target
+        mol_count = _combinar_moleculas(admet_dir, item.folder_name, categories, out_mol_dir, max_mols)
+        svc.atualizar_mol_count(db, job_id, mol_count)
         python_bin = get_config(db, "python_bin") or ""
         dock6_path = get_config(db, "dock6_path") or ""
+        chimera_path = get_config(db, "chimera_path") or ""
 
         # Paths derivados do dh_dir (base de todos os caminhos relativos do DH)
         dh_base_path = Path(dh_dir)
@@ -184,6 +197,7 @@ def _executar_pipeline(job_id: int, max_mols: Optional[int] = None) -> None:
             base_docking_output_path=job.base_docking_output_path,
             base_selected_mols=selected_mols_rel,
             dock6_app_path=dock6_path,
+            chimera_path=chimera_path,
             pdb_code=(job.pdb_id, job.ligand_resname, job.ligand_resnum, job.chain),
             charge_type=job.charge_type,
             prepare_complex=job.prepare_complex,
@@ -214,6 +228,12 @@ def _executar_pipeline(job_id: int, max_mols: Optional[int] = None) -> None:
             correlation_img_path=str(correlation_img) if correlation_img.exists() else None,
         )
         logger.info("Consenso concluído: job_id=%s | mols=%s", job_id, mol_count)
+        if email_notificacao:
+            enviar_email_conclusao(
+                email_notificacao, job_id, job.target,
+                "done", None, job.base_docking_output_path or "",
+                modulo="Docking de Consenso",
+            )
 
     except Exception as e:
         logger.exception("Erro no pipeline de consenso job_id=%s: %s", job_id, e)
@@ -221,6 +241,11 @@ def _executar_pipeline(job_id: int, max_mols: Optional[int] = None) -> None:
             svc.marcar_erro(db, job_id, str(e))
         except Exception:
             pass
+        if email_notificacao:
+            enviar_email_conclusao(
+                email_notificacao, job_id, job.target,
+                "error", str(e)[:1000], modulo="Docking de Consenso",
+            )
     finally:
         db.close()
 

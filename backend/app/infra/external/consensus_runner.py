@@ -28,6 +28,7 @@ def run_consensus_worker(
     pdb_code: Tuple,
     charge_type: str,
     prepare_complex: bool,
+    chimera_path: str = "",
     mol_filename: str = "molecules",
 ) -> None:
     """
@@ -55,13 +56,15 @@ def run_consensus_worker(
         "prepare_complex": prepare_complex,
     }, ensure_ascii=False)
 
-    # Garante que os diretórios bin/ do DrugHunter e do Dock6 estão no PATH do subprocesso.
+    # Garante que os diretórios bin/ do DrugHunter, Dock6 e Chimera estão no PATH do subprocesso.
     # dh_bin: obabel, vina e outros binários do env conda
     # dock6_bin: sphere_selector, sphgen, showbox, dock6 e afins
+    # chimera_bin: diretório bin/ do UCSF Chimera (configurado em Settings → chimera_path)
     dh_bin = str(Path(python_bin).parent)
     dock6_bin = dock6_app_path.rstrip("/") if dock6_app_path else ""
+    chimera_bin = chimera_path.rstrip("/") if chimera_path else ""
     env = os.environ.copy()
-    extra = [p for p in [dh_bin, dock6_bin] if p]
+    extra = [p for p in [dh_bin, dock6_bin, chimera_bin] if p]
     env["PATH"] = os.pathsep.join(extra) + os.pathsep + env.get("PATH", "")
 
     proc = subprocess.Popen(
@@ -78,12 +81,15 @@ def run_consensus_worker(
 
     # Lê stderr em thread paralela para evitar deadlock quando o buffer encher
     # e para mostrar erros em tempo real no log do backend.
+    stderr_lines: list[str] = []
+
     def _drain_stderr():
         assert proc.stderr is not None
         for raw in proc.stderr:
             line = raw.decode("utf-8", errors="replace").strip()
             if line:
                 logger.warning("Consenso worker stderr: %s", line)
+                stderr_lines.append(line)
 
     stderr_thread = threading.Thread(target=_drain_stderr, daemon=True)
     stderr_thread.start()
@@ -119,9 +125,13 @@ def run_consensus_worker(
         raise RuntimeError(error_msg)
 
     if proc.returncode != 0 and not done:
+        stderr_snippet = "\n".join(stderr_lines[-10:])[:400]
         raise RuntimeError(
-            f"Worker de consenso encerrou com código {proc.returncode}. Veja o stderr acima."
+            "Falha inesperada no docking de consenso. Verifique se o Dock6 e o Chimera estão instalados e configurados em Configurações."
+            + (f" Detalhe: {stderr_snippet}" if stderr_snippet else "")
         )
 
     if not done:
-        raise RuntimeError("Worker de consenso encerrou sem reportar conclusão.")
+        raise RuntimeError(
+            "O processo de docking parou inesperadamente. Tente rodar novamente."
+        )

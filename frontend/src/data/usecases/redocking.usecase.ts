@@ -53,6 +53,10 @@ export class RedockingUseCase extends IRedockingUseCase {
     );
   }
 
+  async deletarJob(jobId: number, token: string): Promise<void> {
+    await this.httpClient.delete(`/redocking/jobs/${jobId}`, { token });
+  }
+
   async buscarCsv(token: string): Promise<string | null> {
     try {
       const res = await this.httpClient.get<{ csv_content: string }>(

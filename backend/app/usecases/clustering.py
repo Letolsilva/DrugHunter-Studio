@@ -23,6 +23,33 @@ logger = logging.getLogger("pdb_explorer")
 
 _running_jobs: set[int] = set()
 
+
+def _cascade_delete_neurodock(db, clustering_job_id: int) -> None:
+    """Apaga o modelo NeuroDock (e suas predições + arquivos) vinculado a este clustering job."""
+    from app.domain.models.neurodock_model import NeuroDockModel
+    from app.domain.models.neurodock_prediction import NeuroDockPrediction
+
+    neurodock = db.query(NeuroDockModel).filter(NeuroDockModel.clustering_job_id == clustering_job_id).first()
+    if neurodock is None:
+        return
+
+    for pred in db.query(NeuroDockPrediction).filter(NeuroDockPrediction.model_id == neurodock.id).all():
+        if pred.result_dir:
+            p = Path(pred.result_dir)
+            if p.exists():
+                shutil.rmtree(p, ignore_errors=True)
+        db.delete(pred)
+
+    for path_attr in (neurodock.model_output_path, neurodock.history_output_path):
+        if path_attr:
+            p = Path(path_attr)
+            if p.exists():
+                shutil.rmtree(p, ignore_errors=True)
+
+    db.delete(neurodock)
+    db.commit()
+    logger.info("Cascade: NeuroDockModel %s deletado (rerun clustering %s).", neurodock.id, clustering_job_id)
+
 # Path DH-relativo onde os inputs (fingerprints + CSVs) são armazenados.
 # O DH usa cwd + path[1:] para construir o path absoluto.
 _BASE_INPUT_PATH = "/resultados/maia_input"
@@ -38,11 +65,11 @@ def _executar_pipeline(job_id: int) -> None:
 
         admet_result = db.query(AdmetResult).filter(AdmetResult.id == job.admet_result_id).first()
         if not admet_result:
-            raise RuntimeError(f"AdmetResult {job.admet_result_id} não encontrado.")
+            raise RuntimeError("Resultado ADMET não encontrado. Execute a análise ADMET antes de fazer o clustering.")
 
         item = db.query(ChemblJobItem).filter(ChemblJobItem.id == admet_result.chembl_job_item_id).first()
         if not item:
-            raise RuntimeError(f"ChemblJobItem não encontrado para AdmetResult {admet_result.id}.")
+            raise RuntimeError("Dados ChEMBL não encontrados. O job ChEMBL associado pode ter sido removido.")
 
         dh_dir = get_config(db, "drug_hunter_path") or ""
         python_bin = get_config(db, "python_bin") or ""
@@ -56,7 +83,7 @@ def _executar_pipeline(job_id: int) -> None:
             / f"{item.folder_name}.csv"
         )
         if not admet_csv.exists():
-            raise RuntimeError(f"CSV de moléculas não encontrado: {admet_csv}")
+            raise RuntimeError("Arquivo de resultado ADMET não encontrado. Execute a análise ADMET antes de fazer o clustering.")
 
         # O DrugHunter sempre escreve em base_output_path/target (caminho fixo).
         # Após o worker concluir, movemos para um diretório com job.id para
@@ -161,6 +188,10 @@ def uc_iniciar_clustering(
         base_output_path=base_output_path,
         max_mols=max_mols,
     )
+
+    # Cascade: NeuroDock vinculado a este clustering deve ser apagado antes do rerun,
+    # pois foi treinado com os resultados anteriores e seria inválido após nova execução.
+    _cascade_delete_neurodock(db, job.id)
 
     import threading
 

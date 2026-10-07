@@ -84,10 +84,12 @@ def get_job(
     if job.status == "running":
         uc._recover_orphaned_job(db, job)
 
+    from app.infra.db.database import get_config
+    dh_dir = get_config(db, "drug_hunter_path") or ""
     response = ChemblJobResponse.model_validate(job)
     for item in response.items:
         if item.status == "running":
-            item.current_step = uc._infer_step(job.base_output_path, item.folder_name)
+            item.current_step = uc._infer_step(job.base_output_path, item.folder_name, dh_dir)
     return response
 
 

@@ -54,6 +54,16 @@ def _job_response(j, dh_dir: str = "") -> MDJobResponse:
     output_path_absolute = None
     if j.base_output_path and dh_dir:
         output_path_absolute = str(Path(dh_dir) / j.base_output_path.lstrip("/"))
+
+    warnings: list[str] = []
+    if output_path_absolute:
+        warnings_file = Path(output_path_absolute) / "warnings.json"
+        if warnings_file.exists():
+            try:
+                warnings = json.loads(warnings_file.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+
     return MDJobResponse(
         id=j.id,
         status=j.status,
@@ -69,6 +79,7 @@ def _job_response(j, dh_dir: str = "") -> MDJobResponse:
         base_output_path=j.base_output_path,
         output_path_absolute=output_path_absolute,
         error_msg=j.error_msg,
+        warnings=warnings,
         created_at=j.created_at,
         finished_at=j.finished_at,
         params=params,
@@ -357,6 +368,8 @@ def visualizar_arquivo_analise(
     dh_dir    = get_config(db, "drug_hunter_path") or ""
     file_path = Path(dh_dir) / job.base_output_path.lstrip("/") / subdir / safe_name
 
+    if not file_path.resolve().is_relative_to(Path(dh_dir).resolve()):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso negado.")
     if not file_path.exists() or not file_path.is_file():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Arquivo '{safe_name}' não encontrado.")
 
@@ -379,11 +392,12 @@ def download_arquivo(
     if job.status != "done":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Job ainda não concluído.")
 
-    # Proteção contra path traversal
     safe_name = Path(filename).name
     dh_dir    = get_config(db, "drug_hunter_path") or ""
     file_path = Path(dh_dir) / job.base_output_path.lstrip("/") / safe_name
 
+    if not file_path.resolve().is_relative_to(Path(dh_dir).resolve()):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso negado.")
     if not file_path.exists() or not file_path.is_file():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Arquivo '{safe_name}' não encontrado.")
 

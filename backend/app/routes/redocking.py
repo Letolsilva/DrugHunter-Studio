@@ -73,6 +73,18 @@ def listar_jobs(
     return RedockingJobListResponse(jobs=jobs)
 
 
+@router.delete("/jobs/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
+def deletar_job(
+    job_id: int,
+    db: Session = Depends(get_db),
+    usuario: User = Depends(get_usuario_atual),
+):
+    """Remove um job de redocking do histórico do usuário."""
+    deleted = uc.uc_deletar_job(db, job_id, usuario.id)
+    if not deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job não encontrado.")
+
+
 @router.get("/jobs/status/{job_id}", response_model=RedockingJobResponse)
 def status_job(
     job_id: int,

@@ -106,6 +106,7 @@ export interface MDJobModel {
   base_output_path: string | null;
   output_path_absolute: string | null;
   error_msg: string | null;
+  warnings: string[];
   created_at: string;
   finished_at: string | null;
   params: MDParamsModel | null;

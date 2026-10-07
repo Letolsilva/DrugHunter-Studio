@@ -59,7 +59,7 @@ def main():
         from wrappers.molecular_ai_analyzer import _preprocessing
         from IA.neuralnetwork import NeuroDocking
     except ImportError as exc:
-        emit({"type": "error", "msg": f"Falha ao importar DrugHunter: {exc}"})
+        emit({"type": "error", "msg": f"Não foi possível carregar o módulo NeuroDock do DrugHunter. Verifique se o ambiente conda está ativo. Detalhe: {exc}"})
         sys.exit(1)
 
     fp_map = {
@@ -73,17 +73,17 @@ def main():
     abs_mols_dir = Path(dh_dir) / base_input_mols.lstrip("/")
     mol_csv = abs_mols_dir / f"{input_mols}.csv"
     if not mol_csv.exists():
-        emit({"type": "error", "msg": f"CSV de moléculas não encontrado: {mol_csv}"})
+        emit({"type": "error", "msg": "Resultado ADMET não encontrado. Execute a análise ADMET antes de treinar o NeuroDock."})
         sys.exit(1)
 
     abs_fp_dir = Path(dh_dir) / base_input_fingerprints.lstrip("/")
     if not abs_fp_dir.exists():
-        emit({"type": "error", "msg": f"Pasta de fingerprints não encontrada: {abs_fp_dir}"})
+        emit({"type": "error", "msg": "Dados de fingerprints não encontrados. Execute o clustering antes de treinar o NeuroDock."})
         sys.exit(1)
 
     abs_consensus_dir = Path(dh_dir) / base_input_consensus.lstrip("/")
     if not abs_consensus_dir.exists():
-        emit({"type": "error", "msg": f"Pasta de consenso não encontrada: {abs_consensus_dir}"})
+        emit({"type": "error", "msg": "Resultados de docking não encontrados. Execute o docking de consenso antes de treinar o NeuroDock."})
         sys.exit(1)
 
     # Conta alvos e moléculas de treino para reportar ao final

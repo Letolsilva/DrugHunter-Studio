@@ -8,6 +8,7 @@ Não conhece HTTP nem FastAPI — expõe generators e funções simples.
 import asyncio
 import json
 import logging
+import shutil
 from pathlib import Path
 from typing import Optional
 
@@ -23,10 +24,22 @@ from app.services import chembl as svc
 logger = logging.getLogger("pdb_explorer")
 
 
-def _infer_step(base_output_path: str, folder_name: str) -> str:
+def _resolve_path(dh_dir: str, stored_path: str) -> Path:
+    """Resolve stored_path relativo ao dh_dir, com fallback para caminhos absolutos legados.
+
+    Registros novos armazenam apenas o sufixo relativo (ex: /resultados/chembl).
+    Registros antigos têm o caminho absoluto completo — se ainda existir, usa diretamente.
+    """
+    p = Path(stored_path)
+    if p.is_absolute() and p.exists():
+        return p
+    return Path(dh_dir) / stored_path.lstrip("/")
+
+
+def _infer_step(base_output_path: str, folder_name: str, dh_dir: str = "") -> str:
     """Infere a etapa atual de um item 'running' a partir do filesystem."""
     from pathlib import Path
-    base = Path(base_output_path) / "ChEMBL" / folder_name
+    base = _resolve_path(dh_dir, base_output_path) / "ChEMBL" / folder_name
     def has_csv(d: Path) -> bool:
         return d.is_dir() and any(d.glob("*.csv"))
     if has_csv(base / "similares"):
@@ -40,12 +53,12 @@ def _infer_step(base_output_path: str, folder_name: str) -> str:
     return "targets"
 
 
-def _count_bioact_molecules(base_output_path: str, folder_name: str) -> int:
+def _count_bioact_molecules(base_output_path: str, folder_name: str, dh_dir: str = "") -> int:
     """Conta moléculas únicas nos CSVs de bioatividades de um item."""
     from pathlib import Path
     try:
         import pandas as pd
-        bioact = Path(base_output_path) / "ChEMBL" / folder_name / "bioatividades"
+        bioact = _resolve_path(dh_dir, base_output_path) / "ChEMBL" / folder_name / "bioatividades"
         dfs = [pd.read_csv(f) for f in bioact.glob("*.csv") if f.stat().st_size > 0]
         if not dfs:
             return 0
@@ -62,16 +75,25 @@ def _recover_orphaned_job(db: Session, job) -> bool:
     """
     from pathlib import Path
 
+    dh_dir = get_config(db, "drug_hunter_path") or ""
     changed = False
     for item in job.items:
         if item.status != "running":
             continue
-        similares = Path(job.base_output_path) / "ChEMBL" / item.folder_name / "similares"
+        similares = _resolve_path(dh_dir, job.base_output_path) / "ChEMBL" / item.folder_name / "similares"
         if similares.is_dir() and any(similares.glob("*.csv")):
-            mol_count = _count_bioact_molecules(job.base_output_path, item.folder_name)
+            mol_count = _count_bioact_molecules(job.base_output_path, item.folder_name, dh_dir)
             svc.atualizar_status_item(db, item.id, "done", molecules_count=mol_count)
             item.status = "done"
             item.molecules_count = mol_count
+            changed = True
+        else:
+            # Item preso em "running" sem arquivos — servidor foi reiniciado durante a execução.
+            svc.atualizar_status_item(
+                db, item.id, "error",
+                error_msg="Job interrompido: o servidor foi reiniciado durante a execução.",
+            )
+            item.status = "error"
             changed = True
 
     if changed and job.status == "running":
@@ -89,7 +111,68 @@ def uc_listar_jobs(db: Session, user_id: int) -> list:
 
 
 def uc_deletar_job(db: Session, job_id: int, user_id: int) -> bool:
-    return svc.deletar_job(db, job_id, user_id)
+    """Remove o job e toda a cascata downstream (ADMET → Consenso → Clustering → NeuroDock) + arquivos."""
+    from app.domain.models.admet_result import AdmetResult
+    from app.domain.models.consensus_job import ConsensusJob
+    from app.domain.models.clustering_job import ClusteringJob
+    from app.domain.models.neurodock_model import NeuroDockModel
+    from app.domain.models.neurodock_prediction import NeuroDockPrediction
+
+    job = db.query(ChemblJob).filter(ChemblJob.id == job_id, ChemblJob.user_id == user_id).first()
+    if not job:
+        return False
+
+    dh_dir = get_config(db, "drug_hunter_path") or ""
+
+    for item in job.items:
+        admet = db.query(AdmetResult).filter(AdmetResult.chembl_job_item_id == item.id).first()
+        if admet is None:
+            continue
+
+        # ── Consenso downstream ──────────────────────────────────────────────
+        consensus = db.query(ConsensusJob).filter(ConsensusJob.admet_result_id == admet.id).first()
+        if consensus:
+            if consensus.base_docking_output_path and consensus.target and dh_dir:
+                dock_dir = _resolve_path(dh_dir, consensus.base_docking_output_path) / consensus.target
+                if dock_dir.exists():
+                    shutil.rmtree(dock_dir, ignore_errors=True)
+            db.delete(consensus)
+
+        # ── Clustering + NeuroDock downstream ───────────────────────────────
+        clustering = db.query(ClusteringJob).filter(ClusteringJob.admet_result_id == admet.id).first()
+        if clustering:
+            neurodock = db.query(NeuroDockModel).filter(NeuroDockModel.clustering_job_id == clustering.id).first()
+            if neurodock:
+                for pred in db.query(NeuroDockPrediction).filter(NeuroDockPrediction.model_id == neurodock.id).all():
+                    if pred.result_dir:
+                        p = Path(pred.result_dir)
+                        if p.exists():
+                            shutil.rmtree(p, ignore_errors=True)
+                    db.delete(pred)
+                for path_attr in (neurodock.model_output_path, neurodock.history_output_path):
+                    if path_attr:
+                        p = Path(path_attr)
+                        if p.exists():
+                            shutil.rmtree(p, ignore_errors=True)
+                db.delete(neurodock)
+            if clustering.result_dir:
+                p = Path(clustering.result_dir)
+                if p.exists():
+                    shutil.rmtree(p, ignore_errors=True)
+            db.delete(clustering)
+
+        # ── Diretório ADMET (análise gerada pelo DrugHunter) ─────────────────
+        if admet.base_output_path and item.folder_name and dh_dir:
+            admet_dir = _resolve_path(dh_dir, admet.base_output_path) / "ChEMBL" / item.folder_name / "ADMET"
+            if admet_dir.exists():
+                shutil.rmtree(admet_dir, ignore_errors=True)
+
+        db.delete(admet)
+
+    db.delete(job)  # SQLAlchemy cascata → ChemblJobItems
+    db.commit()
+    logger.info("ChemblJob %s removido com cascata downstream completa.", job_id)
+    return True
 
 
 def uc_get_job(db: Session, job_id: int, user_id: int):
@@ -119,7 +202,8 @@ def uc_listar_moleculas(
     if not job:
         return None
 
-    chembl_base = Path(job.base_output_path) / "ChEMBL"
+    dh_dir = get_config(db, "drug_hunter_path") or ""
+    chembl_base = _resolve_path(dh_dir, job.base_output_path) / "ChEMBL"
     all_dfs = []
 
     for item in job.items:
@@ -170,7 +254,8 @@ def uc_analise_status(db: Session, job_id: int, user_id: int) -> Optional[dict]:
     if not job:
         return None
 
-    analysis_dir = Path(job.base_output_path) / "ChEMBL" / "analysis"
+    dh_dir = get_config(db, "drug_hunter_path") or ""
+    analysis_dir = _resolve_path(dh_dir, job.base_output_path) / "ChEMBL" / "analysis"
     similarity_dir = analysis_dir / "Similarity"
     maxcomp_dir = analysis_dir / "data" / "maxcomp"
 
@@ -217,6 +302,15 @@ def uc_analise_status(db: Session, job_id: int, user_id: int) -> Optional[dict]:
         if has_similarity and not has_maxcomp:
             dh_failed_targets.append(folder)
 
+    # Lê erro da análise, se houver (gravado pelo analysis_runner em caso de falha)
+    error_file = analysis_dir / "analysis_error.json"
+    analysis_error: str | None = None
+    if error_file.exists():
+        try:
+            analysis_error = json.loads(error_file.read_text()).get("error")
+        except Exception:
+            pass
+
     if not items_with_analysis:
         return {
             "has_analysis": False,
@@ -227,6 +321,7 @@ def uc_analise_status(db: Session, job_id: int, user_id: int) -> Optional[dict]:
             "mcc_sims_ids": [],
             "mcc_mols_ids": [],
             "dh_failed_targets": [],
+            "analysis_error": analysis_error,
         }
 
     # analysis_running apenas quando arquivos foram atualizados recentemente
@@ -249,6 +344,7 @@ def uc_analise_status(db: Session, job_id: int, user_id: int) -> Optional[dict]:
             "mcc_sims_ids": [],
             "mcc_mols_ids": [],
             "dh_failed_targets": dh_failed_targets,
+            "analysis_error": analysis_error,
         }
 
     # Lê maxcomp disponível (mesmo de runs anteriores) para coloração MCC
@@ -284,6 +380,7 @@ def uc_analise_status(db: Session, job_id: int, user_id: int) -> Optional[dict]:
         "mcc_sims_ids": list(mcc_sims),
         "mcc_mols_ids": list(mcc_mols),
         "dh_failed_targets": dh_failed_targets,
+        "analysis_error": analysis_error,
     }
 
 
@@ -406,7 +503,8 @@ def uc_get_networks(db: Session, job_id: int, user_id: int) -> Optional[dict]:
     if not job:
         return None
 
-    analysis_dir = Path(job.base_output_path) / "ChEMBL" / "analysis"
+    dh_dir = get_config(db, "drug_hunter_path") or ""
+    analysis_dir = _resolve_path(dh_dir, job.base_output_path) / "ChEMBL" / "analysis"
     similarity_dir = analysis_dir / "Similarity"
     maxcomp_dir = analysis_dir / "data" / "maxcomp"
     plots_dir = analysis_dir / "plots"
@@ -505,7 +603,8 @@ def uc_get_plot(db: Session, job_id: int, user_id: int, filename: str) -> Option
     if not re.match(r"^[A-Za-z0-9_\-]+$", filename):
         return None
 
-    plot_path = Path(job.base_output_path) / "ChEMBL" / "analysis" / "plots" / f"{filename}.png"
+    dh_dir = get_config(db, "drug_hunter_path") or ""
+    plot_path = _resolve_path(dh_dir, job.base_output_path) / "ChEMBL" / "analysis" / "plots" / f"{filename}.png"
     return plot_path if plot_path.exists() else None
 
 

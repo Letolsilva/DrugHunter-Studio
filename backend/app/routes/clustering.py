@@ -89,10 +89,16 @@ def deletar_por_admet(
 ):
     """Remove clustering + neurodock de um ADMET (reset de pipeline ao re-rodar consenso)."""
     import shutil
+    from app.domain.models.neurodock_prediction import NeuroDockPrediction
     jobs = svc.listar_por_admet(db, admet_result_id, usuario.id)
     for job in jobs:
         modelo = svc_neurodock.buscar_modelo_por_clustering(db, job.id, usuario.id)
         if modelo:
+            for pred in db.query(NeuroDockPrediction).filter(NeuroDockPrediction.model_id == modelo.id).all():
+                if pred.result_dir:
+                    p = Path(pred.result_dir)
+                    if p.exists():
+                        shutil.rmtree(p, ignore_errors=True)
             for path_attr in (modelo.model_output_path, modelo.history_output_path):
                 if path_attr:
                     p = Path(path_attr)
@@ -166,12 +172,18 @@ def deletar_clustering(
 ):
     """Remove job de clustering + NeuroDock downstream + arquivos em disco."""
     import shutil
+    from app.domain.models.neurodock_prediction import NeuroDockPrediction
     job = svc.buscar_por_id(db, job_id, usuario.id)
     if job is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job não encontrado.")
     # Cascata NeuroDock (FK é SET NULL, precisa ser explícito)
     modelo = svc_neurodock.buscar_modelo_por_clustering(db, job.id, usuario.id)
     if modelo:
+        for pred in db.query(NeuroDockPrediction).filter(NeuroDockPrediction.model_id == modelo.id).all():
+            if pred.result_dir:
+                p = Path(pred.result_dir)
+                if p.exists():
+                    shutil.rmtree(p, ignore_errors=True)
         for path_attr in (modelo.model_output_path, modelo.history_output_path):
             if path_attr:
                 p = Path(path_attr)

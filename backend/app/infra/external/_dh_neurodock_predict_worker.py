@@ -50,7 +50,7 @@ def main():
         from kernel.descriptors import fingerprints as FP
         from wrappers.molecular_ai_analyzer import predict
     except ImportError as exc:
-        emit({"type": "error", "msg": f"Falha ao importar DrugHunter: {exc}"})
+        emit({"type": "error", "msg": f"Não foi possível carregar o módulo NeuroDock do DrugHunter. Verifique se o ambiente conda está ativo. Detalhe: {exc}"})
         sys.exit(1)
 
     fp_map = {
@@ -63,7 +63,7 @@ def main():
     # ── Valida CSV da biblioteca ───────────────────────────────────────────────
     lib_csv = Path(library_csv_path)
     if not lib_csv.exists():
-        emit({"type": "error", "msg": f"CSV da biblioteca não encontrado: {lib_csv}"})
+        emit({"type": "error", "msg": f"Arquivo da biblioteca de compostos não encontrado ({lib_csv.name}). Selecione o arquivo CSV novamente."})
         sys.exit(1)
 
     # ── Copia CSV para dentro do dh_dir em user_library/<dataset>/ ───────────

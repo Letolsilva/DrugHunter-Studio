@@ -18,6 +18,10 @@ from app.services import redocking as svc
 logger = logging.getLogger("pdb_explorer")
 
 
+def uc_deletar_job(db: Session, job_id: int, user_id: int) -> bool:
+    return svc.deletar_job(db, job_id, user_id)
+
+
 def uc_iniciar_redocking(
     db: Session,
     usuario: User,

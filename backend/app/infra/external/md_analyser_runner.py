@@ -55,6 +55,7 @@ def run_md_analyser_worker(
 
     done_event: Optional[dict] = None
     error_msg: Optional[str] = None
+    stderr_lines: list[str] = []
 
     def _drain_stderr():
         assert proc.stderr is not None
@@ -62,6 +63,7 @@ def run_md_analyser_worker(
             line = raw.decode("utf-8", errors="replace").strip()
             if line:
                 logger.warning("MD analyser worker stderr: %s", line)
+                stderr_lines.append(line)
 
     stderr_thread = threading.Thread(target=_drain_stderr, daemon=True)
     stderr_thread.start()
@@ -96,9 +98,13 @@ def run_md_analyser_worker(
         raise RuntimeError(error_msg)
 
     if proc.returncode != 0 and done_event is None:
+        stderr_snippet = "\n".join(stderr_lines[-10:])[:400]
         raise RuntimeError(
-            f"Worker de análise de dinâmica molecular encerrou com código {proc.returncode}. Veja o log."
+            "Falha inesperada na análise de trajetória. Tente rodar novamente."
+            + (f" Detalhe: {stderr_snippet}" if stderr_snippet else "")
         )
 
     if done_event is None:
-        raise RuntimeError("Worker de análise de dinâmica molecular encerrou sem reportar conclusão.")
+        raise RuntimeError(
+            "O processo de análise de trajetória parou inesperadamente. Tente rodar novamente."
+        )

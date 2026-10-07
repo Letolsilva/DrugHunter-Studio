@@ -84,11 +84,13 @@ def run_admet_worker(
     if proc.returncode != 0 and done_data is None:
         stderr_str = stderr_bytes.decode("utf-8", errors="replace").strip() if stderr_bytes else ""
         raise RuntimeError(
-            f"Worker ADMET encerrou com código {proc.returncode}. "
-            + (f"Stderr: {stderr_str[:500]}" if stderr_str else "")
+            "Falha inesperada na análise ADMET. Tente novamente; se o problema persistir, verifique se o DrugHunter está configurado corretamente."
+            + (f" Detalhe: {stderr_str[:400]}" if stderr_str else "")
         )
 
     if done_data is None:
-        raise RuntimeError("Worker ADMET encerrou sem reportar conclusão.")
+        raise RuntimeError(
+            "O processo ADMET parou inesperadamente. Tente rodar novamente."
+        )
 
     return done_data

@@ -19,6 +19,7 @@ from app.domain.models.md_job import MDJob
 from app.domain.models.md_analysis_job import MdAnalysisJob
 from app.domain.schemas.molecular_dynamics import IniciarMDRequest
 from app.infra.db.database import SessionLocal, get_config
+from app.infra.email_sender import enviar_email_conclusao
 from app.infra.external.md_runner import run_md_worker
 from app.infra.external.md_analyser_runner import run_md_analyser_worker
 from app.services import molecular_dynamics as svc
@@ -38,6 +39,9 @@ def _executar_md(job_id: int) -> None:
         if not job:
             logger.error("MDJob %s não encontrado.", job_id)
             return
+
+        user = db.query(User).filter(User.id == job.user_id).first()
+        email_notificacao = user.email if user else None
 
         dh_dir     = get_config(db, "drug_hunter_path") or ""
         python_bin = get_config(db, "python_bin") or ""
@@ -83,7 +87,7 @@ def _executar_md(job_id: int) -> None:
         svc.marcar_rodando(db, job_id)
         logger.info("MDJob %s iniciado: ligante=%s receptor=%s", job_id, ligand_input_path, receptor_input_path)
 
-        run_md_worker(
+        warnings = run_md_worker(
             python_bin=python_bin,
             dh_dir=dh_dir,
             ligand_input_path=ligand_input_path,
@@ -92,8 +96,24 @@ def _executar_md(job_id: int) -> None:
             params=params,
         )
 
+        # Grava avisos não-fatais para que o frontend possa exibi-los ao usuário
+        if warnings:
+            try:
+                warnings_path = Path(output_path) / "warnings.json"
+                warnings_path.write_text(
+                    json.dumps(warnings, ensure_ascii=False), encoding="utf-8"
+                )
+            except Exception as _we:
+                logger.warning("Não foi possível gravar warnings.json: %s", _we)
+
         svc.marcar_concluido(db, job_id)
         logger.info("MDJob %s concluído.", job_id)
+        if email_notificacao:
+            enviar_email_conclusao(
+                email_notificacao, job_id, job.target or str(job_id),
+                "done", None, job.base_output_path or "",
+                modulo="Dinâmica Molecular",
+            )
 
     except Exception as e:
         logger.exception("Erro no MDJob %s: %s", job_id, e)
@@ -101,6 +121,11 @@ def _executar_md(job_id: int) -> None:
             svc.marcar_erro(db, job_id, str(e))
         except Exception:
             pass
+        if email_notificacao:
+            enviar_email_conclusao(
+                email_notificacao, job_id, job.target or str(job_id),
+                "error", str(e)[:1000], modulo="Dinâmica Molecular",
+            )
     finally:
         db.close()
 
@@ -241,6 +266,9 @@ def _executar_analise(analise_id: int) -> None:
             logger.error("MdAnalysisJob %s não encontrado.", analise_id)
             return
 
+        user = db.query(User).filter(User.id == analise.user_id).first()
+        email_notificacao = user.email if user else None
+
         job = db.query(MDJob).filter(MDJob.id == analise.md_job_id).first()
         if not job:
             svc.marcar_analise_erro(db, analise_id, f"MDJob {analise.md_job_id} não encontrado.")
@@ -273,6 +301,12 @@ def _executar_analise(analise_id: int) -> None:
 
         svc.marcar_analise_concluida(db, analise_id)
         logger.info("MdAnalysisJob %s concluído.", analise_id)
+        if email_notificacao:
+            enviar_email_conclusao(
+                email_notificacao, analise_id, job.target or str(analise_id),
+                "done", None, job.base_output_path or "",
+                modulo="Análise de Trajetória",
+            )
 
     except Exception as e:
         logger.exception("Erro no MdAnalysisJob %s: %s", analise_id, e)
@@ -280,6 +314,11 @@ def _executar_analise(analise_id: int) -> None:
             svc.marcar_analise_erro(db, analise_id, str(e))
         except Exception:
             pass
+        if email_notificacao:
+            enviar_email_conclusao(
+                email_notificacao, analise_id, job.target or str(analise_id),
+                "error", str(e)[:1000], modulo="Análise de Trajetória",
+            )
     finally:
         db.close()
 

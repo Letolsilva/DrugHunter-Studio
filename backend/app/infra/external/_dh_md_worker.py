@@ -141,7 +141,7 @@ def main():
         )
         from openmm import unit
     except ImportError as exc:
-        emit({"type": "error", "msg": f"Falha ao importar DrugHunter/OpenMM: {exc}"})
+        emit({"type": "error", "msg": f"Não foi possível inicializar o DrugHunter ou o OpenMM. Verifique se o ambiente conda está ativo e os pacotes instalados. Detalhe: {exc}"})
         sys.exit(1)
     finally:
         _subproc_patch.check_output = _orig_check_output
@@ -179,11 +179,11 @@ def main():
 
     # ── Valida arquivos de entrada ────────────────────────────────────────────
     if not Path(ligand_input_path).exists():
-        emit({"type": "error", "msg": f"Arquivo do ligante não encontrado: {ligand_input_path}"})
+        emit({"type": "error", "msg": f"Arquivo do ligante não encontrado ({Path(ligand_input_path).name}). Verifique se o docking de consenso concluiu com sucesso."})
         sys.exit(1)
 
     if not Path(receptor_input_path).exists():
-        emit({"type": "error", "msg": f"Arquivo do receptor não encontrado: {receptor_input_path}"})
+        emit({"type": "error", "msg": f"Arquivo do receptor não encontrado ({Path(receptor_input_path).name}). Selecione o arquivo PDB novamente."})
         sys.exit(1)
 
     Path(output_path).mkdir(parents=True, exist_ok=True)
@@ -451,7 +451,7 @@ def main():
         del md
 
     except Exception as exc:
-        emit({"type": "error", "msg": f"Erro na simulação: {exc}"})
+        emit({"type": "error", "msg": f"Erro durante a simulação de dinâmica molecular. Se o problema persistir, verifique se o AmberTools e o Open Babel estão instalados (veja a página de Ajuda). Detalhe: {exc}"})
         sys.exit(1)
 
     emit({"type": "done"})

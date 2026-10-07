@@ -119,9 +119,15 @@ def deletar_por_clustering(
 ):
     """Remove modelo NeuroDock e predições de um clustering (reset de pipeline)."""
     import shutil
+    from app.domain.models.neurodock_prediction import NeuroDockPrediction
     modelo = svc.buscar_modelo_por_clustering(db, clustering_job_id, usuario.id)
     if modelo is None:
         return
+    for pred in db.query(NeuroDockPrediction).filter(NeuroDockPrediction.model_id == modelo.id).all():
+        if pred.result_dir:
+            p = Path(pred.result_dir)
+            if p.exists():
+                shutil.rmtree(p, ignore_errors=True)
     for path_attr in (modelo.model_output_path, modelo.history_output_path):
         if path_attr:
             p = Path(path_attr)

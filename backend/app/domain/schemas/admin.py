@@ -17,6 +17,7 @@ class CheckItemDH(BaseModel):
     ok: bool
     mensagem: str
     como_corrigir: Optional[str] = None
+    path_detectado: Optional[str] = None
 
 
 class ValidacaoDrugHunterResponse(BaseModel):

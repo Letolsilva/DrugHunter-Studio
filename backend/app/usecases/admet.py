@@ -22,6 +22,14 @@ from app.services import admet as svc
 logger = logging.getLogger("pdb_explorer")
 
 
+def _resolve_path(dh_dir: str, stored_path: str) -> Path:
+    """Resolve stored_path relativo ao dh_dir, com fallback para caminhos absolutos legados."""
+    p = Path(stored_path)
+    if p.is_absolute() and p.exists():
+        return p
+    return Path(dh_dir) / stored_path.lstrip("/")
+
+
 def _ler_counts_de_arquivos(output_dir: Path, stem: str) -> dict:
     """Lê contagens dos CSVs já existentes no disco (gerados pelo DrugHunter)."""
     csv_path = output_dir / f"{stem}.csv"
@@ -66,7 +74,8 @@ def _executar_pipeline(result_id: int, item_id: int) -> None:
             return
 
         base_output_path = item.job.base_output_path
-        output_dir = Path(base_output_path) / "ChEMBL" / item.folder_name / "ADMET"
+        dh_dir = get_config(db, "drug_hunter_path") or ""
+        output_dir = _resolve_path(dh_dir, base_output_path) / "ChEMBL" / item.folder_name / "ADMET"
         stem = item.folder_name
         csv_path = output_dir / f"{stem}.csv"
 
@@ -75,10 +84,15 @@ def _executar_pipeline(result_id: int, item_id: int) -> None:
             logger.info("ADMET: arquivos já existem em %s — lendo do disco.", output_dir)
             counts = _ler_counts_de_arquivos(output_dir, stem)
         else:
-            # Arquivos não existem — roda o worker do DrugHunter para gerar
-            dh_dir = get_config(db, "drug_hunter_path") or ""
+            # Arquivos não existem — roda o worker do DrugHunter para gerar.
+            # Prefere DrugBank/{stem}_FULL.csv (criado pelo prepare_datamols no worker ChEMBL);
+            # fallback para bioatividades/ em jobs anteriores sem a etapa DrugBank.
             python_bin = get_config(db, "python_bin") or ""
-            input_dir = str(Path(base_output_path) / "ChEMBL" / item.folder_name / "bioatividades")
+            drugbank_dir = _resolve_path(dh_dir, base_output_path) / "ChEMBL" / "DrugBank"
+            if (drugbank_dir / f"{stem}_FULL.csv").exists():
+                input_dir = str(drugbank_dir)
+            else:
+                input_dir = str(_resolve_path(dh_dir, base_output_path) / "ChEMBL" / item.folder_name / "bioatividades")
 
             logger.info("ADMET: arquivos não encontrados em %s — executando worker.", output_dir)
             counts = run_admet_worker(
@@ -185,7 +199,8 @@ def uc_listar_moleculas(
     if item is None:
         return None
 
-    csv_path = Path(result.base_output_path) / "ChEMBL" / item.folder_name / "ADMET" / f"{item.folder_name}.csv"
+    dh_dir = get_config(db, "drug_hunter_path") or ""
+    csv_path = _resolve_path(dh_dir, result.base_output_path) / "ChEMBL" / item.folder_name / "ADMET" / f"{item.folder_name}.csv"
     if not csv_path.exists():
         return None
 
@@ -235,7 +250,8 @@ def uc_get_download_path(
     if item is None:
         return None
 
-    admet_dir = Path(result.base_output_path) / "ChEMBL" / item.folder_name / "ADMET"
+    dh_dir = get_config(db, "drug_hunter_path") or ""
+    admet_dir = _resolve_path(dh_dir, result.base_output_path) / "ChEMBL" / item.folder_name / "ADMET"
     stem = item.folder_name
 
     mapa = {

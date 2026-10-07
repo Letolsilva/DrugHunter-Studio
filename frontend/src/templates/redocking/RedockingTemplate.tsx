@@ -76,6 +76,7 @@ export default function RedockingTemplate({
   handlePreparar,
   handleSubmit,
   handleLogout,
+  onDeleteJob,
 }: UseRedockingPageReturn) {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -645,6 +646,7 @@ export default function RedockingTemplate({
                       "Carga",
                       "Iniciado",
                       "Finalizado",
+                      "",
                     ].map((col) => (
                       <th
                         key={col}
@@ -714,6 +716,16 @@ export default function RedockingTemplate({
                         <td className="px-4 py-1.5 font-mono text-[12px] text-foreground-subtle">
                           {formatDate(job.finalizado_em)}
                         </td>
+                        <td className="px-2 py-1.5 text-center">
+                          <button
+                            type="button"
+                            onClick={() => onDeleteJob(job.id)}
+                            className="flex items-center justify-center rounded w-6 h-6 font-mono text-[13px] text-foreground-subtle hover:text-foreground transition-colors mx-auto"
+                            title="Remover do histórico"
+                          >
+                            ×
+                          </button>
+                        </td>
                       </tr>
                       {job.status === "error" &&
                         job.erro_msg &&
@@ -723,7 +735,7 @@ export default function RedockingTemplate({
                             className="border-b border-outline"
                           >
                             <td
-                              colSpan={6}
+                              colSpan={7}
                               className="px-4 py-3 bg-surface-secondary"
                             >
                               <pre className="font-mono text-[11px] text-foreground-subtle whitespace-pre-wrap break-words leading-relaxed border border-outline rounded-lg p-3 bg-panel overflow-x-auto max-h-48">

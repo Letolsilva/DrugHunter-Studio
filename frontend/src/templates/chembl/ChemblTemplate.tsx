@@ -26,10 +26,13 @@ function JobHistoryCard({
   onClick: () => void;
   onDelete: () => void;
 }) {
-  const date = new Date(job.created_at).toLocaleDateString("pt-BR", {
+  const utcStr = job.created_at.endsWith("Z") || job.created_at.includes("+") ? job.created_at : job.created_at + "Z";
+  const date = new Date(utcStr).toLocaleString("pt-BR", {
     day: "2-digit",
-    month: "short",
-    year: "numeric",
+    month: "2-digit",
+    year: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
   });
   const statusColor =
     job.status === "done"
@@ -75,7 +78,7 @@ function JobHistoryCard({
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); onDelete(); }}
-        className="absolute top-1.5 right-1.5 flex items-center justify-center rounded w-5 h-5 font-mono text-[12px] text-foreground-subtle hover:text-foreground transition-colors"
+        className="absolute top-1.5 right-1.5 flex items-center justify-center rounded w-6 h-6 font-mono text-[13px] text-foreground-subtle hover:text-foreground transition-colors"
         title="Remover do histórico"
       >
         ×
@@ -180,14 +183,15 @@ export default function ChemblTemplate(props: UseChemblPageReturn) {
         </div>
 
         <div className="flex items-center gap-3 rounded-xl border border-outline bg-panel px-4 py-3">
-          <span className="font-mono text-[12px] text-foreground-subtle w-[120px] shrink-0">
-            Pasta de saída
-          </span>
+          <div className="flex flex-col gap-0.5 w-[120px] shrink-0">
+            <span className="font-mono text-[12px] text-foreground-subtle">Pasta de saída</span>
+            <span className="text-[10px] text-foreground-subtle opacity-60">relativa ao DrugHunter</span>
+          </div>
           <input
             type="text"
             value={baseOutputPath}
             onChange={(e) => setBaseOutputPath(e.target.value)}
-            placeholder="/home/usuaria/DrugHunter/output"
+            placeholder="resultados/chembl"
             className="flex-1 rounded border border-outline bg-surface-secondary px-3 py-1.5 font-mono text-[12px] text-foreground placeholder:text-foreground-subtle focus:outline-none focus:border-outline-strong"
           />
         </div>

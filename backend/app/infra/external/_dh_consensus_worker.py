@@ -4,30 +4,18 @@ Script executado via subprocesso com o Python do DrugHunter.
 Recebe configuração via JSON em argv[1] e imprime eventos de progresso
 como JSON lines no stdout. Código de saída 0 = sucesso, 1 = erro.
 
-Instala dois shims antes de importar qualquer coisa do DH:
-
-  chimera      — substitui o UCSF Chimera por obabel (sem minimização de energia),
-                 preservando as coordenadas da pose Vina.
+Instala um shim antes de importar qualquer coisa do DH:
 
   sphere_selector — substitui o sphere_selector do Dock6, que é interativo e
                     bloqueia esperando stdin. Nossa versão seleciona esferas em
                     Python puro, sem interação, e grava selected_spheres.sph
-                    no CWD.
+                    no CWD. Desvio documentado em PRINCIPIOS.md.
 
-Por que o shim de chimera é necessário:
-  O DH usa Chimera para converter as poses do Vina (pdbqt) em mol2 e depois
-  minimiza a energia (sem restrições de posição). Essa minimização desloca o
-  ligante para fora do sítio de ligação, fazendo sphere_selector encontrar
-  0 esferas e não gerar selected_spheres.sph — quebrando toda a etapa Dock6.
-  O shim substitui o Chimera por obabel, que converte .pdb → .mol2 preservando
-  as coordenadas da pose docada pelo Vina e atribuindo cargas de Gasteiger.
-
-Por que o shim de sphere_selector é necessário:
-  O sphere_selector do Dock6 é interativo: após selecionar as esferas, aguarda
-  entrada do usuário no stdin. Em ambiente de servidor (stdin redirecionado ou
-  fechado) isso pode bloquear indefinidamente ou retornar sem gravar o arquivo.
-  Nossa versão calcula distâncias em Python puro e grava selected_spheres.sph
-  de forma não-interativa.
+Chimera: usado diretamente conforme o fluxo original do DrugHunter.
+  O DH chama: chimera --nogui --silent prepare_better_conform_<ligand>.com
+  O script .com abre o .pdb da pose Vina, adiciona H, atribui cargas e
+  minimiza energia, depois grava .lig.mol2.
+  Requer que o UCSF Chimera esteja instalado e acessível no PATH.
 """
 import json
 import os
@@ -43,51 +31,6 @@ def emit(msg: dict):
     except (BrokenPipeError, OSError):
         # Pipe fechado pelo processo pai — silencia; o resultado já foi gravado em disco.
         pass
-
-
-def _install_chimera_shim(tmp_dir: str) -> None:
-    """
-    Cria um script fake 'chimera' em tmp_dir.
-
-    O DH chama:  chimera --nogui --silent prepare_better_conform_<ligand>.com
-    O script .com abre <ligand>.pdb, adiciona H/cargas, minimiza e grava .lig.mol2.
-    Nosso shim lê o .com, extrai o nome do ligante e usa obabel para fazer a
-    conversão pdb → mol2 com cargas Gasteiger — sem minimização de energia.
-    """
-    obabel_bin = str(Path(sys.executable).parent / "obabel")
-
-    # language=bash
-    shim_script = f"""\
-#!/bin/bash
-# DH chimera shim — usa obabel para preservar coordenadas da pose Vina
-# Chamada: chimera --nogui --silent <arquivo.com>
-LOG="/tmp/dh_shim_debug.log"
-echo "[chimera] args: $@  cwd: $(pwd)  time: $(date +%T)" >> "$LOG"
-COM="$3"
-if [[ -z "$COM" || ! -f "$COM" ]]; then
-    echo "[chimera] COM nao encontrado: '$COM'" >> "$LOG"
-    exit 0
-fi
-# Extrai o nome do ligante da linha "open LIGNAME.pdb" do .com
-LIGNAME=$(grep '^open ' "$COM" 2>/dev/null | head -1 | awk '{{print $2}}' | sed 's/\\.pdb$//')
-echo "[chimera] COM=$COM  LIGNAME=$LIGNAME" >> "$LOG"
-if [[ -z "$LIGNAME" ]]; then
-    exit 0
-fi
-PDB="${{LIGNAME}}.pdb"
-MOL2="${{LIGNAME}}.lig.mol2"
-echo "[chimera] PDB=$PDB exists=$(test -f "$PDB" && echo yes || echo no)" >> "$LOG"
-if [[ -f "$PDB" ]]; then
-    "{obabel_bin}" -i pdb "$PDB" -o mol2 -O "$MOL2" \\
-        --partialcharge gasteiger 2>&1 >> "$LOG"
-    echo "[chimera] obabel exit=$?  mol2_created=$(test -f "$MOL2" && echo yes || echo no)" >> "$LOG"
-fi
-exit 0
-"""
-
-    shim_path = Path(tmp_dir) / "chimera"
-    shim_path.write_text(shim_script)
-    shim_path.chmod(shim_path.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
 
 
 def _install_sphere_selector_shim(tmp_dir: str) -> None:
@@ -186,19 +129,12 @@ def reconstruct_paths(argv_parts):
 
 def main():
     sph_file, mol2_file, distance = reconstruct_paths(sys.argv[1:])
-    log = open('/tmp/dh_shim_debug.log', 'a')
-    log.write(f'[sph_sel] argv={sys.argv[1:]}\n')
     if sph_file is None:
-        log.write('[sph_sel] falha ao reconstruir args\n')
-        log.close()
         return
-    log.write(f'[sph_sel] sph={sph_file} mol2={mol2_file} dist={distance} cwd={os.getcwd()}\n')
 
     coords  = parse_mol2_coords(mol2_file)
     spheres = parse_sph(sph_file)
     dist2   = distance * distance
-
-    log.write(f'[sph_sel] atoms={len(coords)} spheres={len(spheres)}\n')
 
     selected = []
     for sph in spheres:
@@ -207,10 +143,6 @@ def main():
             if (sx-lx)**2 + (sy-ly)**2 + (sz-lz)**2 <= dist2:
                 selected.append(sph)
                 break
-
-    log.write(f'[sph_sel] selected={len(selected)}\n')
-    log.flush()
-    log.close()
 
     if selected:
         with open('selected_spheres.sph', 'w') as out:
@@ -233,7 +165,6 @@ main()
 # Chamada: sphere_selector <sph_file> <mol2_file> <distance>
 # Nota: DH chama via shell=True sem aspas; paths com espaços chegam quebrados.
 # Passamos "$@" inteiro para Python reconstruir os paths pelas extensões.
-echo "[sph_sel_sh] args: $@  cwd: $(pwd)  time: $(date +%T)" >> /tmp/dh_shim_debug.log
 "{python_bin}" - "$@" << 'PYEOF'
 {py_script}
 PYEOF
@@ -247,13 +178,51 @@ exit 0
 
 def _install_shims() -> str:
     """
-    Cria chimera e sphere_selector shims em um diretório temporário.
+    Cria o sphere_selector shim em um diretório temporário.
     Retorna o diretório (deve ser inserido no início do PATH).
+    O Chimera é usado diretamente — sem shim.
     """
     tmp_dir = tempfile.mkdtemp(prefix="dh_shims_")
-    _install_chimera_shim(tmp_dir)
     _install_sphere_selector_shim(tmp_dir)
     return tmp_dir
+
+
+# ── Patches de nível de módulo (picklable) ────────────────────────────────────
+# O DrugHunter usa multiprocessing.ProcessPoolExecutor para paralelizar o docking.
+# Os objetos Dock6 são enviados para processos filhos via pickle na fila de trabalho.
+# Closures definidos dentro de main() não são picklable por nome qualificado —
+# as funções de patch precisam estar no nível de módulo para serem serializáveis.
+
+_ORIG_GENERATE_DOCKING_SCRIPT: object = None
+
+
+def _fixed_generate_docking_script(self_dock6, input_template: str, output_script: str, **kwargs):
+    _ORIG_GENERATE_DOCKING_SCRIPT(self_dock6, input_template, output_script, **kwargs)  # type: ignore[call-arg]
+    try:
+        with open(output_script, "r") as _f:
+            _content = _f.read()
+        # dock6 v6.13: num_scored_conformers → num_final_scored_poses (renomeado)
+        _fixed = _content.replace("num_scored_conformers", "num_final_scored_poses")
+        # dock6 v6.13: num_preclustered_conformers é novo parâmetro obrigatório
+        # não presente no template do DrugHunter — injeta após num_final_scored_poses
+        if "num_preclustered_conformers" not in _fixed:
+            import re as _re2
+            _fixed = _re2.sub(
+                r"(num_final_scored_poses\s+\d+)",
+                r"\1\nnum_preclustered_conformers                              1",
+                _fixed,
+            )
+        if _fixed != _content:
+            with open(output_script, "w") as _f:
+                _f.write(_fixed)
+    except OSError:
+        pass
+
+
+# Pickle serializa bound methods usando func.__name__ para reconstruir via getattr(instance, name).
+# Se __name__ não coincidir com o atributo da classe, o processo filho levanta AttributeError.
+_fixed_generate_docking_script.__name__ = "generate_docking_script"
+_fixed_generate_docking_script.__qualname__ = "generate_docking_script"
 
 
 def main():
@@ -306,20 +275,26 @@ def main():
         str(pdb_code_raw[3]),
     )
 
-    # ── Instala os shims ANTES de importar qualquer coisa do DH ──────────────
-    # Os shims precisam estar no PATH antes que o ProcessPoolExecutor fork os
-    # workers, para que eles também encontrem nosso 'chimera' e 'sphere_selector'
-    # falsos no lugar dos originais.
+    # ── Instala o shim do sphere_selector ANTES de importar o DH ────────────
+    # O sphere_selector do Dock6 bloqueia stdin em modo interativo; o shim
+    # substitui apenas esse binário, não o Chimera.
     shim_dir = _install_shims()
 
-    # Limpa log de debug anterior
-    try:
-        open("/tmp/dh_shim_debug.log", "w").close()
-    except OSError:
-        pass
-
     os.environ["PATH"] = shim_dir + os.pathsep + os.environ.get("PATH", "")
-    emit({"type": "log", "msg": f"Shims instalados em {shim_dir}"})
+    emit({"type": "log", "msg": f"Shim sphere_selector instalado em {shim_dir}"})
+
+    # ── Verifica se o Chimera está acessível no PATH ──────────────────────────
+    import shutil as _shutil
+    chimera_bin = _shutil.which("chimera")
+    if chimera_bin:
+        emit({"type": "log", "msg": f"Chimera encontrado: {chimera_bin}"})
+    else:
+        emit({"type": "warn", "msg": (
+            "AVISO: 'chimera' não encontrado no PATH. "
+            "O DrugHunter precisa do UCSF Chimera instalado para a etapa "
+            "prepare_better_conform (conversão pdb → mol2 com minimização de energia). "
+            "Instale o Chimera e adicione ao PATH antes de rodar o consenso."
+        )})
 
     # Configura o ambiente DrugHunter
     src_path = os.path.join(dh_dir, "src")
@@ -332,7 +307,7 @@ def main():
     try:
         import kernel as _kernel_pkg
     except ImportError as exc:
-        emit({"type": "error", "msg": f"Não foi possível importar kernel do DrugHunter: {exc}"})
+        emit({"type": "error", "msg": f"Não foi possível inicializar o DrugHunter. Verifique se o ambiente conda está ativo e o caminho do Python está correto em Configurações. Detalhe: {exc}"})
         sys.exit(1)
 
     if "kernel.header_builder" not in sys.modules:
@@ -378,88 +353,16 @@ def main():
         _DH_Dock6.__init__ = _dh_dock6_limited_init
         emit({"type": "log", "msg": f"Paralelismo do Dock6 ajustado para {_nprocess} processos (RAM disponível)"})
 
-        # Patcha perform_subprocess para logar stdout/stderr do dock6 independente do exit code.
-        # O DH só loga em CalledProcessError, então falhas silenciosas (exit 0 sem output)
-        # ficam invisíveis. Este patch escreve tudo em /tmp/dh_dock6_debug.log.
-        import subprocess as _subproc
-        _orig_perform_subprocess = _DH_Dock6.perform_subprocess
-
-        def _logging_perform_subprocess(self_dock6, command, local_path=None, shell=True, check=True):
-            cwd = local_path[1:] if local_path else None
-            try:
-                result = _subproc.run(
-                    command, cwd=cwd, shell=shell,
-                    start_new_session=True,
-                    stdin=_subproc.DEVNULL,
-                    stdout=_subproc.PIPE, stderr=_subproc.PIPE,
-                )
-                with open("/tmp/dh_dock6_debug.log", "a") as _lf:
-                    _lf.write(f"\n=== CMD: {command}  exit={result.returncode} ===\n")
-                    _lf.write(f"STDOUT: {result.stdout.decode('utf-8', errors='replace')[:20000]}\n")
-                    _lf.write(f"STDERR: {result.stderr.decode('utf-8', errors='replace')[:20000]}\n")
-                if check and result.returncode != 0:
-                    raise _subproc.CalledProcessError(result.returncode, command, result.stdout, result.stderr)
-                return True
-            except _subproc.CalledProcessError:
-                raise
-            except Exception as _exc:
-                with open("/tmp/dh_dock6_debug.log", "a") as _lf:
-                    _lf.write(f"EXCEPTION em perform_subprocess: {_exc}\n")
-                return False
-            finally:
-                _dir = local_path[1:] if local_path else self_dock6.outputpath[1:]
-                try:
-                    _fd = os.open(_dir, os.O_DIRECTORY)
-                    os.fsync(_fd)
-                    os.close(_fd)
-                except OSError:
-                    pass
-                import time as _time
-                _time.sleep(1)
-
-        _DH_Dock6.perform_subprocess = _logging_perform_subprocess
-        emit({"type": "log", "msg": "Logging de subprocess do Dock6 ativado → /tmp/dh_dock6_debug.log"})
-
-        # Dock6 v6.13 renomeou 'num_scored_conformers' → 'num_final_scored_poses'.
-        # O template do DrugHunter usa o nome antigo; o dock6 não o reconhece e falha com:
-        #   "num_final_scored_poses [1] (): ERROR: Parameter must be an integer > 0"
-        # Patch: substitui o nome antigo pelo correto no arquivo .in gerado antes de rodar o dock6.
-        _orig_generate_docking_script = _DH_Dock6.generate_docking_script
-
-        def _fixed_generate_docking_script(self_dock6, input_template: str, output_script: str, **kwargs):
-            _orig_generate_docking_script(self_dock6, input_template, output_script, **kwargs)
-            try:
-                with open(output_script, "r") as _f:
-                    _content = _f.read()
-                # dock6 v6.13: num_scored_conformers → num_final_scored_poses (renomeado)
-                _fixed = _content.replace(
-                    "num_scored_conformers",
-                    "num_final_scored_poses",
-                )
-                # dock6 v6.13: num_preclustered_conformers é novo parâmetro obrigatório
-                # não presente no template do DrugHunter — injeta após num_final_scored_poses
-                if "num_preclustered_conformers" not in _fixed:
-                    _fixed = _fixed.replace(
-                        "num_final_scored_poses",
-                        "num_final_scored_poses",  # mantém a linha
-                    )
-                    import re as _re2
-                    _fixed = _re2.sub(
-                        r"(num_final_scored_poses\s+\d+)",
-                        r"\1\nnum_preclustered_conformers                              1",
-                        _fixed,
-                    )
-                if _fixed != _content:
-                    with open(output_script, "w") as _f:
-                        _f.write(_fixed)
-            except OSError:
-                pass
-
+        # Aplica patch usando função de nível de módulo (picklable):
+        # closures locais causariam AttributeError nos processos filhos do ProcessPoolExecutor
+        # ao tentar desserializar objetos Dock6 via pickle.
+        global _ORIG_GENERATE_DOCKING_SCRIPT
+        _ORIG_GENERATE_DOCKING_SCRIPT = _DH_Dock6.generate_docking_script
         _DH_Dock6.generate_docking_script = _fixed_generate_docking_script
         emit({"type": "log", "msg": "Patch dock6 v6.13: num_scored_conformers → num_final_scored_poses + num_preclustered_conformers"})
 
     except ImportError as exc:
-        emit({"type": "error", "msg": f"Erro ao importar wrappers.docking: {exc}"})
+        emit({"type": "error", "msg": f"Não foi possível carregar o módulo de docking do DrugHunter. Verifique se o ambiente conda está ativo. Detalhe: {exc}"})
         sys.exit(1)
 
     emit({"type": "start", "msg": "Iniciando docking de consenso..."})
@@ -479,6 +382,16 @@ def main():
     except Exception as exc:
         emit({"type": "error", "msg": str(exc)})
         sys.exit(1)
+
+    # ── Verificação pós-execução: quantos mol2 foram criados pelo Chimera ─────
+    try:
+        output_abs = Path(dh_dir) / base_output_path.lstrip("/")
+        mol2_files = list(output_abs.rglob("*.lig.mol2"))
+        emit({"type": "log", "msg": f"Verificação pós-consenso: {len(mol2_files)} arquivo(s) .lig.mol2 criados"})
+        for mf in mol2_files[:10]:
+            emit({"type": "log", "msg": f"  mol2: {mf.relative_to(Path(dh_dir))}"})
+    except Exception as _ve:
+        emit({"type": "log", "msg": f"Verificação pós-consenso: erro ao listar mol2: {_ve}"})
 
     emit({"type": "done"})
 

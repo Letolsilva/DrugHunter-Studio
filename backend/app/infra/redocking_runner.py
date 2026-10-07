@@ -119,6 +119,8 @@ def executar_redocking_background(
 
         # Verifica se existem arquivos .pdb no diretório do target antes de começar.
         target_dir = Path(drug_hunter_dir) / base_input_path.lstrip("/") / normalizar_target(target)
+        if not target_dir.resolve().is_relative_to(Path(drug_hunter_dir).resolve()):
+            raise ValueError(f"base_input_path inválido: '{base_input_path}' aponta para fora do DrugHunter.")
         pdb_files = list(target_dir.glob("*.pdb")) if target_dir.is_dir() else []
         if not pdb_files:
             raise FileNotFoundError(
@@ -165,9 +167,7 @@ def executar_redocking_background(
 
         # Lê o CSV de resultado para verificar artefato (defesa independente do returncode)
         target_clean = normalizar_target(target)
-        result_csv_path = Path(
-            drug_hunter_dir + base_input_path + "/" + target_clean + "/pdb_codes.csv"
-        )
+        result_csv_path = Path(drug_hunter_dir) / base_input_path.lstrip("/") / target_clean / "pdb_codes.csv"
         updated_csv: str | None = None
         try:
             if result_csv_path.exists():

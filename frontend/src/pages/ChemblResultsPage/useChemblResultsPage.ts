@@ -19,6 +19,7 @@ export interface AnalysisStatus {
   mcc_sims_ids: string[];
   mcc_mols_ids: string[];
   dh_failed_targets: string[];
+  analysis_error: string | null;
 }
 
 export interface ChemblSummary {
@@ -257,26 +258,28 @@ export function useChemblResultsPage(
 
   useEffect(() => { loadAnalysisStatus(); }, [loadAnalysisStatus]);
 
-  // Polling automático enquanto análise estiver em andamento (mesmo ao voltar à página)
-  useEffect(() => {
-    if (!analysisStatus?.analysis_running) return;
-    const interval = setInterval(async () => {
-      try {
-        const refreshed = await chemblUseCase.getAnalysisStatus(jobIdNum, token());
-        setAnalysisStatus(refreshed);
-        if (refreshed.has_analysis) {
-          setAnalysisSubmitted(false);
-        }
-      } catch {}
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [analysisStatus?.analysis_running, jobIdNum, chemblUseCase]);
-
   // ── Análise molecular ─────────────────────────────────────────────────────
   const [fingerprint, setFingerprint] = useState<"morgan" | "maccs" | "pharmacophore">("morgan");
   const [metric, setMetric] = useState<"Tanimoto" | "Dice" | "Cosine">("Tanimoto");
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [analysisSubmitted, setAnalysisSubmitted] = useState(false);
+
+  // Polling automático enquanto análise estiver em andamento ou logo após disparar
+  // Continua até: has_analysis=true, analysis_error não-nulo, ou analysis_running=false (stale)
+  useEffect(() => {
+    const shouldPoll = analysisStatus?.analysis_running || analysisSubmitted;
+    if (!shouldPoll) return;
+    const interval = setInterval(async () => {
+      try {
+        const refreshed = await chemblUseCase.getAnalysisStatus(jobIdNum, token());
+        setAnalysisStatus(refreshed);
+        if (refreshed.has_analysis || refreshed.analysis_error) {
+          setAnalysisSubmitted(false);
+        }
+      } catch {}
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [analysisStatus?.analysis_running, analysisSubmitted, jobIdNum, chemblUseCase]);
 
   const onRunAnalysis = useCallback(() => {
     if (!job) return;

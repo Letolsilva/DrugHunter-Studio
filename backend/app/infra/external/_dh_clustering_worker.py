@@ -51,7 +51,7 @@ def main():
         from kernel.descriptors import Descriptors, fingerprints as FP
         from wrappers.molecular_ai_analyzer import perform_clustering
     except ImportError as exc:
-        emit({"type": "error", "msg": f"Falha ao importar DrugHunter: {exc}"})
+        emit({"type": "error", "msg": f"Não foi possível carregar o módulo de clustering do DrugHunter. Verifique se o ambiente conda está ativo. Detalhe: {exc}"})
         sys.exit(1)
 
     # ── Mapeia fingerprint_type para o enum do DH ────────────────────────────

@@ -627,10 +627,13 @@ function JobHistoryCard({
   onClick: () => void;
   onDelete: () => void;
 }) {
-  const date = new Date(job.created_at).toLocaleDateString("pt-BR", {
+  const utcStr = job.created_at.endsWith("Z") || job.created_at.includes("+") ? job.created_at : job.created_at + "Z";
+  const date = new Date(utcStr).toLocaleString("pt-BR", {
     day: "2-digit",
-    month: "short",
-    year: "numeric",
+    month: "2-digit",
+    year: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
   });
   const statusColor =
     job.status === "done"
@@ -676,7 +679,7 @@ function JobHistoryCard({
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); onDelete(); }}
-        className="absolute top-1.5 right-1.5 flex items-center justify-center rounded w-5 h-5 font-mono text-[12px] text-foreground-subtle hover:text-foreground transition-colors"
+        className="absolute top-1.5 right-1.5 flex items-center justify-center rounded w-6 h-6 font-mono text-[13px] text-foreground-subtle hover:text-foreground transition-colors"
         title="Remover do histórico"
       >
         ×
@@ -931,6 +934,26 @@ export default function MolecularDynamicsTemplate(props: Props) {
                 </p>
               )}
             </div>
+
+            {/* Avisos não-fatais do worker (ex: fallback de cargas AM1-BCC) */}
+            {job?.warnings && job.warnings.length > 0 && (
+              <div
+                className="rounded-xl border px-4 py-3 flex flex-col gap-2"
+                style={{ borderColor: "rgba(234,179,8,0.35)", background: "rgba(234,179,8,0.08)" }}
+              >
+                <span className="font-mono text-[11px] font-bold uppercase tracking-wider" style={{ color: "#b45309" }}>
+                  ⚠ Aviso da simulação
+                </span>
+                {job.warnings.map((w, i) => (
+                  <p key={i} className="font-mono text-[11px]" style={{ color: "#92400e" }}>
+                    {w}
+                  </p>
+                ))}
+                <p className="font-mono text-[10px]" style={{ color: "#b45309", opacity: 0.8 }}>
+                  Consulte a página de <a href="/ajuda" className="underline">Ajuda</a> para instruções de instalação do AmberTools e Open Babel.
+                </p>
+              </div>
+            )}
 
             {/* Arquivos */}
             {outputFiles.length > 0 && (

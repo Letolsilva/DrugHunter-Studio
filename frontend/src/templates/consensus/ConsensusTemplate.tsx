@@ -196,18 +196,30 @@ export default function ConsensusTemplate(props: UseConsensusPageReturn) {
               </p>
               <p className="font-mono text-[12px] text-red-400/80">{error}</p>
             </div>
-            {job && (
+            <div className="flex gap-2 flex-wrap">
+              {job && (
+                <button
+                  onClick={onRerun}
+                  className="cursor-pointer shrink-0 font-mono text-[11px] rounded-lg border px-3 py-1.5 transition-colors hover:bg-surface-secondary"
+                  style={{
+                    borderColor: "var(--color-outline)",
+                    color: "var(--color-foreground-subtle)",
+                  }}
+                >
+                  Tentar novamente
+                </button>
+              )}
               <button
-                onClick={onRerun}
+                onClick={() => window.history.back()}
                 className="cursor-pointer shrink-0 font-mono text-[11px] rounded-lg border px-3 py-1.5 transition-colors hover:bg-surface-secondary"
                 style={{
                   borderColor: "var(--color-outline)",
                   color: "var(--color-foreground-subtle)",
                 }}
               >
-                Tentar novamente
+                ← Voltar
               </button>
-            )}
+            </div>
           </div>
         )}
 

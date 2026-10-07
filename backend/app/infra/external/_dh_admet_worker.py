@@ -29,7 +29,7 @@ def main():
         sys.exit(1)
 
     dh_dir = args["dh_dir"]
-    input_dir = args["input_dir"]    # caminho absoluto para bioatividades/
+    input_dir = args["input_dir"]    # caminho absoluto para DrugBank/ ou bioatividades/ (legado)
     output_dir = args["output_dir"]  # caminho absoluto para ADMET/
     stem = args["stem"]              # nome base para os arquivos de saída
 
@@ -46,7 +46,7 @@ def main():
     try:
         import kernel as _kernel_pkg
     except ImportError as exc:
-        emit({"type": "error", "msg": f"Não foi possível importar o pacote kernel do DrugHunter: {exc}"})
+        emit({"type": "error", "msg": f"Não foi possível inicializar o DrugHunter. Verifique se o ambiente conda está ativo e o caminho do Python está correto em Configurações. Detalhe: {exc}"})
         sys.exit(1)
 
     if "kernel.header_builder" not in sys.modules:
@@ -63,17 +63,22 @@ def main():
         import pandas as pd
         from caad.admet import MoleculeEvaluator, BoiledEggPlotter
     except ImportError as exc:
-        emit({"type": "error", "msg": f"Erro ao importar DrugHunter: {exc}"})
+        emit({"type": "error", "msg": f"Não foi possível carregar o módulo ADMET do DrugHunter. Verifique se o ambiente conda está ativo. Detalhe: {exc}"})
         sys.exit(1)
 
     os.makedirs(output_dir, exist_ok=True)
 
-    # Carrega todos os CSVs de bioatividades
+    # Carrega moléculas: prefere {stem}_FULL.csv do DrugBank (criado pelo prepare_datamols),
+    # com fallback para todos os CSVs da pasta (legado: bioatividades/).
     emit({"type": "etapa", "etapa": "carregando"})
     from pathlib import Path
-    csv_files = list(Path(input_dir).glob("*.csv"))
+    full_csv = Path(input_dir) / f"{stem}_FULL.csv"
+    if full_csv.exists():
+        csv_files = [full_csv]
+    else:
+        csv_files = list(Path(input_dir).glob("*.csv"))
     if not csv_files:
-        emit({"type": "error", "msg": f"Nenhum CSV de bioatividades em: {input_dir}"})
+        emit({"type": "error", "msg": "Nenhum dado ChEMBL encontrado para análise. Execute o pipeline ChEMBL antes de rodar o ADMET."})
         sys.exit(1)
 
     frames = []
@@ -129,9 +134,9 @@ def main():
         rows.append({
             "canonical_smiles": smiles,
             "molecule_chembl_id": name,
-            "TPSA": round(tpsa, 2),
-            "WLOGP": round(logp, 2),
-            "MW": round(mw, 2),
+            "TPSA": tpsa,
+            "WLOGP": logp,
+            "MW": mw,
             "HBD": hbd,
             "HBA": hba,
             "RB": rb,

@@ -17,6 +17,7 @@ from app.domain.models.consensus_job import ConsensusJob
 from app.domain.models.neurodock_model import NeuroDockModel
 from app.domain.models.neurodock_prediction import NeuroDockPrediction
 from app.infra.db.database import SessionLocal, get_config
+from app.infra.email_sender import enviar_email_conclusao
 from app.infra.external.neurodock_runner import run_train_worker, run_predict_worker
 from app.services import neurodock as svc
 
@@ -24,6 +25,22 @@ logger = logging.getLogger("pdb_explorer")
 
 _running_models: set[int] = set()
 _running_predictions: set[int] = set()
+
+
+def _cascade_delete_predictions(db, model_id: int) -> None:
+    """Apaga todas as predições (e seus arquivos) de um modelo antes de retreinar."""
+    from app.domain.models.neurodock_prediction import NeuroDockPrediction
+
+    preds = db.query(NeuroDockPrediction).filter(NeuroDockPrediction.model_id == model_id).all()
+    for pred in preds:
+        if pred.result_dir:
+            p = Path(pred.result_dir)
+            if p.exists():
+                shutil.rmtree(p, ignore_errors=True)
+        db.delete(pred)
+    if preds:
+        db.commit()
+        logger.info("Cascade: %d predição(ões) deletada(s) antes de retreinar modelo %s.", len(preds), model_id)
 
 # Path DH-relativo onde clustering já gravou os inputs (fingerprints + CSVs de moléculas)
 _BASE_INPUT_PATH = "/resultados/maia_input"
@@ -38,6 +55,9 @@ def _executar_treinamento(model_id: int, n_trials: int = 20) -> None:
         if not model:
             logger.error("NeuroDockModel %s não encontrado.", model_id)
             return
+
+        _user = db.query(User).filter(User.id == model.user_id).first()
+        email_notificacao = _user.email if _user else None
 
         dh_dir = get_config(db, "drug_hunter_path") or ""
         python_bin = get_config(db, "python_bin") or ""
@@ -68,6 +88,12 @@ def _executar_treinamento(model_id: int, n_trials: int = 20) -> None:
             "NeuroDock treinamento concluído: model_id=%s | alvos=%s | mols=%s",
             model_id, n_targets, n_train_mols,
         )
+        if email_notificacao:
+            enviar_email_conclusao(
+                email_notificacao, model_id, model.target or model.evaluation_name,
+                "done", None, model.model_output_path or "",
+                modulo="NeuroDock (Treinamento)",
+            )
 
     except Exception as e:
         logger.exception("Erro no treinamento NeuroDock model_id=%s: %s", model_id, e)
@@ -75,6 +101,11 @@ def _executar_treinamento(model_id: int, n_trials: int = 20) -> None:
             svc.marcar_modelo_erro(db, model_id, str(e))
         except Exception:
             pass
+        if email_notificacao:
+            enviar_email_conclusao(
+                email_notificacao, model_id, model.target or model.evaluation_name,
+                "error", str(e)[:1000], modulo="NeuroDock (Treinamento)",
+            )
     finally:
         db.close()
 
@@ -132,6 +163,9 @@ def uc_iniciar_treinamento(
         history_output_path=history_output_path,
     )
 
+    # Cascade: predições feitas com o modelo anterior são inválidas após retreinamento.
+    _cascade_delete_predictions(db, model.id)
+
     import threading
 
     def _wrapper(model_id: int, _n_trials: int) -> None:
@@ -181,9 +215,12 @@ def _executar_triagem(pred_id: int) -> None:
             logger.error("NeuroDockPrediction %s não encontrada.", pred_id)
             return
 
+        _user = db.query(User).filter(User.id == pred.user_id).first()
+        email_notificacao = _user.email if _user else None
+
         model = db.query(NeuroDockModel).filter(NeuroDockModel.id == pred.model_id).first()
         if not model:
-            raise RuntimeError(f"NeuroDockModel {pred.model_id} não encontrado.")
+            raise RuntimeError("Modelo NeuroDock não encontrado. O modelo pode ter sido removido — treine um novo modelo antes de fazer a predição.")
 
         dh_dir = get_config(db, "drug_hunter_path") or ""
         python_bin = get_config(db, "python_bin") or ""
@@ -212,6 +249,12 @@ def _executar_triagem(pred_id: int) -> None:
             "NeuroDock triagem concluída: pred_id=%s | triadas=%s | selecionadas=%s",
             pred_id, n_screened, n_selected,
         )
+        if email_notificacao:
+            enviar_email_conclusao(
+                email_notificacao, pred_id, model.target or pred.input_dataset,
+                "done", None, pred.base_output_path or "",
+                modulo="NeuroDock (Triagem Virtual)",
+            )
 
     except Exception as e:
         logger.exception("Erro na triagem NeuroDock pred_id=%s: %s", pred_id, e)
@@ -219,6 +262,12 @@ def _executar_triagem(pred_id: int) -> None:
             svc.marcar_predicao_erro(db, pred_id, str(e))
         except Exception:
             pass
+        if email_notificacao:
+            _label = (model.target if model is not None else None) or pred.input_dataset
+            enviar_email_conclusao(
+                email_notificacao, pred_id, _label,
+                "error", str(e)[:1000], modulo="NeuroDock (Triagem Virtual)",
+            )
     finally:
         db.close()
 

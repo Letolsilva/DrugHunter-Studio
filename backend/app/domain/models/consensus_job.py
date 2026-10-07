@@ -39,7 +39,6 @@ class ConsensusJob(Base):
     mol_count = Column(Integer, nullable=True)
 
     # Resultado
-    result_json = Column(Text, nullable=True)        # JSON: lista de linhas do CSV de consenso
     result_csv_path = Column(String(512), nullable=True)
     correlation_img_path = Column(String(512), nullable=True)
 

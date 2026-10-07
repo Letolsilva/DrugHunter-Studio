@@ -25,7 +25,7 @@ const LABEL: Record<string, string> = {
   max_por_proteina: "Máximo de estruturas por proteína",
   limpeza_automatica: "Limpeza automática",
   drug_hunter_path: "Caminho do DrugHunter",
-  python_bin: "Executável Python (ambiente DH)",
+  python_bin: "Executável Python (ambiente DrugHunter)",
   chimera_path: "Caminho do Chimera",
   dock6_path: "Caminho do Dock6",
   smtp_host: "Servidor SMTP",
@@ -42,13 +42,13 @@ const DESCRICAO: Record<string, string> = {
   limpeza_automatica:
     "Executar limpeza de TTL automaticamente na inicialização.",
   drug_hunter_path:
-    "Para obter o caminho: abra o gerenciador de arquivos, navegue até a pasta do DrugHunter, clique com o botão direito → Copiar caminho; ou abra um terminal dentro da pasta e execute pwd.",
+    'Pasta onde o DrugHunter está instalado na sua máquina (a pasta extraída do .zip). Para saber o caminho no Linux: abra a pasta, clique com o botão direito → "Abrir terminal aqui" e execute pwd. No Windows: clique na barra de endereços do Explorador de Arquivos com a pasta aberta.',
   python_bin:
-    "Para obter o caminho: ative o ambiente com conda activate DH e execute which python no terminal. Cole o resultado aqui.",
+    "Caminho do programa Python dentro do ambiente DrugHunter (DH). Veja as instruções logo abaixo de como obter esse caminho.",
   chimera_path:
-    "Deixe vazio para detecção automática. Preencha apenas se o botão Testar Configuração (página Ajuda) indicar que o Chimera não foi encontrado.",
+    "Deixe em branco — o sistema detecta automaticamente na maioria dos casos.",
   dock6_path:
-    "Deixe vazio para detecção automática. Preencha apenas se o botão Testar Configuração (página Ajuda) indicar que o Dock6 não foi encontrado.",
+    "Deixe em branco — o sistema detecta automaticamente na maioria dos casos. ",
   smtp_host: "Host do servidor de email (ex: smtp.gmail.com).",
   smtp_port: "Porta de conexão SMTP (587 para TLS, 465 para SSL).",
   smtp_user: "Email usado para autenticar no servidor SMTP.",
@@ -60,7 +60,7 @@ const DESCRICAO: Record<string, string> = {
 
 const PLACEHOLDER: Record<string, string> = {
   drug_hunter_path: "/home/<seu-usuario>/Área de Trabalho/DrugHunter",
-  python_bin: "/home/<seu-usuario>/progs/anaconda3/envs/DH/bin/python",
+  python_bin: "/home/<seu-usuario>/progs/anaconda3/envs/DrugHunter/bin/python",
   chimera_path: "/home/<seu-usuario>/progs/UCSF-Chimera64-1.x/bin",
   dock6_path: "/home/<seu-usuario>/progs/dock6/bin",
 };
@@ -106,6 +106,8 @@ export default function ConfigTemplate({
   handleLogout,
   handleSalvarConfig,
   handleLimparCache,
+  handleDetectarPath,
+  detectandoPath,
   toast,
   toastVariant,
   usuarios,
@@ -130,7 +132,12 @@ export default function ConfigTemplate({
   };
 
   const cacheChaves = ["ttl_dias", "limpeza_automatica"];
-  const dhChaves = ["drug_hunter_path", "python_bin", "chimera_path", "dock6_path"];
+  const dhChaves = [
+    "drug_hunter_path",
+    "python_bin",
+    "chimera_path",
+    "dock6_path",
+  ];
 
   // Senha: mostra bolinhas quando configurada; entra no modo edição ao clicar "Alterar"
   const senhaConfigurada = getValor("smtp_password") === "__set__";
@@ -453,24 +460,172 @@ export default function ConfigTemplate({
                 </div>
               ) : (
                 <div className="flex flex-col gap-5">
+                  <p className="text-[12px] text-foreground-subtle leading-relaxed">
+                    Conecta o PDB Explorer ao DrugHunter instalado na sua
+                    máquina. Os dois primeiros campos são{" "}
+                    <span className="font-medium text-foreground-muted">
+                      obrigatórios
+                    </span>
+                    . Os dois últimos são detectados automaticamente na maioria
+                    dos casos — preencha somente se a verificação indicar
+                    problema.
+                  </p>
+
                   {dhChaves.map((chave) => (
                     <div key={chave} className="flex flex-col gap-2">
                       <div className="flex flex-col gap-0.5">
                         <label className="text-[13px] font-medium text-foreground">
                           {LABEL[chave] ?? chave}
                         </label>
-                        <span className="text-[12px] text-foreground-subtle">
+                        <span className="text-[12px] text-foreground-subtle leading-relaxed">
                           {DESCRICAO[chave]}
                         </span>
                       </div>
+
+                      {/* Instruções passo a passo para obter o caminho do Python */}
+                      {chave === "python_bin" && (
+                        <div className="rounded-lg border border-outline bg-surface-secondary px-4 py-3 flex flex-col gap-2 text-[12px] text-foreground-subtle">
+                          <span className="font-medium text-foreground-muted text-[11px] uppercase tracking-wide">
+                            Como obter o caminho do Python (ambiente DrugHunter)
+                          </span>
+                          <ol className="flex flex-col gap-1 list-none pl-0">
+                            <li className="flex gap-2">
+                              <span className="shrink-0 w-5 h-5 rounded-full bg-accent-12 border border-accent-25 flex items-center justify-center text-[10px] font-bold text-accent">
+                                1
+                              </span>
+                              <span>
+                                Abra o terminal (Linux) ou o Anaconda Prompt
+                                (Windows)
+                              </span>
+                            </li>
+                            <li className="flex gap-2">
+                              <span className="shrink-0 w-5 h-5 rounded-full bg-accent-12 border border-accent-25 flex items-center justify-center text-[10px] font-bold text-accent">
+                                2
+                              </span>
+                              <span>
+                                Digite e pressione Enter:{" "}
+                                <code className="font-mono text-[11px] bg-panel border border-outline rounded px-1.5 py-0.5 text-foreground-muted">
+                                  conda activate DrugHunter
+                                </code>
+                              </span>
+                            </li>
+                            <li className="flex gap-2">
+                              <span className="shrink-0 w-5 h-5 rounded-full bg-accent-12 border border-accent-25 flex items-center justify-center text-[10px] font-bold text-accent">
+                                3
+                              </span>
+                              <span>
+                                Digite:{" "}
+                                <code className="font-mono text-[11px] bg-panel border border-outline rounded px-1.5 py-0.5 text-foreground-muted">
+                                  which python
+                                </code>{" "}
+                                (Linux) ou{" "}
+                                <code className="font-mono text-[11px] bg-panel border border-outline rounded px-1.5 py-0.5 text-foreground-muted">
+                                  where python
+                                </code>{" "}
+                                (Windows)
+                              </span>
+                            </li>
+                            <li className="flex gap-2">
+                              <span className="shrink-0 w-5 h-5 rounded-full bg-accent-12 border border-accent-25 flex items-center justify-center text-[10px] font-bold text-accent">
+                                4
+                              </span>
+                              <span>
+                                Copie o caminho que aparecer (ex:{" "}
+                                <code className="font-mono text-[11px] bg-panel border border-outline rounded px-1.5 py-0.5 text-foreground-muted">
+                                  /home/usuario/anaconda3/envs/DrugHunter/bin/python
+                                </code>
+                                ) e cole no campo abaixo
+                              </span>
+                            </li>
+                          </ol>
+                        </div>
+                      )}
+
+                      {/* Campos auto-detectados: botão para detectar o caminho automaticamente */}
+                      {(chave === "chimera_path" || chave === "dock6_path") &&
+                        !getValor(chave) &&
+                        !(chave in campos && campos[chave]) && (
+                          <div className="flex flex-col gap-2 rounded-lg border border-outline bg-surface-secondary px-3 py-2.5 text-[12px] text-foreground-subtle">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[13px]">🔍</span>
+                              <span>
+                                <span className="font-medium text-foreground-muted">
+                                  Detecção automática ativa
+                                </span>{" "}
+                                — o sistema encontra o programa sozinho. Se
+                                aparecer como ❌ na verificação mesmo após
+                                instalado, preencha aqui o caminho completo da
+                                pasta{" "}
+                                <code className="font-mono text-[11px]">
+                                  bin/
+                                </code>{" "}
+                                do programa.
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                await handleDetectarPath(
+                                  chave as "chimera_path" | "dock6_path",
+                                );
+                                setCampos((prev) => {
+                                  const next = { ...prev };
+                                  delete next[chave];
+                                  return next;
+                                });
+                              }}
+                              disabled={detectandoPath[chave]}
+                              className="self-start inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-[11px] font-medium bg-panel border border-outline text-foreground-muted hover:text-foreground hover:border-foreground-subtle transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {detectandoPath[chave] ? (
+                                <>
+                                  <Spinner
+                                    style={{
+                                      width: 10,
+                                      height: 10,
+                                      borderWidth: 2,
+                                    }}
+                                  />
+                                  Detectando...
+                                </>
+                              ) : (
+                                "Detectar caminho automaticamente"
+                              )}
+                            </button>
+                          </div>
+                        )}
+
                       <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={valor(chave)}
-                          onChange={(e) => setCampo(chave, e.target.value)}
-                          placeholder={PLACEHOLDER[chave] ?? ""}
-                          className="flex-1 rounded border border-outline bg-surface-secondary px-3 py-2 font-mono text-[12px] text-foreground placeholder:text-foreground-subtle"
-                        />
+                        <div className="flex-1 relative">
+                          <input
+                            type="text"
+                            value={valor(chave)}
+                            onChange={(e) => setCampo(chave, e.target.value)}
+                            placeholder={
+                              (chave === "chimera_path" ||
+                                chave === "dock6_path") &&
+                              !getValor(chave)
+                                ? "(deixe em branco para detecção automática)"
+                                : (PLACEHOLDER[chave] ?? "")
+                            }
+                            className={`w-full rounded border px-3 py-2 font-mono text-[12px] text-foreground placeholder:text-foreground-subtle bg-surface-secondary transition-colors ${
+                              getValor(chave) &&
+                              valor(chave) === getValor(chave)
+                                ? "border-accent-25"
+                                : "border-outline"
+                            }`}
+                          />
+                        </div>
+                        {/* Indicador de salvo */}
+                        {getValor(chave) &&
+                          valor(chave) === getValor(chave) && (
+                            <span
+                              className="shrink-0 text-accent text-[13px] font-bold"
+                              title="Configurado e salvo"
+                            >
+                              ✓
+                            </span>
+                          )}
                         <Button
                           variant="ghost"
                           onClick={() => salvar(chave)}
@@ -490,19 +645,22 @@ export default function ConfigTemplate({
                       </div>
                     </div>
                   ))}
-                  <p className="text-[11px] text-foreground-subtle bg-surface-secondary rounded-lg px-3 py-2.5 border border-outline leading-relaxed">
-                    Após preencher, use o botão{" "}
-                    <span className="font-medium text-foreground-muted">Testar Configuração</span>{" "}
-                    na página{" "}
-                    <button
-                      type="button"
-                      onClick={irParaAjuda}
-                      className="cursor-pointer border-none bg-transparent p-0 text-[11px] text-accent underline underline-offset-2"
-                    >
-                      Ajuda
-                    </button>{" "}
-                    para verificar se tudo está correto antes de iniciar um redocking.
-                  </p>
+
+                  <div className="rounded-lg border border-accent-25 bg-accent-12 px-3 py-2.5 flex flex-col gap-1">
+                    <p className="text-[12px] text-foreground-subtle leading-relaxed">
+                      Após preencher, clique em{" "}
+                      <button
+                        type="button"
+                        onClick={irParaAjuda}
+                        className="cursor-pointer border-none bg-transparent p-0 text-[12px] text-accent underline underline-offset-2 font-medium"
+                      >
+                        Ajuda → Testar Configuração
+                      </button>{" "}
+                      para verificar se tudo está correto. O botão mostrará ✅
+                      ou ❌ para cada item e indicará o que fazer se algo não
+                      estiver certo.
+                    </p>
+                  </div>
                 </div>
               )}
             </Section>

@@ -50,6 +50,15 @@ export class ConfigUseCase extends IConfigUseCase {
     const res = await this.httpClient.get<ValidacaoDHResponse>("/admin/validar-drughunter", { token });
     return res.data;
   }
+
+  async corrigirBson(token: string): Promise<{ ok: boolean; mensagem: string }> {
+    const res = await this.httpClient.post<{ ok: boolean; mensagem: string }>(
+      "/admin/corrigir-bson",
+      {},
+      { token },
+    );
+    return res.data;
+  }
 }
 
 export interface CheckItemDH {
@@ -57,6 +66,8 @@ export interface CheckItemDH {
   ok: boolean;
   mensagem: string;
   como_corrigir: string | null;
+  opcional?: boolean;
+  path_detectado?: string | null;
 }
 
 export interface ValidacaoDHResponse {

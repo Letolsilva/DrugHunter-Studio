@@ -117,7 +117,7 @@ def main():
         from openmm import unit as _unit
         from wrappers.molecular_dynamics import execute_md_analisys
     except ImportError as exc:
-        emit({"type": "error", "msg": f"Falha ao importar DrugHunter/OpenMM: {exc}"})
+        emit({"type": "error", "msg": f"Não foi possível inicializar o DrugHunter ou o OpenMM. Verifique se o ambiente conda está ativo. Detalhe: {exc}"})
         sys.exit(1)
 
     emit({"type": "start", "msg": f"Iniciando análise de trajetória: target={target}, parent={parent_output_path}"})
@@ -133,7 +133,7 @@ def main():
             reporting_interval_steps=reporting_interval_steps,
         )
     except Exception as exc:
-        emit({"type": "error", "msg": f"Erro na análise de trajetória: {exc}"})
+        emit({"type": "error", "msg": f"Erro durante a análise da trajetória. Se o problema persistir, verifique se o OpenMM está instalado. Detalhe: {exc}"})
         sys.exit(1)
 
     emit({"type": "done"})

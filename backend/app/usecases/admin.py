@@ -201,11 +201,11 @@ def uc_validar_drughunter(db: Session) -> dict:
         os.path.isfile(python_bin) or shutil.which(python_bin) is not None
     )
     checks.append({
-        "nome": "Executável Python (ambiente DH)",
+        "nome": "Executável Python (ambiente DrugHunter)",
         "ok": python_ok,
         "mensagem": python_bin if python_ok else f"Não encontrado: {python_bin or '(não configurado)'}",
         "como_corrigir": None if python_ok else (
-            "Ative o ambiente conda com 'conda activate DH' e execute 'which python' no terminal. "
+            "Ative o ambiente conda com 'conda activate DrugHunter' e execute 'which python' no terminal. "
             "Cole o caminho completo em Configurações → DrugHunter → Executável Python."
         ),
     })
@@ -227,7 +227,7 @@ def uc_validar_drughunter(db: Session) -> dict:
                 "mensagem": "perform_redocking importado com sucesso" if import_ok
                     else (result.stderr or result.stdout or "Erro desconhecido")[:300],
                 "como_corrigir": None if import_ok else (
-                    "Verifique se o ambiente conda 'DH' foi criado com 'conda env create -f requirements.yml' "
+                    "Verifique se o ambiente conda 'DrugHunter' foi criado com 'conda env create -f requirements.yml' "
                     "e se o Executável Python em Configurações aponta para esse ambiente."
                 ),
             })
@@ -236,7 +236,7 @@ def uc_validar_drughunter(db: Session) -> dict:
                 "nome": "DrugHunter importável",
                 "ok": False,
                 "mensagem": "Tempo limite excedido ao tentar importar (>20 s).",
-                "como_corrigir": "Verifique se o ambiente conda está correto e se o Python configurado é do ambiente DH.",
+                "como_corrigir": "Verifique se o ambiente conda está correto e se o Python configurado é do ambiente DrugHunter.",
             })
     else:
         checks.append({
@@ -311,6 +311,7 @@ def uc_validar_drughunter(db: Session) -> dict:
             "Se instalado em local não padrão, preencha o caminho do diretório bin em "
             "Configurações → DrugHunter → Caminho do Chimera."
         ),
+        "path_detectado": chimera_dir if chimera_ok else None,
     })
 
     # 8. Dock6
@@ -329,6 +330,128 @@ def uc_validar_drughunter(db: Session) -> dict:
             "Se instalado em local não padrão, preencha o caminho do diretório bin em "
             "Configurações → DrugHunter → Caminho do Dock6."
         ),
+        "path_detectado": dock6_dir if dock6_ok else None,
+    })
+
+    # 9. DMS (binário de geração de superfície molecular — necessário para o consenso)
+    dms_binary = ""
+    if dh_ok:
+        bundled = Path(drug_hunter_path) / "apps" / "dms" / "dms"
+        if bundled.is_file():
+            dms_binary = str(bundled)
+    if not dms_binary:
+        found_dms = shutil.which("dms")
+        if found_dms:
+            dms_binary = found_dms
+    dms_ok = bool(dms_binary)
+    checks.append({
+        "nome": "DMS (superfície molecular — Consenso)",
+        "ok": dms_ok,
+        "mensagem": f"Encontrado em: {dms_binary}" if dms_ok else "Não encontrado (apps/dms/dms ou PATH)",
+        "como_corrigir": None if dms_ok else (
+            "O binário DMS não foi encontrado. Execute o install.sh do DrugHunter (Linux) para compilá-lo. "
+            "No Windows, compile manualmente a partir da pasta apps/dms/ incluída no DrugHunter. "
+            "Sem o DMS, o docking de consenso (Dock6) não funcionará."
+        ),
+    })
+
+    # 10. Open Babel (obabel CLI no env DH — opcional, tem fallback RDKit)
+    obabel_ok = False
+    obabel_msg = "Não verificado — configure o executável Python primeiro."
+    if python_ok:
+        obabel_bin = str(Path(python_bin).parent / "obabel")
+        if os.path.isfile(obabel_bin):
+            obabel_ok = True
+            obabel_msg = f"Encontrado em: {obabel_bin}"
+        else:
+            found_ob = shutil.which("obabel")
+            if found_ob:
+                obabel_ok = True
+                obabel_msg = f"Encontrado em: {found_ob}"
+            else:
+                obabel_msg = "Não encontrado no ambiente DrugHunter (fallback RDKit ativo para MD)"
+    checks.append({
+        "nome": "Open Babel — obabel (preparação do ligante — MD)",
+        "ok": obabel_ok,
+        "mensagem": obabel_msg,
+        "como_corrigir": None if obabel_ok else (
+            "Opcional — o PDB Explorer usa RDKit como fallback. "
+            "Para resultados de maior qualidade: conda activate DrugHunter && conda install -c conda-forge openbabel"
+        ),
+        "opcional": True,
+    })
+
+    # 11. AmberTools / antechamber (opcional, cargas AM1-BCC — tem fallback MMFF94)
+    antechamber_ok = False
+    antechamber_msg = "Não verificado — configure o executável Python primeiro."
+    if python_ok:
+        antechamber_bin = str(Path(python_bin).parent / "antechamber")
+        if os.path.isfile(antechamber_bin):
+            antechamber_ok = True
+            antechamber_msg = f"Encontrado em: {antechamber_bin}"
+        else:
+            found_ac = shutil.which("antechamber")
+            if found_ac:
+                antechamber_ok = True
+                antechamber_msg = f"Encontrado em: {found_ac}"
+            else:
+                antechamber_msg = "Não encontrado no ambiente DrugHunter (fallback MMFF94 ativo para MD)"
+    checks.append({
+        "nome": "AmberTools / antechamber (cargas AM1-BCC — MD)",
+        "ok": antechamber_ok,
+        "mensagem": antechamber_msg,
+        "como_corrigir": None if antechamber_ok else (
+            "Opcional — o PDB Explorer usa cargas MMFF94 como fallback. "
+            "Não recomendado para MD de publicação. "
+            "Para instalar: conda activate DrugHunter && conda install -c conda-forge ambertools"
+        ),
+        "opcional": True,
+    })
+
+    # 12. Kaleido (necessário para gerar gráficos PNG da análise de trajetória)
+    kaleido_ok = False
+    kaleido_msg = "Não verificado — configure o executável Python primeiro."
+    if python_ok:
+        try:
+            result_kal = subprocess.run(
+                [python_bin, "-c", "from kaleido.scopes.plotly import PlotlyScope; print('ok')"],
+                capture_output=True, text=True, timeout=10,
+            )
+            kaleido_ok = result_kal.returncode == 0 and "ok" in result_kal.stdout
+            kaleido_msg = "Importado com sucesso" if kaleido_ok else (
+                (result_kal.stderr or result_kal.stdout or "Não instalado")[:200].strip()
+            )
+        except subprocess.TimeoutExpired:
+            kaleido_ok = False
+            kaleido_msg = "Timeout ao verificar"
+    checks.append({
+        "nome": "Kaleido (gráficos de análise de trajetória — MD)",
+        "ok": kaleido_ok,
+        "mensagem": kaleido_msg,
+        "como_corrigir": None if kaleido_ok else (
+            "Necessário para gerar os gráficos PNG ao final da análise de trajetória. "
+            "conda activate DrugHunter && pip install kaleido==0.2.1 --force-reinstall"
+        ),
     })
 
     return {"checks": checks}
+
+
+def uc_corrigir_bson(db: Session) -> dict:
+    """Remove o pacote bson standalone do env DH, resolvendo o conflito com pymongo."""
+    python_bin = get_config(db, "python_bin") or os.environ.get("PYTHON_BIN", "")
+    if not python_bin or not (os.path.isfile(python_bin) or shutil.which(python_bin)):
+        return {"ok": False, "mensagem": "Executável Python não configurado. Configure em Configurações → DrugHunter → Executável Python."}
+    try:
+        result = subprocess.run(
+            [python_bin, "-m", "pip", "uninstall", "bson", "-y"],
+            capture_output=True, text=True, timeout=30,
+        )
+        saida = (result.stderr + result.stdout).strip()
+        if result.returncode == 0:
+            if "not installed" in saida.lower() or "WARNING: Skipping" in saida:
+                return {"ok": True, "mensagem": "O pacote 'bson' standalone não estava instalado. Ambiente sem conflito."}
+            return {"ok": True, "mensagem": "Pacote 'bson' removido com sucesso. Execute 'Testar Configuração' novamente para confirmar."}
+        return {"ok": False, "mensagem": f"Erro ao remover: {saida[:300]}"}
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "mensagem": "Timeout ao tentar remover o pacote bson (>30 s)."}
