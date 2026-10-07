@@ -171,16 +171,16 @@ function ScatterPlot({ title, xs, ys, xTicks, yTicks, rows, color }: ScatterProp
               {mol}
             </text>
             <text x={tx} y={ty + 27} fontSize={9} fill="var(--color-foreground-subtle)" fontFamily="monospace">
-              Vina:    {row.vina.toFixed(3)}
+              Vina:    {row.vina != null ? row.vina.toFixed(3) : "—"}
             </text>
             <text x={tx} y={ty + 41} fontSize={9} fill="var(--color-foreground-subtle)" fontFamily="monospace">
-              Dock6:   {row.dock6.toFixed(3)}
+              Dock6:   {row.dock6 != null ? row.dock6.toFixed(3) : "—"}
             </text>
             <text x={tx} y={ty + 55} fontSize={9} fill="var(--color-foreground-subtle)" fontFamily="monospace">
-              Z-score: {row["z-score"].toFixed(3)}
+              Z-score: {row["z-score"] != null ? row["z-score"].toFixed(3) : "—"}
             </text>
             <text x={tx} y={ty + 69} fontSize={9} fill="var(--color-foreground-subtle)" fontFamily="monospace">
-              Min-max: {row["min-max"].toFixed(3)}
+              Min-max: {row["min-max"] != null ? row["min-max"].toFixed(3) : "—"}
             </text>
           </g>
         );
@@ -197,7 +197,11 @@ export function ConsensusCorrelationModal({ rows, onClose }: Props) {
     return () => window.removeEventListener("keydown", h);
   }, [onClose]);
 
-  if (rows.length === 0) {
+  const validRows = rows.filter(r => r.vina != null && r.dock6 != null);
+  const vinas  = validRows.map(r => r.vina as number);
+  const dock6s = validRows.map(r => r.dock6 as number);
+
+  if (validRows.length === 0) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center"
         style={{ background: "rgba(0,0,0,0.6)" }} onClick={onClose}>
@@ -208,9 +212,6 @@ export function ConsensusCorrelationModal({ rows, onClose }: Props) {
       </div>
     );
   }
-
-  const vinas  = rows.map(r => r.vina);
-  const dock6s = rows.map(r => r.dock6);
 
   // Idêntico ao plot_scatter_comparison do DH: abs() antes de normalizar
   const vina_mm  = minMaxNormAbs(vinas);
@@ -254,13 +255,13 @@ export function ConsensusCorrelationModal({ rows, onClose }: Props) {
             title="Min-Max Correlation"
             xs={vina_mm} ys={dock6_mm}
             xTicks={mmXTicks} yTicks={mmYTicks}
-            rows={rows} color="#1f77b4"
+            rows={validRows} color="#1f77b4"
           />
           <ScatterPlot
             title="Z-score Correlation"
             xs={vina_z} ys={dock6_z}
             xTicks={zXTicks} yTicks={zYTicks}
-            rows={rows} color="#d62728"
+            rows={validRows} color="#d62728"
           />
         </div>
       </div>
