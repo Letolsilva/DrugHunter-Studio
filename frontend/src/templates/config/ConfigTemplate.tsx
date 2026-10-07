@@ -503,10 +503,15 @@ export default function ConfigTemplate({
                                 2
                               </span>
                               <span>
-                                Digite e pressione Enter:{" "}
+                                Digite o comando abaixo e pressione Enter:{" "}
                                 <code className="font-mono text-[11px] bg-panel border border-outline rounded px-1.5 py-0.5 text-foreground-muted">
-                                  conda activate DrugHunter
-                                </code>
+                                  conda info --envs | grep DrugHunter | awk {`'{print $NF"/bin/python"}'`}
+                                </code>{" "}
+                                (Linux) ou{" "}
+                                <code className="font-mono text-[11px] bg-panel border border-outline rounded px-1.5 py-0.5 text-foreground-muted">
+                                  conda info --envs | findstr DrugHunter
+                                </code>{" "}
+                                (Windows — copie o caminho e adicione <code className="font-mono text-[11px] bg-panel border border-outline rounded px-1.5 py-0.5 text-foreground-muted">\python.exe</code> no final)
                               </span>
                             </li>
                             <li className="flex gap-2">
@@ -514,23 +519,7 @@ export default function ConfigTemplate({
                                 3
                               </span>
                               <span>
-                                Digite:{" "}
-                                <code className="font-mono text-[11px] bg-panel border border-outline rounded px-1.5 py-0.5 text-foreground-muted">
-                                  which python
-                                </code>{" "}
-                                (Linux) ou{" "}
-                                <code className="font-mono text-[11px] bg-panel border border-outline rounded px-1.5 py-0.5 text-foreground-muted">
-                                  where python
-                                </code>{" "}
-                                (Windows)
-                              </span>
-                            </li>
-                            <li className="flex gap-2">
-                              <span className="shrink-0 w-5 h-5 rounded-full bg-accent-12 border border-accent-25 flex items-center justify-center text-[10px] font-bold text-accent">
-                                4
-                              </span>
-                              <span>
-                                Copie o caminho que aparecer (ex:{" "}
+                                Copie o caminho completo que aparecer (ex:{" "}
                                 <code className="font-mono text-[11px] bg-panel border border-outline rounded px-1.5 py-0.5 text-foreground-muted">
                                   /home/usuario/anaconda3/envs/DrugHunter/bin/python
                                 </code>

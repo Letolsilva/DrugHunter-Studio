@@ -576,12 +576,10 @@ export default function AjudaTemplate({
                       </span>
                       <p>
                         Caminho do Python dentro do ambiente conda{" "}
-                        <Code>DrugHunter</Code>. Para obter, execute:
+                        <Code>DrugHunter</Code>. Para obter, execute no terminal:
                       </p>
-                      <CodeBlock>
-                        {"conda activate DrugHunter && which python"}
-                      </CodeBlock>
-                      <p>Exemplo do resultado esperado:</p>
+                      <CodeBlock>{"conda info --envs | grep DrugHunter | awk '{print $NF\"/bin/python\"}'"}</CodeBlock>
+                      <p>O comando já imprime o caminho completo. Exemplo:</p>
                       <CodeBlock>
                         {"/home/<seu-usuario>/progs/anaconda3/envs/DrugHunter/bin/python"}
                       </CodeBlock>
@@ -853,10 +851,11 @@ export default function AjudaTemplate({
                         <Code>DrugHunter</Code>. Para obter, no Anaconda
                         Prompt execute:
                       </p>
-                      <CodeBlock>
-                        {"conda activate DrugHunter\nwhere python"}
-                      </CodeBlock>
-                      <p>Exemplo do resultado esperado:</p>
+                      <CodeBlock>{"conda info --envs | findstr DrugHunter"}</CodeBlock>
+                      <p>
+                        Copie o caminho da pasta que aparecer e adicione{" "}
+                        <Code>\python.exe</Code> no final. Exemplo:
+                      </p>
                       <CodeBlock>
                         {"C:\\Users\\<seu-usuario>\\anaconda3\\envs\\DrugHunter\\python.exe"}
                       </CodeBlock>
