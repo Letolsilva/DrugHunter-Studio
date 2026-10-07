@@ -75,7 +75,7 @@ export function useConsensusPage(
   const [baseInputPath, setBaseInputPath] = useState("");
   const [baseDockingOutputPath, setBaseDockingOutputPath] = useState("/resultados/consenso");
   const [chargeType, setChargeType] = useState("am1");
-  const [prepareComplex, setPrepareComplex] = useState(false);
+  const [prepareComplex, setPrepareComplex] = useState(true);
   const [maxMols, setMaxMols] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
