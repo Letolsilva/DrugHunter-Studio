@@ -23,6 +23,10 @@ from app.services import chembl as svc
 
 logger = logging.getLogger("pdb_explorer")
 
+# Jobs com task asyncio ativa neste processo — usados para distinguir
+# "rodando agora" de "servidor reiniciou e o job ficou preso em running".
+_active_job_ids: set[int] = set()
+
 
 def _resolve_path(dh_dir: str, stored_path: str) -> Path:
     """Resolve stored_path relativo ao dh_dir, com fallback para caminhos absolutos legados.
@@ -404,6 +408,7 @@ async def _run_job_background(
         with SessionLocal() as s:
             svc.atualizar_status_item(s, item_id, "error", error_msg=error_msg)
 
+    _active_job_ids.add(job_id)
     try:
         async for _ in run_chembl_group(
             job_id=job_id,
@@ -426,6 +431,8 @@ async def _run_job_background(
         logger.exception("Erro fatal no grupo ChEMBL job=%s: %s", job_id, exc)
         with SessionLocal() as s:
             svc.marcar_job_finalizado(s, job_id, "error", str(exc))
+    finally:
+        _active_job_ids.discard(job_id)
 
 
 async def uc_iniciar_grupo(

@@ -81,7 +81,7 @@ def get_job(
     if not job:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job não encontrado.")
 
-    if job.status == "running":
+    if job.status == "running" and job.id not in uc._active_job_ids:
         uc._recover_orphaned_job(db, job)
 
     from app.infra.db.database import get_config
