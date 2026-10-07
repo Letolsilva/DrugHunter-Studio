@@ -244,7 +244,7 @@ export default function ConsensusTemplate(props: UseConsensusPageReturn) {
                   className="font-mono text-[20px] font-bold text-foreground"
                   style={{ color: "#22c55e" }}
                 >
-                  {resultRows[0]?.["z-score"].toFixed(2) ?? "—"}
+                  {resultRows[0]?.["z-score"] != null ? resultRows[0]["z-score"].toFixed(2) : "—"}
                 </p>
               </div>
               <div className="rounded-xl border border-outline bg-panel px-4 py-3">

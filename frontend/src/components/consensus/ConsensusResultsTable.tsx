@@ -44,12 +44,12 @@ export function ConsensusResultsTable({ rows }: Props) {
                   )}
                 </td>
                 <td className="px-3 py-2 text-foreground">{row.molecule}</td>
-                <td className="px-3 py-2 text-right text-foreground">{row.vina.toFixed(2)}</td>
-                <td className="px-3 py-2 text-right text-foreground">{row.dock6.toFixed(2)}</td>
+                <td className="px-3 py-2 text-right text-foreground">{row.vina != null ? row.vina.toFixed(2) : "—"}</td>
+                <td className="px-3 py-2 text-right text-foreground">{row.dock6 != null ? row.dock6.toFixed(2) : "—"}</td>
                 <td className="px-3 py-2 text-right font-semibold" style={{ color: isTop3 ? "#22c55e" : "var(--color-foreground)" }}>
-                  {row["z-score"].toFixed(2)}
+                  {row["z-score"] != null ? row["z-score"].toFixed(2) : "—"}
                 </td>
-                <td className="px-3 py-2 text-right text-foreground">{row["min-max"].toFixed(2)}</td>
+                <td className="px-3 py-2 text-right text-foreground">{row["min-max"] != null ? row["min-max"].toFixed(2) : "—"}</td>
               </tr>
             );
           })}
