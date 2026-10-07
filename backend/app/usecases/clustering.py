@@ -76,7 +76,7 @@ def _executar_pipeline(job_id: int) -> None:
 
         # CSV de moléculas (resultado do ADMET, com molecule_chembl_id e canonical_smiles)
         admet_csv = (
-            Path(admet_result.base_output_path)
+            Path(dh_dir) / admet_result.base_output_path.lstrip("/")
             / "ChEMBL"
             / item.folder_name
             / "ADMET"
