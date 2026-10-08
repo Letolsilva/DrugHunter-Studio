@@ -39,6 +39,7 @@ def main():
     fingerprint_type   = args.get("fingerprint_type", "morgan")
     top_k              = args.get("top_k", 50)
     batch_size         = args.get("batch_size", 10000)
+    pred_id            = args.get("pred_id")
 
     src_path = os.path.join(dh_dir, "src")
     if src_path not in sys.path:
@@ -69,7 +70,10 @@ def main():
     # ── Copia CSV para dentro do dh_dir em user_library/<dataset>/ ───────────
     # O DH usa Path.cwd() + path[1:] para resolver paths, então a biblioteca
     # precisa estar dentro do dh_dir. Fazemos uma cópia temporária.
-    user_lib_dir = Path(dh_dir) / "user_library" / input_dataset
+    # Pasta por predição: evita que duas triagens com o mesmo dataset/nome de CSV
+    # reaproveitem a cópia uma da outra (a checagem abaixo só olha o mtime).
+    lib_subdir = f"{input_dataset}/{pred_id}" if pred_id is not None else input_dataset
+    user_lib_dir = Path(dh_dir) / "user_library" / lib_subdir
     user_lib_dir.mkdir(parents=True, exist_ok=True)
     dest_csv = user_lib_dir / lib_csv.name
     if not dest_csv.exists() or dest_csv.stat().st_mtime < lib_csv.stat().st_mtime:
@@ -79,7 +83,7 @@ def main():
         emit({"type": "log", "msg": f"Biblioteca já atualizada em {dest_csv}"})
 
     # DH-relative path para a pasta da biblioteca
-    base_input_mols = f"/user_library/{input_dataset}"
+    base_input_mols = f"/user_library/{lib_subdir}"
     # Nome do CSV sem extensão
     csv_stem = lib_csv.stem
 
@@ -99,6 +103,10 @@ def main():
     except Exception as exc:
         emit({"type": "error", "msg": f"Erro em predict: {exc}"})
         sys.exit(1)
+    finally:
+        # A cópia é temporária e exclusiva desta predição — não deixa bibliotecas grandes acumulando.
+        if pred_id is not None:
+            shutil.rmtree(user_lib_dir, ignore_errors=True)
 
     # ── Lê resultados para reportar contagens ────────────────────────────────
     # DrugHunter salva direto em base_output_path/ (sem subdiretório por dataset)

@@ -137,6 +137,7 @@ def run_predict_worker(
     fingerprint_type: str = "morgan",
     top_k: int = 50,
     batch_size: int = 10000,
+    pred_id: Optional[int] = None,
 ) -> Tuple[Optional[int], Optional[int]]:
     """Executa triagem virtual. Retorna (n_screened, n_selected)."""
     args_json = json.dumps({
@@ -149,6 +150,7 @@ def run_predict_worker(
         "fingerprint_type": fingerprint_type,
         "top_k": top_k,
         "batch_size": batch_size,
+        "pred_id": pred_id,
     }, ensure_ascii=False)
 
     event = _run_worker(python_bin, dh_dir, _PREDICT_WORKER_PATH, args_json)

@@ -154,6 +154,10 @@ def criar_predicao(
         base_output_path=base_output_path,
     )
     db.add(pred)
+    # Cada triagem grava em <base_output_path>/<pred_id>: o DrugHunter não cria subpasta
+    # por dataset, então sem isso triagens no mesmo caminho se sobrescrevem.
+    db.flush()
+    pred.base_output_path = f"{base_output_path.rstrip('/')}/{pred.id}"
     db.commit()
     db.refresh(pred)
     return pred

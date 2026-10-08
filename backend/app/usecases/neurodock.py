@@ -46,6 +46,14 @@ def _cascade_delete_predictions(db, model_id: int) -> None:
 _BASE_INPUT_PATH = "/resultados/maia_input"
 
 
+def _com_sufixo(path: str, sufixo: str) -> str:
+    """Acrescenta '/<sufixo>' ao caminho, sem duplicar se já estiver presente."""
+    base = path.rstrip("/")
+    if base.split("/")[-1] == sufixo:
+        return base
+    return f"{base}/{sufixo}"
+
+
 # ── Treinamento ───────────────────────────────────────────────────────────────
 
 def _executar_treinamento(model_id: int, n_trials: int = 20) -> None:
@@ -144,6 +152,16 @@ def uc_iniciar_treinamento(
             "Execute o módulo de Consenso antes de treinar o NeuroDock."
         )
 
+    # Isola os artefatos por job de clustering (alvo): sem isso, treinar dois alvos
+    # com os mesmos caminhos/nome sobrescreve modelo (.keras), gráficos (.png) e o JSON
+    # de hiperparâmetros — o DrugHunter grava este último em
+    # /resultados/neurodock/json/<evaluation_name>.json, caminho não configurável,
+    # então o isolamento dele vem do evaluation_name.
+    sufixo = str(clustering_job_id)
+    evaluation_name = f"{evaluation_name}_{sufixo}" if not evaluation_name.endswith(f"_{sufixo}") else evaluation_name
+    model_output_path = _com_sufixo(model_output_path, sufixo)
+    history_output_path = _com_sufixo(history_output_path, sufixo)
+
     # base_input_consensus = pasta onde estão <Alvo>/<Alvo>.csv dos scores de docking
     # ConsensusJob guarda base_docking_output_path (DH-relativo) — usamos como base_input_consensus
     base_input_consensus = consensus_job.base_docking_output_path
@@ -236,6 +254,7 @@ def _executar_triagem(pred_id: int) -> None:
             fingerprint_type=pred.fingerprint_type,
             top_k=pred.top_k,
             batch_size=pred.batch_size,
+            pred_id=pred.id,
         )
 
         # DrugHunter salva direto em base_output_path/ (sem subdiretório por dataset)

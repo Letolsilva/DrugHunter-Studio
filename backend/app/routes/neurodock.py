@@ -161,8 +161,9 @@ def get_model_config(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Modelo não encontrado ou ainda em execução.")
 
     dh_dir = get_config(db, "drug_hunter_path") or ""
-    model_dir = Path(dh_dir) / model.model_output_path.lstrip("/")
-    json_dir = model_dir.parent / "json"
+    # O DrugHunter grava o JSON em resultados/neurodock/json/<evaluation_name>.json
+    # (caminho fixo, independente de model_output_path); o isolamento por alvo vem do evaluation_name.
+    json_dir = Path(dh_dir) / "resultados" / "neurodock" / "json"
     json_file = json_dir / f"{model.evaluation_name}.json"
 
     if not json_file.exists():
