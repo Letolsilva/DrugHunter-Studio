@@ -18,7 +18,7 @@ from app.services.redocking import atualizar_status, marcar_finalizado, salvar_c
 from app.domain.models.redocking_job import RedockingJob
 from app.domain.utils.normalizacao import normalizar_target
 
-logger = logging.getLogger("pdb_explorer")
+logger = logging.getLogger("drughunter_studio")
 
 
 def _csv_tem_dados(conteudo: str) -> bool:

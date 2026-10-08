@@ -15,7 +15,7 @@ from app.domain.models import User, RedockingJob
 from app.domain.utils.normalizacao import normalizar_target
 from app.services import redocking as svc
 
-logger = logging.getLogger("pdb_explorer")
+logger = logging.getLogger("drughunter_studio")
 
 
 def uc_deletar_job(db: Session, job_id: int, user_id: int) -> bool:

@@ -1,5 +1,5 @@
 """
-PDB Explorer API — FastAPI app principal
+DrugHunter Studio API — FastAPI app principal
 
 Arquitetura Hexagonal:
   core/          → segurança e dependencies de injeção
@@ -45,7 +45,7 @@ from app.routes.neurodock import router as neurodock_router
 from app.routes.molecular_dynamics import router as molecular_dynamics_router
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("pdb_explorer")
+logger = logging.getLogger("drughunter_studio")
 
 
 @asynccontextmanager
@@ -75,8 +75,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="PDB Explorer API",
-    description="API para busca e análise de estruturas proteicas do RCSB PDB",
+    title="DrugHunter Studio API",
+    description="API do DrugHunter Studio — interface para o DrugHunter (busca no RCSB PDB, redocking, ADMET, consenso, clustering, dinâmica molecular)",
     version="4.0.0",
     lifespan=lifespan,
 )

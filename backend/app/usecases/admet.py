@@ -19,7 +19,7 @@ from app.infra.db.database import SessionLocal, get_config
 from app.infra.external.admet_runner import run_admet_worker
 from app.services import admet as svc
 
-logger = logging.getLogger("pdb_explorer")
+logger = logging.getLogger("drughunter_studio")
 
 
 def _resolve_path(dh_dir: str, stored_path: str) -> Path:

@@ -1,5 +1,5 @@
 """
-run.py — Entry point do executável PDB Explorer.
+run.py — Entry point do executável DrugHunter Studio.
 
 Responsabilidades:
 1. Detecta o ambiente conda DrugHunter e configura PYTHON_BIN automaticamente
@@ -31,7 +31,7 @@ DATA_DIR.mkdir(exist_ok=True)
 (DATA_DIR / "pdb_files").mkdir(exist_ok=True)
 
 os.environ.setdefault("PDB_FILES_DIR", str(DATA_DIR / "pdb_files"))
-os.environ.setdefault("DATABASE_URL", f"sqlite:///{DATA_DIR / 'pdb_explorer.db'}")
+os.environ.setdefault("DATABASE_URL", f"sqlite:///{DATA_DIR / 'drughunter_studio.db'}")
 
 # ── Detecção automática do conda DrugHunter ───────────────────────────────────
 def _detectar_conda_drughunter() -> None:
@@ -107,11 +107,11 @@ for _ in range(60):
 
 # ── Abre o navegador ──────────────────────────────────────────────────────────
 webbrowser.open(f"http://localhost:{PORT}")
-print(f"PDB Explorer rodando em http://localhost:{PORT}")
+print(f"DrugHunter Studio rodando em http://localhost:{PORT}")
 print("Feche esta janela para encerrar.")
 
 # ── Mantém vivo ───────────────────────────────────────────────────────────────
 try:
     thread.join()
 except KeyboardInterrupt:
-    print("\nEncerrando PDB Explorer.")
+    print("\nEncerrando DrugHunter Studio.")

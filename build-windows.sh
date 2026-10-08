@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# build-windows.sh — Gera PDB-Explorer-Setup.exe para Windows
+# build-windows.sh — Gera DrugHunter-Studio-Setup.exe para Windows
 #
 # Requer: makensis (sudo apt install nsis)
 # Opcional: inkscape + imagemagick (para ícone personalizado)
 #
 # Fluxo do usuário:
-#   1. Recebe PDB-Explorer-Setup.exe
+#   1. Recebe DrugHunter-Studio-Setup.exe
 #   2. Duplo clique → Next → Install → Finish
-#   3. Ícone "PDB Explorer" aparece no Desktop e no Menu Iniciar
+#   3. Ícone "DrugHunter Studio" aparece no Desktop e no Menu Iniciar
 #   Sem terminal visível, sem admin necessário.
 #
-# Dados do usuário ficam em %LOCALAPPDATA%\PDB Explorer\ (isolado por usuário)
+# Dados do usuário ficam em %LOCALAPPDATA%\DrugHunter Studio\ (isolado por usuário)
 
 set -e
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-PKG="$ROOT/pdb-explorer-windows-pkg"
+PKG="$ROOT/drughunter-studio-windows-pkg"
 
 # ── Credenciais SMTP ──────────────────────────────────────────────────────────
 SMTP_SECRET_FILE="$ROOT/.smtp_secret"
@@ -47,7 +47,7 @@ rsync -a \
     --exclude='__pycache__' --exclude='*.pyc' --exclude='.venv' \
     --exclude='dist' --exclude='build' --exclude='*.db' \
     --exclude='*.db-shm' --exclude='*.db-wal' --exclude='.env' \
-    --exclude='pdb_explorer.spec' --exclude='run.py' \
+    --exclude='drughunter_studio.spec' --exclude='run.py' \
     "$ROOT/backend/app/"    "$PKG/backend/app/"
 rsync -a "$ROOT/backend/static/" "$PKG/backend/static/"
 mkdir -p "$PKG/backend/pdb_files"
@@ -65,11 +65,11 @@ if command -v inkscape &>/dev/null && command -v convert &>/dev/null; then
     echo "▶ Convertendo ícone SVG → ICO..."
     inkscape --export-type=png --export-width=256 \
         --export-filename="$PKG/_icon.png" \
-        "$ROOT/assets/pdb-explorer.svg" 2>/dev/null || true
+        "$ROOT/assets/drughunter-studio.svg" 2>/dev/null || true
     if [ -f "$PKG/_icon.png" ]; then
         convert "$PKG/_icon.png" \
             -define icon:auto-resize=256,128,64,48,32,16 \
-            "$PKG/pdb-explorer.ico" 2>/dev/null && HAS_ICON=1 || true
+            "$PKG/drughunter-studio.ico" 2>/dev/null && HAS_ICON=1 || true
         rm -f "$PKG/_icon.png"
         [ $HAS_ICON -eq 1 ] && echo "   ✓ ícone gerado" || echo "   ⚠ falhou, usando ícone padrão"
     fi
@@ -84,11 +84,11 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
 $APP_DIR  = Split-Path -Parent $MyInvocation.MyCommand.Definition
-$DATA_DIR = "$env:LOCALAPPDATA\PDB Explorer"
+$DATA_DIR = "$env:LOCALAPPDATA\DrugHunter Studio"
 $VENV     = "$DATA_DIR\.venv"
 $PID_FILE = "$DATA_DIR\.pid"
 $PORT     = 8080
-$LOG_FILE = "$DATA_DIR\pdb-explorer.log"
+$LOG_FILE = "$DATA_DIR\drughunter-studio.log"
 
 New-Item -ItemType Directory -Force -Path "$DATA_DIR\pdb_files" | Out-Null
 
@@ -97,7 +97,7 @@ function Log($msg) {
     Add-Content -Path $LOG_FILE -Value $line -Encoding UTF8
 }
 
-Log "=== Iniciando PDB Explorer ==="
+Log "=== Iniciando DrugHunter Studio ==="
 Log "APP_DIR: $APP_DIR"
 Log "DATA_DIR: $DATA_DIR"
 
@@ -134,7 +134,7 @@ if (-not $python) {
     Log "ERRO: Python 3 nao encontrado"
     [System.Windows.Forms.MessageBox]::Show(
         "Python 3 nao foi encontrado.`n`nInstale em: https://www.python.org/downloads/`n`nDurante a instalacao, marque 'Add Python to PATH'.",
-        "PDB Explorer - Python necessario",
+        "DrugHunter Studio - Python necessario",
         [System.Windows.Forms.MessageBoxButtons]::OK,
         [System.Windows.Forms.MessageBoxIcon]::Error
     ) | Out-Null
@@ -145,7 +145,7 @@ if (-not $python) {
 # ── Primeira execução: criar venv ─────────────────────────────────────────────
 if (-not (Test-Path "$VENV\Scripts\python.exe")) {
     $form = New-Object System.Windows.Forms.Form
-    $form.Text = "PDB Explorer - Configuracao"
+    $form.Text = "DrugHunter Studio - Configuracao"
     $form.Size = New-Object System.Drawing.Size(420, 120)
     $form.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
     $form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
@@ -186,7 +186,7 @@ if (-not (Test-Path "$DATA_DIR\.env") -and (Test-Path "$APP_DIR\backend\.env.exa
 }
 
 # ── Iniciar servidor ──────────────────────────────────────────────────────────
-$dbPath = ("$DATA_DIR\pdb_explorer.db") -replace '\\', '/'
+$dbPath = ("$DATA_DIR\drughunter_studio.db") -replace '\\', '/'
 $pdbDir = ("$DATA_DIR\pdb_files") -replace '\\', '/'
 $env:DATABASE_URL  = "sqlite:///$dbPath"
 $env:PDB_FILES_DIR = $pdbDir
@@ -225,11 +225,11 @@ ENDPS1
 # ── iniciar.cmd (chamado pelo atalho; captura erros do PowerShell em log) ──────────────
 cat > "$PKG/iniciar.cmd" << 'ENDCMD'
 @echo off
-if not exist "%LOCALAPPDATA%\PDB Explorer\" mkdir "%LOCALAPPDATA%\PDB Explorer"
-echo %DATE% %TIME% [CMD] iniciar.cmd executado >> "%LOCALAPPDATA%\PDB Explorer\cmd.log"
-echo %DATE% %TIME% [CMD] Script: %~dp0iniciar.ps1 >> "%LOCALAPPDATA%\PDB Explorer\cmd.log"
-powershell.exe -ExecutionPolicy Bypass -NonInteractive -File "%~dp0iniciar.ps1" >> "%LOCALAPPDATA%\PDB Explorer\cmd.log" 2>&1
-echo %DATE% %TIME% [CMD] PowerShell encerrou: %ERRORLEVEL% >> "%LOCALAPPDATA%\PDB Explorer\cmd.log"
+if not exist "%LOCALAPPDATA%\DrugHunter Studio\" mkdir "%LOCALAPPDATA%\DrugHunter Studio"
+echo %DATE% %TIME% [CMD] iniciar.cmd executado >> "%LOCALAPPDATA%\DrugHunter Studio\cmd.log"
+echo %DATE% %TIME% [CMD] Script: %~dp0iniciar.ps1 >> "%LOCALAPPDATA%\DrugHunter Studio\cmd.log"
+powershell.exe -ExecutionPolicy Bypass -NonInteractive -File "%~dp0iniciar.ps1" >> "%LOCALAPPDATA%\DrugHunter Studio\cmd.log" 2>&1
+echo %DATE% %TIME% [CMD] PowerShell encerrou: %ERRORLEVEL% >> "%LOCALAPPDATA%\DrugHunter Studio\cmd.log"
 ENDCMD
 
 # ── Gerar script NSIS ─────────────────────────────────────────────────────────
@@ -238,25 +238,25 @@ echo "▶ Gerando script NSIS..."
 ICON_DEFINE=""
 SHORTCUT_ICON=""
 if [ "$HAS_ICON" -eq 1 ]; then
-    ICON_DEFINE='!define MUI_ICON "pdb-explorer-windows-pkg\pdb-explorer.ico"
-!define MUI_UNICON "pdb-explorer-windows-pkg\pdb-explorer.ico"'
-    SHORTCUT_ICON=' "$INSTDIR\pdb-explorer.ico" 0'
+    ICON_DEFINE='!define MUI_ICON "drughunter-studio-windows-pkg\drughunter-studio.ico"
+!define MUI_UNICON "drughunter-studio-windows-pkg\drughunter-studio.ico"'
+    SHORTCUT_ICON=' "$INSTDIR\drughunter-studio.ico" 0'
 fi
 
-cat > "$ROOT/pdb-explorer.nsi" << ENDNSI
-; PDB Explorer — Windows Installer
+cat > "$ROOT/drughunter-studio.nsi" << ENDNSI
+; DrugHunter Studio — Windows Installer
 !include "MUI2.nsh"
 Unicode True
 
-Name "PDB Explorer"
-OutFile "PDB-Explorer-Setup.exe"
-InstallDir "\$LOCALAPPDATA\PDB Explorer"
+Name "DrugHunter Studio"
+OutFile "DrugHunter-Studio-Setup.exe"
+InstallDir "\$LOCALAPPDATA\DrugHunter Studio"
 RequestExecutionLevel user
 
 ${ICON_DEFINE}
 !define MUI_ABORTWARNING
 !define MUI_FINISHPAGE_RUN
-!define MUI_FINISHPAGE_RUN_TEXT "Abrir PDB Explorer agora"
+!define MUI_FINISHPAGE_RUN_TEXT "Abrir DrugHunter Studio agora"
 !define MUI_FINISHPAGE_RUN_FUNCTION "LaunchApp"
 
 !insertmacro MUI_PAGE_WELCOME
@@ -269,19 +269,19 @@ ${ICON_DEFINE}
 
 !insertmacro MUI_LANGUAGE "PortugueseBR"
 
-Section "PDB Explorer"
+Section "DrugHunter Studio"
   SetOutPath "\$INSTDIR"
-  File /r "pdb-explorer-windows-pkg\*.*"
+  File /r "drughunter-studio-windows-pkg\*.*"
 
-  CreateDirectory "\$SMPROGRAMS\PDB Explorer"
-  CreateShortCut "\$SMPROGRAMS\PDB Explorer\PDB Explorer.lnk" "\$INSTDIR\iniciar.cmd" "" "" "" "SW_SHOWMINIMIZED"
-  CreateShortCut "\$DESKTOP\PDB Explorer.lnk" "\$INSTDIR\iniciar.cmd" "" "" "" "SW_SHOWMINIMIZED"
+  CreateDirectory "\$SMPROGRAMS\DrugHunter Studio"
+  CreateShortCut "\$SMPROGRAMS\DrugHunter Studio\DrugHunter Studio.lnk" "\$INSTDIR\iniciar.cmd" "" "" "" "SW_SHOWMINIMIZED"
+  CreateShortCut "\$DESKTOP\DrugHunter Studio.lnk" "\$INSTDIR\iniciar.cmd" "" "" "" "SW_SHOWMINIMIZED"
 
-  WriteUninstaller "\$INSTDIR\Desinstalar PDB Explorer.exe"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\PDB Explorer" "DisplayName" "PDB Explorer"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\PDB Explorer" "UninstallString" '"\$INSTDIR\Desinstalar PDB Explorer.exe"'
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\PDB Explorer" "DisplayVersion" "4.0.0"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\PDB Explorer" "Publisher" "PDB Explorer"
+  WriteUninstaller "\$INSTDIR\Desinstalar DrugHunter Studio.exe"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\DrugHunter Studio" "DisplayName" "DrugHunter Studio"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\DrugHunter Studio" "UninstallString" '"\$INSTDIR\Desinstalar DrugHunter Studio.exe"'
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\DrugHunter Studio" "DisplayVersion" "4.0.0"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\DrugHunter Studio" "Publisher" "DrugHunter Studio"
 SectionEnd
 
 Function LaunchApp
@@ -291,20 +291,20 @@ FunctionEnd
 Section "Uninstall"
   ExecWait 'powershell.exe -Command "Stop-Process -Id (Get-NetTCPConnection -LocalPort 8080 -State Listen -EA SilentlyContinue).OwningProcess -Force -EA SilentlyContinue"'
   RMDir /r "\$INSTDIR"
-  Delete "\$SMPROGRAMS\PDB Explorer\PDB Explorer.lnk"
-  RMDir "\$SMPROGRAMS\PDB Explorer"
-  Delete "\$DESKTOP\PDB Explorer.lnk"
-  DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\PDB Explorer"
+  Delete "\$SMPROGRAMS\DrugHunter Studio\DrugHunter Studio.lnk"
+  RMDir "\$SMPROGRAMS\DrugHunter Studio"
+  Delete "\$DESKTOP\DrugHunter Studio.lnk"
+  DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\DrugHunter Studio"
 SectionEnd
 ENDNSI
 
-echo "   ✓ pdb-explorer.nsi gerado"
+echo "   ✓ drughunter-studio.nsi gerado"
 
 # ── Compilar .exe ─────────────────────────────────────────────────────────────
-echo "▶ Compilando PDB-Explorer-Setup.exe..."
+echo "▶ Compilando DrugHunter-Studio-Setup.exe..."
 cd "$ROOT"
-makensis pdb-explorer.nsi
-rm -rf "$PKG" pdb-explorer.nsi
+makensis drughunter-studio.nsi
+rm -rf "$PKG" drughunter-studio.nsi
 
 echo "✅ Pronto!"
-ls -lh "$ROOT/PDB-Explorer-Setup.exe"
+ls -lh "$ROOT/DrugHunter-Studio-Setup.exe"

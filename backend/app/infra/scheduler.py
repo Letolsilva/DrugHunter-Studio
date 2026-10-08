@@ -9,7 +9,7 @@ import asyncio
 import logging
 from datetime import datetime
 
-logger = logging.getLogger("pdb_explorer.scheduler")
+logger = logging.getLogger("drughunter_studio.scheduler")
 
 
 async def tarefa_limpeza_ttl():

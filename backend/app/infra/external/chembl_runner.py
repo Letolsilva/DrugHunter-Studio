@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 from typing import AsyncGenerator, List
 
-logger = logging.getLogger("pdb_explorer")
+logger = logging.getLogger("drughunter_studio")
 
 _WORKER_PATH = str(Path(__file__).parent / "_dh_chembl_worker.py")
 

@@ -21,7 +21,7 @@ from app.infra.db.database import get_config, SessionLocal
 from app.infra.external.chembl_runner import run_chembl_group
 from app.services import chembl as svc
 
-logger = logging.getLogger("pdb_explorer")
+logger = logging.getLogger("drughunter_studio")
 
 # Jobs com task asyncio ativa neste processo — usados para distinguir
 # "rodando agora" de "servidor reiniciou e o job ficou preso em running".

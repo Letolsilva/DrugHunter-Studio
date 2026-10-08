@@ -11,7 +11,7 @@ import threading
 from pathlib import Path
 from typing import Optional
 
-logger = logging.getLogger("pdb_explorer")
+logger = logging.getLogger("drughunter_studio")
 
 _MD_ANALYSER_WORKER_PATH = str(Path(__file__).parent / "_dh_md_analyser_worker.py")
 

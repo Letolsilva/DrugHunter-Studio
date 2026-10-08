@@ -1,4 +1,4 @@
-# PDB Explorer — Fase 1: Backend + Scraper
+# DrugHunter Studio — Fase 1: Backend + Scraper
 
 ## O que foi implementado nesta fase
 
@@ -114,7 +114,7 @@ backend/
 │   └── main.py                ← App FastAPI
 ├── teste_scraper.py           ← Teste standalone do scraper
 ├── requirements.txt
-└── pdb_explorer.db            ← Banco SQLite (criado automaticamente)
+└── drughunter_studio.db            ← Banco SQLite (criado automaticamente)
 ```
 
 ## Campos capturados por estrutura

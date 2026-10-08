@@ -2,7 +2,7 @@
 
 import sqlite3
 
-DB_PATH = "pdb_explorer.db"
+DB_PATH = "drughunter_studio.db"
 
 conn = sqlite3.connect(DB_PATH)
 cur = conn.cursor()

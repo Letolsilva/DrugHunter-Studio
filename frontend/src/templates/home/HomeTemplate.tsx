@@ -190,7 +190,7 @@ export default function HomeTemplate({ userName, status, loading, handleLogout }
         <Navbar.Left>
           <span className="text-[17px] font-medium text-foreground-muted inline-flex items-center gap-1.5 select-none">
             <AppLogoIcon size={17} className="text-foreground-muted" />
-            PDB<b className="text-foreground font-extrabold">Explorer</b>
+            DrugHunter<b className="text-foreground font-extrabold">Studio</b>
           </span>
         </Navbar.Left>
 

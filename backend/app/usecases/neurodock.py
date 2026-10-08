@@ -21,7 +21,7 @@ from app.infra.email_sender import enviar_email_conclusao
 from app.infra.external.neurodock_runner import run_train_worker, run_predict_worker
 from app.services import neurodock as svc
 
-logger = logging.getLogger("pdb_explorer")
+logger = logging.getLogger("drughunter_studio")
 
 _running_models: set[int] = set()
 _running_predictions: set[int] = set()

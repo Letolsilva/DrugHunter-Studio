@@ -11,7 +11,7 @@ import threading
 from pathlib import Path
 from typing import Optional, Tuple
 
-logger = logging.getLogger("pdb_explorer")
+logger = logging.getLogger("drughunter_studio")
 
 _TRAIN_WORKER_PATH = str(Path(__file__).parent / "_dh_neurodock_train_worker.py")
 _PREDICT_WORKER_PATH = str(Path(__file__).parent / "_dh_neurodock_predict_worker.py")

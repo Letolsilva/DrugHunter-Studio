@@ -83,7 +83,7 @@ export default function SearchTemplate({
             title="Início"
           >
             <AppLogoIcon size={17} className="text-foreground-muted" />
-            PDB<b className="font-extrabold text-foreground">Explorer</b>
+            DrugHunter<b className="font-extrabold text-foreground">Studio</b>
           </button>
         </Navbar.Left>
 

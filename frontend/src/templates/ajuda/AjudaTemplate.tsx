@@ -219,7 +219,7 @@ export default function AjudaTemplate({
             title="Início"
           >
             <AppLogoIcon size={17} className="text-foreground-muted" />
-            PDB<b className="text-foreground font-extrabold">Explorer</b>
+            DrugHunter<b className="text-foreground font-extrabold">Studio</b>
           </button>
           <span className="ml-1 border-l border-outline pl-3 text-[13px] text-foreground-subtle inline-flex items-center gap-1.5">
             <HelpIcon size={13} />
@@ -378,7 +378,7 @@ export default function AjudaTemplate({
                         <Code>bin/</Code> do Dock6 — você precisará dele nas
                         Configurações. Se os binários (<Code>dock6</Code>,{" "}
                         <Code>sphgen</Code>, <Code>grid</Code>) estiverem no
-                        PATH do sistema, o PDB Explorer detecta
+                        PATH do sistema, o DrugHunter Studio detecta
                         automaticamente.
                       </p>
                     </div>
@@ -545,7 +545,7 @@ export default function AjudaTemplate({
                   </div>
                 </Step>
 
-                <Step n={6} title="Configurar o PDB Explorer">
+                <Step n={6} title="Configurar o DrugHunter Studio">
                   Vá em{" "}
                   <button
                     type="button"
@@ -816,7 +816,7 @@ export default function AjudaTemplate({
                   </div>
                 </Step>
 
-                <Step n={6} title="Configurar o PDB Explorer">
+                <Step n={6} title="Configurar o DrugHunter Studio">
                   Vá em{" "}
                   <button
                     type="button"
@@ -895,7 +895,7 @@ export default function AjudaTemplate({
                 </p>
                 <CodeBlock>{"conda activate DrugHunter\npip uninstall bson -y"}</CodeBlock>
                 <p className="text-[12px] text-foreground-subtle leading-relaxed">
-                  Após remover o pacote, reinicie o PDB Explorer e clique em
+                  Após remover o pacote, reinicie o DrugHunter Studio e clique em
                   "Testar Configuração" para confirmar que o conflito foi
                   resolvido.
                 </p>
@@ -910,7 +910,7 @@ export default function AjudaTemplate({
                 Por que meus resultados não estão aparecendo?
               </p>
               <p className="text-[12px] text-foreground-subtle leading-relaxed">
-                O PDB Explorer{" "}
+                O DrugHunter Studio{" "}
                 <strong className="text-foreground-muted">
                   não armazena os resultados gerados
                 </strong>{" "}
@@ -918,7 +918,7 @@ export default function AjudaTemplate({
                 produziu no disco. O banco de dados guarda apenas referências
                 (caminhos de pasta) e metadados do job (status, parâmetros
                 usados). Se os arquivos no disco forem removidos, movidos ou
-                renomeados, o PDB Explorer não consegue encontrá-los.
+                renomeados, o DrugHunter Studio não consegue encontrá-los.
               </p>
               <div className="flex flex-col gap-2 mt-1">
                 <p className="text-[12px] font-medium text-foreground-muted">

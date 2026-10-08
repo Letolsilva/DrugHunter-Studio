@@ -19,7 +19,7 @@ from app.infra.db.database import SessionLocal, get_config
 from app.infra.external.clustering_runner import run_clustering_worker
 from app.services import clustering as svc
 
-logger = logging.getLogger("pdb_explorer")
+logger = logging.getLogger("drughunter_studio")
 
 _running_jobs: set[int] = set()
 

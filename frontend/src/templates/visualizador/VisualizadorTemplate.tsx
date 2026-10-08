@@ -64,7 +64,7 @@ export default function VisualizadorTemplate({
             title="Início"
           >
             <AppLogoIcon size={17} className="text-foreground-muted" />
-            PDB<b className="text-foreground font-extrabold">Explorer</b>
+            DrugHunter<b className="text-foreground font-extrabold">Studio</b>
           </button>
           {arvore && (
             <span className="ml-1 border-l border-outline pl-3 font-mono text-[12px] text-foreground-subtle">

@@ -9,7 +9,7 @@ import logging
 import subprocess
 from pathlib import Path
 
-logger = logging.getLogger("pdb_explorer")
+logger = logging.getLogger("drughunter_studio")
 
 _WORKER_PATH = str(Path(__file__).parent / "_dh_admet_worker.py")
 

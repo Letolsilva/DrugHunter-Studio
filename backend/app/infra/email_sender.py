@@ -6,7 +6,7 @@ Variáveis necessárias:
   SMTP_PORT     ex: 587
   SMTP_USER     ex: seu_email@gmail.com
   SMTP_PASSWORD ex: senha_de_app (Gmail: gerar em myaccount.google.com/apppasswords)
-  SMTP_FROM     ex: PDB Explorer <seu_email@gmail.com>
+  SMTP_FROM     ex: DrugHunter Studio <seu_email@gmail.com>
 
 Se alguma variável não estiver configurada, loga um aviso e retorna sem falhar.
 """
@@ -17,13 +17,13 @@ import smtplib
 from email.mime.text import MIMEText
 from pathlib import Path
 
-logger = logging.getLogger("pdb_explorer")
+logger = logging.getLogger("drughunter_studio")
 
 _DEFAULT_HOST = "smtp.gmail.com"
 _DEFAULT_PORT = "587"
 _DEFAULT_USER = "pdbexplorer@gmail.com"
 _DEFAULT_PASSWORD = "%%SMTP_PASSWORD%%"
-_DEFAULT_FROM = "PDB Explorer <pdbexplorer@gmail.com>"
+_DEFAULT_FROM = "DrugHunter Studio <pdbexplorer@gmail.com>"
 
 
 def _default_password() -> str | None:
@@ -103,15 +103,15 @@ def enviar_email_conclusao(
     modulo_lower = modulo.lower()
 
     if status == "done":
-        assunto = f"[PDB Explorer] {modulo} concluído — {target}"
+        assunto = f"[DrugHunter Studio] {modulo} concluído — {target}"
         corpo = (
             f"Olá,\n\n"
             f'O job de {modulo_lower} do alvo "{target}" (ID: {job_id}) foi concluído com sucesso.\n\n'
-            f"Acesse o PDB Explorer para ver os resultados em: {base_output_path}\n\n"
-            f"—\nPDB Explorer"
+            f"Acesse o DrugHunter Studio para ver os resultados em: {base_output_path}\n\n"
+            f"—\nDrugHunter Studio"
         )
     else:
-        assunto = f"[PDB Explorer] Erro em {modulo} — {target}"
+        assunto = f"[DrugHunter Studio] Erro em {modulo} — {target}"
         corpo = (
             f"Olá,\n\n"
             f'O job de {modulo_lower} do alvo "{target}" (ID: {job_id}) falhou.\n\n'
@@ -125,7 +125,7 @@ def enviar_email_conclusao(
                 f"• O Chimera e o Vina estão instalados e no PATH configurado?\n"
                 f"• O nome do ligante e RESNUM batem com o que está no PDB?\n\n"
             )
-        corpo += "—\nPDB Explorer"
+        corpo += "—\nDrugHunter Studio"
 
     msg = MIMEText(corpo, "plain", "utf-8")
     msg["Subject"] = assunto

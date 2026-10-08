@@ -24,7 +24,7 @@ from app.infra.external.md_runner import run_md_worker
 from app.infra.external.md_analyser_runner import run_md_analyser_worker
 from app.services import molecular_dynamics as svc
 
-logger = logging.getLogger("pdb_explorer")
+logger = logging.getLogger("drughunter_studio")
 
 _running_jobs: set[int] = set()
 _running_analyses: set[int] = set()

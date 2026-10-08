@@ -23,7 +23,7 @@ from app.infra.email_sender import enviar_email_conclusao
 from app.infra.external.consensus_runner import run_consensus_worker
 from app.services import consensus as svc
 
-logger = logging.getLogger("pdb_explorer")
+logger = logging.getLogger("drughunter_studio")
 
 
 def _resolve_path(dh_dir: str, stored_path: str) -> Path:

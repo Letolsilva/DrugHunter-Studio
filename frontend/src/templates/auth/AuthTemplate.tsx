@@ -42,7 +42,7 @@ export default function AuthTemplate({
           <div className="inline-flex items-center gap-2 mb-2">
             <AppLogoIcon size={24} className="text-accent" />
             <span className="text-[22px] font-normal text-foreground tracking-tight">
-              PDB<b className="font-bold text-accent">Explorer</b>
+              DrugHunter<b className="font-bold text-accent">Studio</b>
             </span>
           </div>
           <p className="text-[12px] text-foreground-subtle leading-snug mt-1">

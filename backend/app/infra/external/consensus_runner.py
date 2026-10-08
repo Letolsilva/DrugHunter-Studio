@@ -12,7 +12,7 @@ import threading
 from pathlib import Path
 from typing import Tuple
 
-logger = logging.getLogger("pdb_explorer")
+logger = logging.getLogger("drughunter_studio")
 
 _WORKER_PATH = str(Path(__file__).parent / "_dh_consensus_worker.py")
 

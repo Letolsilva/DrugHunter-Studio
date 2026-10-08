@@ -115,7 +115,7 @@ export default function ChemblTemplate(props: UseChemblPageReturn) {
             <AppLogoIcon size={17} />
           </button>
           <span className="text-[17px] font-medium text-foreground-muted inline-flex items-center gap-1.5">
-            PDB<b className="text-foreground font-extrabold">Explorer</b>
+            DrugHunter<b className="text-foreground font-extrabold">Studio</b>
             <span className="mx-1 text-outline">/</span>
             <BioactivityIcon size={15} className="text-foreground-subtle" />
             <span className="text-foreground-subtle">Bioatividade</span>

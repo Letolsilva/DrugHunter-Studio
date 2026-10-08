@@ -12,9 +12,9 @@ from app.domain.models import Base, SystemConfig
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "sqlite:///./pdb_explorer.db",
+    "sqlite:///./drughunter_studio.db",
     # Para PostgreSQL (produção):
-    # "postgresql://user:senha@localhost:5432/pdb_explorer"
+    # "postgresql://user:senha@localhost:5432/drughunter_studio"
 )
 
 # ── Engine ────────────────────────────────────────────────────
@@ -109,7 +109,7 @@ CONFIGS_PADRAO = [
     {
         "chave": "smtp_from",
         "valor": "",
-        "descricao": "Endereço remetente exibido nos emails (ex: PDB Explorer <email@gmail.com>)",
+        "descricao": "Endereço remetente exibido nos emails (ex: DrugHunter Studio <email@gmail.com>)",
     },
 ]
 
@@ -153,6 +153,9 @@ def _seed_configs():
             existente = db.query(SystemConfig).filter_by(chave=cfg["chave"]).first()
             if not existente:
                 db.add(SystemConfig(**cfg))
+            elif existente.descricao != cfg["descricao"]:
+                # Descrição não é editável pelo usuário — mantém texto atualizado (ex: renomeação do app)
+                existente.descricao = cfg["descricao"]
         db.commit()
     finally:
         db.close()

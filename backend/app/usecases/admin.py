@@ -375,7 +375,7 @@ def uc_validar_drughunter(db: Session) -> dict:
         "ok": obabel_ok,
         "mensagem": obabel_msg,
         "como_corrigir": None if obabel_ok else (
-            "Opcional — o PDB Explorer usa RDKit como fallback. "
+            "Opcional — o DrugHunter Studio usa RDKit como fallback. "
             "Para resultados de maior qualidade: conda activate DrugHunter && conda install -c conda-forge openbabel"
         ),
         "opcional": True,
@@ -401,7 +401,7 @@ def uc_validar_drughunter(db: Session) -> dict:
         "ok": antechamber_ok,
         "mensagem": antechamber_msg,
         "como_corrigir": None if antechamber_ok else (
-            "Opcional — o PDB Explorer usa cargas MMFF94 como fallback. "
+            "Opcional — o DrugHunter Studio usa cargas MMFF94 como fallback. "
             "Não recomendado para MD de publicação. "
             "Para instalar: conda activate DrugHunter && conda install -c conda-forge ambertools"
         ),

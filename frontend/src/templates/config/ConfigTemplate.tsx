@@ -55,7 +55,7 @@ const DESCRICAO: Record<string, string> = {
   smtp_password:
     "Armazenada criptografada no banco. Deixe em branco para manter a senha atual.",
   smtp_from:
-    "Remetente exibido nos emails (ex: PDB Explorer <email@gmail.com>).",
+    "Remetente exibido nos emails (ex: DrugHunter Studio <email@gmail.com>).",
 };
 
 const PLACEHOLDER: Record<string, string> = {
@@ -160,7 +160,7 @@ export default function ConfigTemplate({
             title="Início"
           >
             <AppLogoIcon size={17} className="text-foreground-muted" />
-            PDB<b className="text-foreground font-extrabold">Explorer</b>
+            DrugHunter<b className="text-foreground font-extrabold">Studio</b>
           </button>
           <span className="ml-1 border-l border-outline pl-3 text-[13px] text-foreground-subtle inline-flex items-center gap-1.5">
             Configurações
@@ -461,7 +461,7 @@ export default function ConfigTemplate({
               ) : (
                 <div className="flex flex-col gap-5">
                   <p className="text-[12px] text-foreground-subtle leading-relaxed">
-                    Conecta o PDB Explorer ao DrugHunter instalado na sua
+                    Conecta o DrugHunter Studio ao DrugHunter instalado na sua
                     máquina. Os dois primeiros campos são{" "}
                     <span className="font-medium text-foreground-muted">
                       obrigatórios
@@ -820,7 +820,7 @@ export default function ConfigTemplate({
                         type="text"
                         value={valor("smtp_from")}
                         onChange={(e) => setCampo("smtp_from", e.target.value)}
-                        placeholder="PDB Explorer"
+                        placeholder="DrugHunter Studio"
                         className="flex-1 rounded border border-outline bg-surface-secondary px-3 py-2 font-mono text-[12px] text-foreground placeholder:text-foreground-subtle"
                       />
                       <Button
