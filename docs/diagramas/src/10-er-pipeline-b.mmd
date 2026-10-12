@@ -51,7 +51,7 @@ erDiagram
     REDOCKING_JOBS {
         int id PK
         int user_id FK "CASCADE"
-        string status "pending, running, done, error"
+        string status "pending, running, done, error, cancelled"
         string target
         string base_input_path
         string base_output_path

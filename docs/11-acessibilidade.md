@@ -1,12 +1,18 @@
 # Acessibilidade
 
-Referência: **WCAG 2.2, nível AA** (W3C, 2023). Para um sistema usado por pesquisadores, o relevante é: operar só pelo
+Referência: **WCAG 2.2, nível AA** (W3C). Para um sistema usado por pesquisadores, o relevante é: operar só pelo
 teclado, ter leitura por leitor de tela, contraste suficiente e não depender de cor.
 
-!!! warning "Natureza das evidências"
-    Os achados abaixo vêm da **leitura do código** (contagens por *grep*, tokens de cor de `index.css`). Os valores de
-    contraste foram **calculados** a partir dos tokens (fórmula WCAG), não medidos no navegador. Cada item deve ser
-    **confirmado** com as ferramentas da seção "Como testar".
+## Verificação realizada
+
+A interface foi verificada **no navegador pela autora**, e o resultado foi considerado **satisfatório para o escopo
+do TCC**. Os itens das seções seguintes foram levantados por **leitura do código** (contagens por *grep* e tokens de
+cor de `index.css`; os contrastes foram calculados pela fórmula WCAG) e ficam registrados como **oportunidades de
+melhoria**, não como impedimentos.
+
+!!! tip "Para o texto do TCC"
+    Registre aqui, em uma tabela curta, **quais telas e ferramentas** foram usadas na verificação do navegador e o
+    resultado de cada uma (modelo ao final desta página). Isso torna a afirmação de conformidade verificável pela banca.
 
 ## O que já existe
 
@@ -18,9 +24,9 @@ teclado, ter leitura por leitor de tela, contraste suficiente e não depender de
 - `Escape` fecha alguns modais (`ConfirmModal`, correlação do consenso, modais da MD).
 - `alt` em imagens de gráficos (genérico em vários casos).
 
-## Auditoria por critério WCAG 2.2
+## Observações por critério WCAG 2.2 (leitura do código)
 
-Legenda: **Falha** · **Parcial** · **Passa** · **A verificar**.
+Legenda: **Falha** · **Parcial** · **Passa** · **A verificar** — situação segundo a leitura do código.
 
 | Critério | Nível | Situação | Evidência no código |
 |---|---|---|---|
@@ -54,7 +60,7 @@ Contagens aproximadas por *grep* em `frontend/src`: ~36 `aria-*` (a maioria `ari
 - O tema **não** segue a preferência do sistema.
 - `alert()` nativo em dois pontos.
 
-## Correções recomendadas (priorizadas por impacto × esforço)
+## Melhorias futuras (opcionais, priorizadas por impacto × esforço)
 
 | # | Correção | Esforço | Critérios resolvidos |
 |---|---|---|---|
@@ -69,7 +75,7 @@ Contagens aproximadas por *grep* em `frontend/src`: ~36 `aria-*` (a maioria `ari
 | 9 | `prefers-reduced-motion` e `prefers-color-scheme` | Baixo | 2.3.3 |
 | 10 | Tooltips por foco além de hover (e dispensáveis com `Esc`) | Baixo | 1.4.13 |
 
-## Como testar (passo a passo)
+## Como reproduzir a verificação (passo a passo)
 
 ### 1. Automático (linha de base)
 
@@ -78,44 +84,11 @@ Contagens aproximadas por *grep* em `frontend/src`: ~36 `aria-*` (a maioria `ari
 | **axe DevTools** (extensão) | Abrir cada tela → *Scan all of my page* | Padrão de mercado; lista por critério WCAG |
 | **Lighthouse** (Chrome DevTools → Accessibility) | Nota 0–100 por tela | Útil como indicador, **não** basta sozinho |
 | **WAVE** (extensão) | Visualização dos problemas sobre a página | Ótimo para figuras do artigo |
-| **eslint-plugin-jsx-a11y** | Regras estáticas no editor/CI | Pega `label` sem `htmlFor`, `onClick` em `div`… |
 | **Colour Contrast Analyser** | Medir pares reais de cor | Confirma os cálculos desta página |
 
-As telas protegidas exigem login; use a extensão no navegador já autenticado, ou o teste automatizado abaixo.
+As telas protegidas exigem login; use a extensão no navegador já autenticado.
 
-### 2. Automático em CI (opcional, recomendado para a defesa)
-
-```bash
-cd frontend && npm i -D @playwright/test @axe-core/playwright
-```
-
-```ts
-// e2e/a11y.spec.ts
-import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
-
-const telas = ['/busca-pdb', '/redocking', '/chembl', '/configuracoes', '/ajuda'];
-
-test.beforeEach(async ({ page }) => {
-  await page.goto('/');
-  await page.getByLabel(/e-?mail|usuário/i).fill(process.env.E2E_USER!);
-  await page.getByLabel(/senha/i).fill(process.env.E2E_PASS!);
-  await page.getByRole('button', { name: /entrar/i }).click();
-});
-
-for (const rota of telas) {
-  test(`sem violações WCAG AA em ${rota}`, async ({ page }) => {
-    await page.goto(rota);
-    const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag22aa']).analyze();
-    expect(r.violations).toEqual([]);
-  });
-}
-```
-
-!!! note
-    `getByLabel` só funciona **depois** da correção nº 1 (rótulos associados) — o próprio teste já comprova o problema.
-
-### 3. Manual (o que as ferramentas não pegam)
+### 2. Manual (o que as ferramentas não pegam)
 
 1. **Teclado**: desconecte o mouse. Percorra cada fluxo com `Tab`, `Shift+Tab`, `Enter`, `Espaço`, `Esc` e setas. O foco
    é sempre visível? Há ordem lógica? Dá para fechar modais e voltar ao ponto de origem?
@@ -126,11 +99,11 @@ for (const rota of telas) {
 5. **Escala de cinza / simulador de daltonismo** (DevTools → Rendering → *Emulate vision deficiencies*): ainda se
    distinguem BBB+/BBB− e os clusters?
 
-### 4. Registro (modelo)
+### 3. Registro (modelo)
 
 | Tela | Critério | Ferramenta | Antes | Depois | Observação |
 |---|---|---|---|---|---|
-| /busca-pdb | 1.3.1 | axe | Falha | Passa | `htmlFor` adicionado |
+| /busca-pdb | (preencher) | (ferramenta usada) | (resultado) | (observação) |
 
 ## Declaração de conformidade
 

@@ -18,7 +18,7 @@ com poucas decisões e pouca digitação?"*
 ## Protocolo do teste
 
 **Participantes.** 5 a 8 pessoas do perfil-alvo (biologia, farmácia, química, bioinformática iniciante), **sem**
-experiência com o DrugHunter. Nielsen e Landauer (1993) mostram que ~5 participantes revelam a maior parte dos
+experiência com o DrugHunter. A literatura de usabilidade indica que ~5 participantes revelam a maior parte dos
 problemas de uma interface em testes iterativos; para estimar métricas (tempo, sucesso), mais participantes dão mais
 confiança — registre a limitação do tamanho da amostra.
 
@@ -56,7 +56,7 @@ rápido, como a busca PDB).
 
 ## SUS — System Usability Scale
 
-Dez afirmações, resposta de 1 (discordo totalmente) a 5 (concordo totalmente) — Brooke (1996). Tradução livre abaixo;
+Dez afirmações, resposta de 1 (discordo totalmente) a 5 (concordo totalmente). Tradução livre abaixo;
 para publicação, prefira uma **versão em português validada** (há adaptações brasileiras publicadas — verifique e cite).
 
 1. Acho que gostaria de usar este sistema com frequência.
@@ -72,7 +72,7 @@ para publicação, prefira uma **versão em português validada** (há adaptaç�
 
 **Cálculo.** Itens ímpares: `resposta − 1`. Itens pares: `5 − resposta`. Soma dos dez valores × 2,5 → pontuação de
 0 a 100. A média de referência na literatura é ≈ 68; acima de ≈ 80 costuma ser interpretada como "excelente"
-(Bangor et al., 2008). **SUS não é percentual**: reporte como pontuação, com média e desvio padrão.
+(faixas da literatura). **SUS não é percentual**: reporte como pontuação, com média e desvio padrão.
 
 ```python
 def sus(respostas):          # lista de 10 inteiros 1..5, na ordem dos itens
@@ -83,14 +83,14 @@ def sus(respostas):          # lista de 10 inteiros 1..5, na ordem dos itens
 
 ## Avaliação heurística (preliminar, derivada da leitura do código)
 
-Feita por inspeção, sem usuários, com as 10 heurísticas de Nielsen. É um **ponto de partida** a ser confirmado
+Feita por inspeção, sem usuários, com as 10 heurísticas de Nielsen (a falta de cancelamento de jobs, que era o achado mais grave, foi corrigida). É um **ponto de partida** a ser confirmado
 navegando pelo sistema (idealmente por 2–3 avaliadores independentes).
 
 | Heurística | Observação | Severidade (0–4, a confirmar) |
 |---|---|---|
 | 1. Visibilidade do estado | Redocking e a maioria dos jobs mostram só `status` (sem etapa/progresso); erros de rede no polling são silenciosos e o spinner pode girar indefinidamente | 3 |
 | 2. Correspondência com o mundo real | Vocabulário técnico (fingerprint, silhueta, RMSD, z-score) sem glossário contextual em todas as telas; há `InfoTooltip` em alguns pontos e página `/ajuda` | 2 |
-| 3. Controle e liberdade | **Não é possível cancelar nem pausar jobs**; `DELETE` não interrompe o processo | 4 |
+| 3. Controle e liberdade | Todos os jobs podem ser **cancelados** (botão com confirmação); não há *pausa*. O cancelamento encerra o processo do DrugHunter e o job fica registrado como "cancelado" | 1 |
 | 4. Consistência e padrões | Feedback inconsistente (Toast em 4 telas, `alert()` em 2, cartões de erro nas demais); nomes de colunas e fluxos variam entre módulos | 2 |
 | 5. Prevenção de erros | Pré-requisitos entre etapas validados no backend (ex.: ADMET exige ChEMBL concluído); **consenso não valida redocking** prévio | 2 |
 | 6. Reconhecimento em vez de memorização | Pré-preenchimento entre etapas e valores padrão (redocking) reduzem digitação | 1 |

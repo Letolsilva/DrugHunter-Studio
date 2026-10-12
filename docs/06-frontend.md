@@ -57,7 +57,7 @@ Resumo (a justificativa de cada escolha está em [Visualização de dados](13-vi
 | Barras de resolução por faixa | Recharts | Dashboard de busca, Redocking |
 | Barras de método experimental | Recharts | Dashboard de busca |
 | Barras de estruturas por proteína | Recharts | Dashboard (≥ 2 proteínas) |
-| Donut de ligantes (top-8) | Recharts | Redocking |
+| Barras horizontais de ligantes mais frequentes (top-8) | Recharts | Redocking |
 | **BOILED-Egg** (TPSA × WLOGP) | Recharts + SVG | ADMET |
 | **t-SNE** por cluster | Recharts | Clustering |
 | Correlação Vina × Dock6 (min-max e z-score) | SVG artesanal | Consenso |

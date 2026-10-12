@@ -70,6 +70,7 @@ O Studio é uma **camada de acessibilidade** sobre o DrugHunter. Seus princípio
 | RF05 | Executar o pipeline CADD (redocking, ChEMBL, ADMET, clustering, consenso, NeuroDock, MD) como jobs assíncronos | módulos em [Fluxos](04-fluxos-e-modulos.md) |
 | RF06 | Acompanhar status de cada job e ser avisado por e-mail na conclusão | polling + `email_sender.py` |
 | RF07 | Visualizar resultados (tabelas, gráficos, estruturas 2D/3D) | [Frontend](06-frontend.md) |
+| RF10 | Cancelar um job em andamento, em qualquer módulo | `POST /api/jobs/{kind}/{id}/cancel`, `infra/job_control.py` |
 | RF08 | Validar o ambiente do DrugHunter (caminhos, ferramentas) e orientar a correção | `GET /api/admin/validar-drughunter` |
 | RF09 | Administrar usuários, cache (TTL) e SMTP | `routes/admin.py` |
 
@@ -83,7 +84,7 @@ O Studio é uma **camada de acessibilidade** sobre o DrugHunter. Seus princípio
 | RNF04 | **Desempenho**: interface não bloqueia durante jobs longos | Jobs em threads/subprocessos + polling |
 | RNF05 | **Segurança**: autenticação, segredos criptografados, isolamento por usuário | JWT, Fernet para senha SMTP, jobs filtrados por `user_id` — ver [Segurança](08-implantacao-e-seguranca.md) |
 | RNF06 | **Manutenibilidade**: camadas e baixo acoplamento | Hexagonal (backend) e camadas com DI manual (frontend) |
-| RNF07 | **Testabilidade** | **Não atendido** — não há testes automatizados (ver [Limitações](14-limitacoes.md)) |
+| RNF07 | **Testabilidade** | Testes automatizados **fora do escopo** do TCC; a validação é por acessibilidade, usabilidade e estudo de caso (ver [Validação](10-validacao.md)) |
 
 ## Tecnologias
 

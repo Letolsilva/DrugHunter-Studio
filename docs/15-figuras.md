@@ -26,7 +26,9 @@ texto ao arquivo para manter o código como fonte única.
 
 ## Catálogo
 
-| Nº | Figura | Categoria | Uso sugerido | PNG | SVG |
+O **Nº do arquivo** é o prefixo do nome (ordem do catálogo); a numeração das legendas nas páginas do site é sequencial por página e pode diferir. Numere as figuras do artigo conforme a ordem em que aparecem no seu texto.
+
+| Nº do arquivo | Figura | Categoria | Uso sugerido | PNG | SVG |
 |---|---|---|---|---|---|
 | 01 | Contexto do sistema (C4, nível 1) | Arquitetura | Seção de visão geral / arquitetura | [png](assets/diagramas/png/01-c4-contexto.png) | [svg](assets/diagramas/svg/01-c4-contexto.svg) |
 | 02 | Contêineres do sistema (C4, nível 2) | Arquitetura | Arquitetura proposta | [png](assets/diagramas/png/02-c4-containers.png) | [svg](assets/diagramas/svg/02-c4-containers.svg) |
@@ -58,6 +60,7 @@ texto ao arquivo para manter o código como fonte única.
 | 28 | Classes do frontend (recorte) | Estrutura | Apêndice | [png](assets/diagramas/png/28-classes-frontend.png) | [svg](assets/diagramas/svg/28-classes-frontend.svg) |
 | 29 | Mapa de navegação | Interface | Interface | [png](assets/diagramas/png/29-navegacao-rotas.png) | [svg](assets/diagramas/svg/29-navegacao-rotas.svg) |
 | 30 | Metodologia de validação | Método | Metodologia | [png](assets/diagramas/png/30-metodologia-validacao.png) | [svg](assets/diagramas/svg/30-metodologia-validacao.svg) |
+| 31 | Sequência — cancelamento de job | Comportamento | Desenvolvimento (controle do usuário sobre o pipeline) | [png](assets/diagramas/png/31-seq-cancelamento.png) | [svg](assets/diagramas/svg/31-seq-cancelamento.svg) |
 
 ## Pré-visualização
 
@@ -181,3 +184,7 @@ texto ao arquivo para manter o código como fonte única.
 ### Figura 30 — Metodologia de validação
 
 ![Metodologia de validação](assets/diagramas/svg/30-metodologia-validacao.svg)
+
+### Figura 31 — Sequência — cancelamento de job
+
+![Sequência — cancelamento de job](assets/diagramas/svg/31-seq-cancelamento.svg)

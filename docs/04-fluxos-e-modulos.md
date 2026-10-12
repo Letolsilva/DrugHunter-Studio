@@ -41,12 +41,12 @@ em **JSON-lines** (`{"type": "etapa|start|log|warn|done|error", ...}`).
 ### Estados
 
 ![Estados do job](assets/diagramas/svg/21-estados-job.svg)
-*Figura 14 — Ciclo de vida de um job.*
+*Figura 14 — Ciclo de vida de um job (inclui o estado terminal `cancelled`).*
 
-!!! warning "Sem cancelamento"
-    Nenhum módulo oferece cancelar ou pausar um job. `DELETE` remove o registro (e, em alguns módulos, os arquivos)
-    mas **não encerra o subprocesso**. Se o servidor reiniciar com um job em `running`, ChEMBL, clustering, consenso,
-    NeuroDock e MD são recuperados no próximo `GET`; **redocking, ADMET e análise MD ficam em `running` para sempre**.
+!!! note "Recuperação após reinício do servidor"
+    Se o servidor reiniciar com um job em `running`, ChEMBL, clustering, consenso, NeuroDock e MD são recuperados no
+    próximo `GET`; **redocking, ADMET e análise MD permanecem em `running`** — nesses casos o usuário pode usar
+    **Cancelar** para liberar o job.
 
 ### Mecanismo de progresso por módulo
 
@@ -61,6 +61,33 @@ em **JSON-lines** (`{"type": "etapa|start|log|warn|done|error", ...}`).
 | Consenso | thread daemon | `status` | 4 s |
 | NeuroDock | thread daemon | `status` | 8 s (modelo) / 5 s (predição) |
 | Dinâmica molecular | thread daemon | `status` | 10 s |
+
+## Cancelamento de jobs
+
+Qualquer job `pending` ou `running` pode ser cancelado pelo usuário, em todos os módulos (redocking, ChEMBL, ADMET,
+clustering, consenso, NeuroDock — treino e triagem —, dinâmica molecular e análise de trajetória). Na interface, o
+botão **Cancelar** aparece ao lado do indicador de progresso e pede confirmação; ao final, a tela mostra um cartão
+neutro "Processamento cancelado" com a opção de **rodar novamente**.
+
+![Cancelamento](assets/diagramas/svg/31-seq-cancelamento.svg)
+*Figura 14b — Cancelamento de um job em andamento.*
+
+**Como funciona** (`infra/job_control.py`, `usecases/job_cancel.py`, `routes/jobs.py`):
+
+| Aspecto | Decisão |
+|---|---|
+| Endpoint | Único para todos os módulos: `POST /api/jobs/{kind}/{id}/cancel` (200; 404 se não existe ou é de outro usuário; 409 se já terminou) |
+| Estado | Novo estado terminal **`cancelled`**, distinto de `error`: cancelar não é falha (sem e-mail de erro) |
+| Encerramento | O subprocesso do worker é criado em **grupo de processos próprio**; o cancelamento envia `SIGTERM` ao grupo inteiro (worker e filhos: Chimera, Vina, Dock6…) e `SIGKILL` após 5 s. No Windows, usa `taskkill /T` |
+| Ordem | Primeiro grava `cancelled` no banco, depois encerra o processo. Assim, o worker que termina em seguida não consegue gravar `error` por cima (os `marcar_*` dos *services* preservam `cancelled`) |
+| ChEMBL | Cancela o grupo inteiro: o item em execução é interrompido e os itens restantes não são iniciados |
+| Exclusão | Excluir um job em andamento (`DELETE`) também encerra o processo |
+| Proteção | Se um runner não tiver criado grupo próprio, o sistema nunca usa `killpg` (derrubaria o servidor); usa `terminate()` |
+
+!!! info "Limites"
+    O registro de processos vive na memória do servidor: após um reinício, subprocessos antigos já não são
+    conhecidos. A **análise molecular** do ChEMBL (consolidação, fingerprints e grafos) roda à parte da coleta e
+    **não** tem cancelamento: cancelar o job ChEMBL interrompe só a coleta.
 
 ## 1. Autenticação
 

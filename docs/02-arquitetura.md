@@ -1,6 +1,6 @@
 # Arquitetura
 
-A arquitetura é descrita no modelo **C4** (Simon Brown): contexto → contêineres → componentes, complementado por
+A arquitetura é descrita no modelo **C4**: contexto → contêineres → componentes, complementado por
 visões de camadas e de implantação. O C4 é hoje a notação mais usada no mercado para comunicar arquitetura a públicos
 mistos (técnicos e não técnicos) e não exige conhecimento prévio de UML.
 
@@ -28,7 +28,7 @@ download) e SMTP, enquanto o DrugHunter acessa o ChEMBL e as ferramentas de dock
 ![Backend hexagonal](assets/diagramas/svg/03-backend-hexagonal.svg)
 *Figura 4 — Camadas do backend (portas e adaptadores).*
 
-A organização segue *Ports & Adapters* (Cockburn, 2005): `routes/` adapta HTTP para o domínio; `usecases/`
+A organização segue *Ports & Adapters*: `routes/` adapta HTTP para o domínio; `usecases/`
 orquestra; `services/` são repositórios; `infra/` implementa adaptadores de saída (banco, runners externos, storage).
 
 | Pasta | Papel | Regra |
@@ -70,4 +70,4 @@ Detalhes de empacotamento, localização dos dados e variáveis de ambiente em
 | **SSE** apenas na busca RCSB | Progresso fino por proteína; `EventSource` não envia cabeçalhos → token vai na *query string* | Ver [segurança](08-implantacao-e-seguranca.md#seguranca) |
 | Artefatos dentro da árvore do DrugHunter | O DrugHunter só aceita caminhos relativos ao seu `cwd` | Acoplamento por convenção de pastas; apagar o diretório do DrugHunter apaga os resultados |
 | Cache de proteínas **compartilhado** entre usuários | Reduz chamadas ao RCSB | `proteins` não tem `user_id`; TTL configurável limpa o cache |
-| Estados de job como `String` livre | Simplicidade | Sem `Enum`/`CHECK`; valores só por convenção (`pending`, `running`, `done`, `error`) |
+| Estados de job como `String` livre | Simplicidade | Sem `Enum`/`CHECK`; valores só por convenção (`pending`, `running`, `done`, `error`, `cancelled`) |

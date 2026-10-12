@@ -1,0 +1,31 @@
+sequenceDiagram
+    actor U as Pesquisador
+    participant FE as Frontend (CancelJobButton)
+    participant R as routes/jobs.py
+    participant UC as usecases/job_cancel.py
+    participant DB as SQLite
+    participant JC as infra/job_control
+    participant T as Thread do job
+    participant W as Worker (grupo de processos)
+
+    U->>FE: Clica em "Cancelar" e confirma
+    FE->>R: POST /api/jobs/{kind}/{id}/cancel
+    R->>UC: uc_cancelar_job()
+    UC->>DB: valida dono e estado (pending ou running)
+    alt Já terminou
+        UC-->>FE: 409 Conflict
+    else Cancelável
+        UC->>DB: status = cancelled (commit)
+        UC->>JC: cancel(kind, id)
+        JC->>W: SIGTERM no grupo de processos
+        Note over JC,W: Atinge o worker e os filhos<br/>(Chimera, Vina, Dock6...)
+        JC->>W: SIGKILL após 5 s, se ainda vivo
+        UC-->>FE: 200 {status: cancelled}
+        W--xT: processo encerrado
+        T->>JC: was_cancelled(kind, id)?
+        T->>DB: marcar_erro é ignorado (status cancelled preservado)
+        Note over T: Sem e-mail de falha
+    end
+    FE->>R: GET /{id} (polling)
+    R-->>FE: status = cancelled
+    FE->>FE: cartão "Processamento cancelado" + "Rodar novamente"

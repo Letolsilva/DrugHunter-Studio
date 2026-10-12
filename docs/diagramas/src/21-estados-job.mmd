@@ -3,15 +3,19 @@ stateDiagram-v2
     [*] --> pending : POST /iniciar<br/>(redocking, MD, ChEMBL)
     [*] --> running : POST /iniciar<br/>(ADMET, clustering, consenso,<br/>NeuroDock)
     pending --> running : worker inicia
+    pending --> cancelled : Cancelar
     running --> done : returncode 0 e<br/>artefatos válidos
     running --> error : exceção ou<br/>resultado vazio
+    running --> cancelled : Cancelar<br/>(encerra o subprocesso)
     done --> running : "Rodar novamente"<br/>(substitui o job)
     error --> running : "Tentar novamente"
+    cancelled --> running : "Rodar novamente"
     done --> [*] : DELETE remove<br/>registro e arquivos
     error --> [*] : DELETE
+    cancelled --> [*] : DELETE
     note right of running
-        Não existe estado cancelled nem paused.
-        DELETE não encerra o subprocesso.
+        cancelled e error são estados terminais distintos:
+        cancelar não é falha (sem e-mail de erro).
         Se o servidor reinicia com o job running,
         ChEMBL, clustering, consenso, NeuroDock e MD
         são recuperados no próximo GET.

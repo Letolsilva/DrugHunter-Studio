@@ -45,7 +45,13 @@ em execução. `GET /health` é público.
 | Dinâmica molecular | `/api/molecular-dynamics` | `POST /iniciar`, `POST /upload/{ligante\|receptor}`, `GET /jobs`, `/job/{id}[/files]`, `POST /job/{id}/analyse`, `GET /job/{id}/analysis[/files\|/view/...]` |
 
 Respostas de criação de job retornam **202** com o objeto do job (`status`, `id`, …). O cliente consulta `GET /{id}`
-periodicamente até `done` ou `error`.
+periodicamente até `done`, `error` ou `cancelled`.
+
+## Controle de jobs (`/api/jobs`)
+
+| Método | Rota | Auth | Descrição |
+|---|---|---|---|
+| POST | `/api/jobs/{kind}/{id}/cancel` | USER | Cancela um job `pending` ou `running`; grava `cancelled` e encerra o subprocesso. `kind`: `redocking`, `chembl`, `admet`, `clustering`, `consensus`, `neurodock-model`, `neurodock-prediction`, `md`, `md-analysis`. Respostas: 200, 404 (inexistente, de outro usuário ou `kind` inválido), 409 (já terminou) |
 
 ## Administração e saúde do ambiente
 
