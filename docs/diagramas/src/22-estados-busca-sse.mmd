@@ -1,0 +1,11 @@
+stateDiagram-v2
+    [*] --> idle
+    idle --> buscando : Ctrl+Enter / botão Buscar<br/>abre EventSource
+    buscando --> buscando : eventos SSE<br/>progresso, resultado
+    buscando --> resultado : evento "fim"
+    buscando --> idle : evento "erro"<br/>ou conexão perdida
+    buscando --> pausado : Pausar<br/>(fecha o stream)
+    buscando --> idle : Cancelar<br/>DELETE /cancelar-parcial
+    pausado --> resultado : Ver parciais
+    resultado --> idle : Nova busca
+    resultado --> [*]

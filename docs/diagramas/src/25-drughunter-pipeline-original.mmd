@@ -1,0 +1,44 @@
+flowchart TB
+    subgraph S1["workflow/1-InformationRetrieval"]
+        p11["11-pdb.py<br/>load_pdb"] --> o11[("datasets/PDB/Alvo/*.pdb<br/>pdb_codes.csv")]
+        p12["12-chembl.py<br/>load_chembl (5 etapas)"] --> o12[("ChEMBL/DrugBank/<br/>alvo_MOLS, SIMS, FULL.csv")]
+        p13["13-zinc.py<br/>load_zinc"] --> o13[("Biblioteca ZINC")]
+    end
+    subgraph S2["workflow/2-Preprocessing"]
+        p21["21-dataAnalysis.py<br/>fingerprints, similaridade, grafos"] --> o21[("Fingerprints/, Similarity/,<br/>maxcomp, centroides")]
+        p22["22-filterFromDataWarrior.py<br/>(manual)"]
+        p23["23-admet.py<br/>ADMETWrapper"] --> o23[("ADMET/*.csv, _BBB+, _egg.png")]
+    end
+    subgraph S3["workflow/3-Docking"]
+        p31["31-redocking.py<br/>perform_redocking"] --> o31[("Prepared/*, pdb_codes.csv + RMSD")]
+        p32["32-consensus.py<br/>perform_consensus"] --> o32[("Vina/, Dock6/, footprint/,<br/>alvo.csv, correlation.png")]
+    end
+    subgraph S4["workflow/4-MAIA"]
+        p41["41-clustering.py<br/>perform_clustering"] --> o41[("clustering/alvo/data, centroids")]
+        p42["42-neurodock.py<br/>build_model e predict"] --> o42[("modelo .keras, json,<br/>consensus.csv, molecules.csv top-k")]
+    end
+    subgraph S5["workflow/5-MolecularDynamics"]
+        p51["51-dynamics.py<br/>execute_md_simulation"] --> o51[("complex_min.pdb, trajectory.dcd")]
+        p52["52-analyser.py<br/>execute_md_analisys"] --> o52[("analysis/, visualization/")]
+    end
+    o11 --> p31
+    o12 --> p21
+    o12 --> p23
+    o21 --> p41
+    o23 --> p41
+    o23 --> p32
+    o31 --> p32
+    o13 --> p42
+    o32 --> p42
+    p42 -->|"top-k"| p32
+    o32 --> p51
+    o51 --> p52
+
+    subgraph LIB["src/ (camadas da biblioteca)"]
+        direction LR
+        wr["wrappers/<br/>API pública"] --> cad["caad/<br/>docking, admet, redes, dinâmica"]
+        wr --> ia["IA/<br/>clustering, NeuroDocking, SOM"]
+        wr --> cr["crawlers/<br/>PDB, ChEMBL, ZINC"]
+        cad --> ker["kernel/<br/>descriptors, utilities, loggers"]
+        ia --> ker
+    end

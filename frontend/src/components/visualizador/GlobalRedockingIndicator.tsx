@@ -18,7 +18,11 @@ export function GlobalRedockingIndicator() {
 
     setVisible(true);
 
-    if (activeJob.status === "done" || activeJob.status === "error") {
+    if (
+      activeJob.status === "done" ||
+      activeJob.status === "error" ||
+      activeJob.status === "cancelled"
+    ) {
       // Mantém o indicador visível por 5s após conclusão, depois some
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
       hideTimerRef.current = setTimeout(() => {
@@ -40,30 +44,39 @@ export function GlobalRedockingIndicator() {
 
   const isDone = activeJob.status === "done";
   const isError = activeJob.status === "error";
+  const isCancelled = activeJob.status === "cancelled";
   const isRunning =
     activeJob.status === "pending" || activeJob.status === "running";
 
   const borderColor = isError
     ? "var(--color-red-30)"
-    : isDone
+    : isCancelled
+      ? "var(--color-outline)"
+      : isDone
       ? "var(--color-accent-30)"
       : "var(--color-blue-30)";
 
   const bgGradient = isError
     ? "linear-gradient(135deg, var(--color-red-12) 0%, var(--color-panel) 100%)"
-    : isDone
+    : isCancelled
+      ? "var(--color-panel)"
+      : isDone
       ? "linear-gradient(135deg, var(--color-accent-12) 0%, var(--color-panel) 100%)"
       : "linear-gradient(135deg, var(--color-blue-12) 0%, var(--color-accent-12) 100%)";
 
   const labelColor = isError
     ? "var(--color-red)"
-    : isDone
+    : isCancelled
+      ? "var(--color-foreground-muted)"
+      : isDone
       ? "var(--color-accent)"
       : "var(--color-blue)";
 
   const label = isError
     ? "Erro no redocking"
-    : isDone
+    : isCancelled
+      ? "Redocking cancelado"
+      : isDone
       ? "Redocking concluído"
       : "Redocking em andamento...";
 

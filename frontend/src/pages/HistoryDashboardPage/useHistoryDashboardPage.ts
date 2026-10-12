@@ -41,11 +41,11 @@ export function useHistoryDashboardPage(
   };
 
   const voltarLista = () => {
-    navigate("/historico");
+    navigate("/busca-pdb");
   };
 
   const novaBusca = () => {
-    navigate("/search");
+    navigate("/busca-pdb");
   };
 
   const irParaMeusPdbs = () => {

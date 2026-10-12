@@ -1,7 +1,6 @@
-# PDB Explorer
+# DrugHunter Studio
 
-Aplicação web local para busca e análise de estruturas proteicas do [RCSB PDB](https://www.rcsb.org/).
-Permite que usuários não-programadores explorem dados moleculares — da busca inicial até o redocking via [DrugHunter](https://github.com/michelclemer/DrugHunter).
+Aplicação web local que torna o [DrugHunter](https://github.com/michelclemer/DrugHunter) acessível a quem não programa: busca de estruturas no [RCSB PDB](https://www.rcsb.org/), redocking, ADMET, consenso, clustering e dinâmica molecular.
 
 **Stack:** FastAPI · React 18 · TypeScript · Tailwind CSS v4
 
@@ -89,7 +88,7 @@ Acesse: **http://localhost:5173**
 
 ## Gerar o instalador Linux (.deb)
 
-O script `build.sh` compila o frontend, empacota o backend e gera um único arquivo `pdb-explorer.deb` pronto para distribuição.
+O script `build.sh` compila o frontend, empacota o backend e gera um único arquivo `drughunter-studio.deb` pronto para distribuição.
 
 ### Passo a passo
 
@@ -106,22 +105,22 @@ chmod +x build.sh
 ./build.sh
 ```
 
-Ao final, o arquivo `pdb-explorer.deb` será gerado na raiz do projeto. O script exibe o caminho e o tamanho:
+Ao final, o arquivo `drughunter-studio.deb` será gerado na raiz do projeto. O script exibe o caminho e o tamanho:
 
 ```
 ✅ Pronto!
--rw-r--r-- 1 user user 12M jun  4 12:00 pdb-explorer.deb
+-rw-r--r-- 1 user user 12M jun  4 12:00 drughunter-studio.deb
 ```
 
 ### O que o script faz (resumo)
 
 1. Executa `npm ci && npm run build` no frontend
 2. Copia o build gerado para `backend/static/`
-3. Monta a estrutura de pacote Debian em `pdb-explorer-pkg/`
+3. Monta a estrutura de pacote Debian em `drughunter-studio-pkg/`
 4. Inclui um script `iniciar.sh` que:
-   - Na primeira execução: cria um virtualenv Python em `~/.local/share/pdb-explorer/.venv` e instala as dependências automaticamente
+   - Na primeira execução: cria um virtualenv Python em `~/.local/share/drughunter-studio/.venv` e instala as dependências automaticamente
    - Nas execuções seguintes: apenas inicia o servidor e abre o navegador
-5. Registra um atalho no menu GNOME (`Aplicativos → Ciência → PDB Explorer`)
+5. Registra um atalho no menu GNOME (`Aplicativos → Ciência → DrugHunter Studio`)
 6. Compila o `.deb` com `fakeroot dpkg-deb`
 
 ---
@@ -130,15 +129,15 @@ Ao final, o arquivo `pdb-explorer.deb` será gerado na raiz do projeto. O script
 
 ### Opção 1 — Interface gráfica (Ubuntu/Mint com GNOME)
 
-1. Localize o arquivo `pdb-explorer.deb` no gerenciador de arquivos
+1. Localize o arquivo `drughunter-studio.deb` no gerenciador de arquivos
 2. Dê duplo clique → **Ubuntu Software** abre automaticamente
 3. Clique em **Instalar** e informe a senha sudo
-4. Após a instalação, procure por **PDB Explorer** no menu de aplicativos
+4. Após a instalação, procure por **DrugHunter Studio** no menu de aplicativos
 
 ### Opção 2 — Terminal
 
 ```bash
-sudo dpkg -i pdb-explorer.deb
+sudo dpkg -i drughunter-studio.deb
 ```
 
 Se houver dependências faltando, execute em seguida:
@@ -149,7 +148,7 @@ sudo apt install -f
 
 ### Primeira execução após instalação
 
-1. Abra o **PDB Explorer** no menu de aplicativos (ou execute `/opt/pdb-explorer/iniciar.sh`)
+1. Abra o **DrugHunter Studio** no menu de aplicativos (ou execute `/opt/drughunter-studio/iniciar.sh`)
 2. Na primeira vez, uma janela de progresso aparecerá enquanto o ambiente Python é configurado (~1 minuto)
 3. O navegador abrirá automaticamente em **http://localhost:8080**
 
@@ -159,11 +158,11 @@ Todos os dados são isolados por usuário, sem necessidade de permissão de admi
 
 | Item | Caminho |
 |---|---|
-| Banco de dados (SQLite) | `~/.local/share/pdb-explorer/pdb_explorer.db` |
-| Arquivos PDB baixados | `~/.local/share/pdb-explorer/pdb_files/` |
-| Configurações (.env) | `~/.local/share/pdb-explorer/.env` |
-| Logs | `~/.local/share/pdb-explorer/pdb_explorer.log` |
-| Virtualenv Python | `~/.local/share/pdb-explorer/.venv/` |
+| Banco de dados (SQLite) | `~/.local/share/drughunter-studio/drughunter_studio.db` |
+| Arquivos PDB baixados | `~/.local/share/drughunter-studio/pdb_files/` |
+| Configurações (.env) | `~/.local/share/drughunter-studio/.env` |
+| Logs | `~/.local/share/drughunter-studio/drughunter_studio.log` |
+| Virtualenv Python | `~/.local/share/drughunter-studio/.venv/` |
 
 ### Dependências do sistema (instaladas automaticamente pelo .deb)
 
@@ -190,21 +189,21 @@ chmod +x build-windows.sh
 ./build-windows.sh
 ```
 
-Ao final, o arquivo `PDB-Explorer-Setup.exe` será gerado na raiz do projeto:
+Ao final, o arquivo `DrugHunter-Studio-Setup.exe` será gerado na raiz do projeto:
 
 ```
 ✅ Pronto!
--rw-r--r-- 1 user user 8.5M jun  4 12:00 PDB-Explorer-Setup.exe
+-rw-r--r-- 1 user user 8.5M jun  4 12:00 DrugHunter-Studio-Setup.exe
 ```
 
 ### O que o script faz (resumo)
 
 1. Executa `npm ci && npm run build` no frontend
-2. Empacota o backend em `pdb-explorer-windows-pkg/`
+2. Empacota o backend em `drughunter-studio-windows-pkg/`
 3. Gera o script PowerShell `iniciar.ps1` (inicializa venv, instala dependências, inicia servidor)
 4. Gera `iniciar.cmd` (chamado pelo atalho do Windows; chama o PowerShell sem janela visível)
 5. Converte o ícone SVG → ICO (se `inkscape` e `imagemagick` estiverem presentes)
-6. Gera o script NSIS `pdb-explorer.nsi`
+6. Gera o script NSIS `drughunter-studio.nsi`
 7. Compila o instalador com `makensis`
 
 ---
@@ -220,14 +219,14 @@ Ao final, o arquivo `PDB-Explorer-Setup.exe` será gerado na raiz do projeto:
 
 ### Instalação
 
-1. Dê duplo clique em `PDB-Explorer-Setup.exe`
+1. Dê duplo clique em `DrugHunter-Studio-Setup.exe`
 2. Siga o assistente: **Next → Install → Finish**
-3. Um atalho **PDB Explorer** é criado na Área de Trabalho e no Menu Iniciar
-4. Marque "Abrir PDB Explorer agora" na tela final para iniciar imediatamente
+3. Um atalho **DrugHunter Studio** é criado na Área de Trabalho e no Menu Iniciar
+4. Marque "Abrir DrugHunter Studio agora" na tela final para iniciar imediatamente
 
 ### Primeira execução
 
-1. Clique no atalho **PDB Explorer**
+1. Clique no atalho **DrugHunter Studio**
 2. Uma janela de progresso aparecerá durante a configuração inicial (~1 minuto)
 3. O navegador padrão abrirá em **http://localhost:8080**
 
@@ -235,11 +234,11 @@ Ao final, o arquivo `PDB-Explorer-Setup.exe` será gerado na raiz do projeto:
 
 | Item | Caminho |
 |---|---|
-| Banco de dados (SQLite) | `%LOCALAPPDATA%\PDB Explorer\pdb_explorer.db` |
-| Arquivos PDB baixados | `%LOCALAPPDATA%\PDB Explorer\pdb_files\` |
-| Configurações (.env) | `%LOCALAPPDATA%\PDB Explorer\.env` |
-| Logs | `%LOCALAPPDATA%\PDB Explorer\pdb_explorer.log` |
-| Virtualenv Python | `%LOCALAPPDATA%\PDB Explorer\.venv\` |
+| Banco de dados (SQLite) | `%LOCALAPPDATA%\DrugHunter Studio\drughunter_studio.db` |
+| Arquivos PDB baixados | `%LOCALAPPDATA%\DrugHunter Studio\pdb_files\` |
+| Configurações (.env) | `%LOCALAPPDATA%\DrugHunter Studio\.env` |
+| Logs | `%LOCALAPPDATA%\DrugHunter Studio\drughunter_studio.log` |
+| Virtualenv Python | `%LOCALAPPDATA%\DrugHunter Studio\.venv\` |
 
 ---
 
@@ -248,8 +247,8 @@ Ao final, o arquivo `PDB-Explorer-Setup.exe` será gerado na raiz do projeto:
 O arquivo `.env` é criado automaticamente na primeira execução a partir do `.env.example`.
 Para customizar, edite o arquivo no caminho correspondente ao seu sistema:
 
-- **Linux (instalado):** `~/.local/share/pdb-explorer/.env`
-- **Windows (instalado):** `%LOCALAPPDATA%\PDB Explorer\.env`
+- **Linux (instalado):** `~/.local/share/drughunter-studio/.env`
+- **Windows (instalado):** `%LOCALAPPDATA%\DrugHunter Studio\.env`
 - **Desenvolvimento:** `backend/.env`
 
 ### Variáveis disponíveis
@@ -258,7 +257,7 @@ Para customizar, edite o arquivo no caminho correspondente ao seu sistema:
 # Banco de dados
 # Dev: deixe comentado (SQLite automático)
 # Prod: descomente e configure o PostgreSQL
-# DATABASE_URL=postgresql://usuario:senha@localhost:5432/pdb_explorer
+# DATABASE_URL=postgresql://usuario:senha@localhost:5432/drughunter_studio
 
 # Segurança JWT (gerado automaticamente na instalação)
 SECRET_KEY=sua_chave_secreta_aqui
@@ -273,7 +272,7 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=seu_email@gmail.com
 SMTP_PASSWORD=sua_senha_de_app
-SMTP_FROM=PDB Explorer <seu_email@gmail.com>
+SMTP_FROM=DrugHunter Studio <seu_email@gmail.com>
 ```
 
 ---
@@ -323,21 +322,21 @@ O DrugHunter espera os arquivos `.pdb` organizados na pasta configurada em **Pas
 ### Linux (.deb)
 
 ```bash
-sudo dpkg -r pdb-explorer
+sudo dpkg -r drughunter-studio
 ```
 
-Os dados do usuário em `~/.local/share/pdb-explorer/` **não são removidos** automaticamente (para preservar banco de dados e arquivos PDB). Para remover tudo:
+Os dados do usuário em `~/.local/share/drughunter-studio/` **não são removidos** automaticamente (para preservar banco de dados e arquivos PDB). Para remover tudo:
 
 ```bash
-rm -rf ~/.local/share/pdb-explorer/
+rm -rf ~/.local/share/drughunter-studio/
 ```
 
 ### Windows (.exe)
 
-- **Painel de Controle → Programas → PDB Explorer → Desinstalar**
-- Ou execute `Desinstalar PDB Explorer.exe` dentro da pasta de instalação
+- **Painel de Controle → Programas → DrugHunter Studio → Desinstalar**
+- Ou execute `Desinstalar DrugHunter Studio.exe` dentro da pasta de instalação
 
-Os dados em `%LOCALAPPDATA%\PDB Explorer\` são removidos automaticamente pelo desinstalador.
+Os dados em `%LOCALAPPDATA%\DrugHunter Studio\` são removidos automaticamente pelo desinstalador.
 
 ---
 
@@ -345,10 +344,10 @@ Os dados em `%LOCALAPPDATA%\PDB Explorer\` são removidos automaticamente pelo d
 
 ```
 PDB-Explorer/
-├── build.sh                  # Script de build — gera pdb-explorer.deb
-├── build-windows.sh          # Script de build — gera PDB-Explorer-Setup.exe
+├── build.sh                  # Script de build — gera drughunter-studio.deb
+├── build-windows.sh          # Script de build — gera DrugHunter-Studio-Setup.exe
 ├── assets/
-│   └── pdb-explorer.svg      # Ícone da aplicação
+│   └── drughunter-studio.svg      # Ícone da aplicação
 ├── backend/
 │   ├── app/
 │   │   ├── core/             # Segurança JWT, dependências FastAPI

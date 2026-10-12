@@ -10,6 +10,14 @@ import { PdbFilesUseCase } from "./data/usecases/pdb_files.usecase";
 import { VisualizadorUseCase } from "./data/usecases/visualizador.usecase";
 import { VisualizadorCifUseCase } from "./data/usecases/visualizador_cif.usecase";
 import { RedockingUseCase } from "./data/usecases/redocking.usecase";
+import { ConfigUseCase } from "./data/usecases/config.usecase";
+import { HomeUseCase } from "./data/usecases/home.usecase";
+import { ChemblUseCase } from "./data/usecases/chembl.usecase";
+import { AdmetUseCase } from "./data/usecases/admet.usecase";
+import { ConsensusUseCase } from "./data/usecases/consensus.usecase";
+import { ClusteringUseCase } from "./data/usecases/clustering.usecase";
+import { NeuroDockUseCase } from "./data/usecases/neurodock.usecase";
+import { MolecularDynamicsUseCase } from "./data/usecases/molecular_dynamics.usecase";
 
 const httpClient = new HTTPClient();
 
@@ -21,3 +29,11 @@ export const pdbFilesUseCase = new PdbFilesUseCase(httpClient);
 export const visualizadorUseCase = new VisualizadorUseCase(httpClient);
 export const visualizadorCifUseCase = new VisualizadorCifUseCase(httpClient);
 export const redockingUseCase = new RedockingUseCase(httpClient);
+export const configUseCase = new ConfigUseCase(httpClient);
+export const homeUseCase = new HomeUseCase(httpClient);
+export const chemblUseCase = new ChemblUseCase(httpClient);
+export const admetUseCase = new AdmetUseCase(httpClient);
+export const consensusUseCase = new ConsensusUseCase(httpClient);
+export const clusteringUseCase = new ClusteringUseCase(httpClient);
+export const neuroDockUseCase = new NeuroDockUseCase(httpClient);
+export const molecularDynamicsUseCase = new MolecularDynamicsUseCase(httpClient);

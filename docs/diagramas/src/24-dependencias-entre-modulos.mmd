@@ -1,0 +1,18 @@
+flowchart LR
+    rcsb["Busca RCSB"] --> dl["Download PDB/CIF"]
+    dl --> vis["Visualizador"]
+    dl --> red["Redocking"]
+    chembl["ChEMBL"] ==>|"FK + status done"| admet["ADMET"]
+    admet ==>|"FK + status done"| clu["Clustering"]
+    admet ==>|"FK + status done"| con["Consenso"]
+    clu ==>|"FK + status done"| nd["NeuroDock treino"]
+    con ==>|"lookup por usuário e admet_result_id"| nd
+    nd ==>|"FK + status done"| tri["NeuroDock triagem"]
+    con ==>|"FK + status done"| md["Dinâmica molecular"]
+    md ==>|"FK + status done"| ana["Análise da trajetória"]
+    red -.->|"convenção de pastas<br/>e pré-preenchimento"| con
+    red -.->|"receptor Prepared/*.noH.pdb"| md
+
+    L1["Seta grossa: exigida pelo código"]:::leg
+    L2["Seta tracejada: dependência lógica,<br/>sem FK nem validação"]:::leg
+    classDef leg fill:#fff,stroke:#999,color:#333

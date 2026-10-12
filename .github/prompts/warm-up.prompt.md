@@ -1,5 +1,5 @@
 ---
-description: "Inicializa o contexto completo do projeto PDB Explorer no chat. Use no início de cada sessão para carregar arquitetura, decisões e estado atual."
+description: "Inicializa o contexto completo do projeto DrugHunter Studio no chat. Use no início de cada sessão para carregar arquitetura, decisões e estado atual."
 name: "warm-up"
 mode: agent
 ---
@@ -8,7 +8,7 @@ Leia os arquivos abaixo e use essas informações como base para toda a conversa
 
 ## O Projeto
 
-**PDB Explorer** — aplicação web full-stack para busca e análise de estruturas proteicas do RCSB PDB.
+**DrugHunter Studio** — aplicação web full-stack para busca e análise de estruturas proteicas do RCSB PDB.
 
 Contexto acadêmico: é um Trabalho de Conclusão de Curso (TCC/PFC). O objetivo é criar uma interface funcional para que usuários não-programadores consigam explorar dados do PDB até análise de dinâmica molecular. O estudo de caso é um fungo.
 

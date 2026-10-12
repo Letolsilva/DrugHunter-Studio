@@ -12,6 +12,14 @@ import {
   visualizadorUseCase,
   visualizadorCifUseCase,
   redockingUseCase,
+  configUseCase,
+  homeUseCase,
+  chemblUseCase,
+  admetUseCase,
+  consensusUseCase,
+  clusteringUseCase,
+  neuroDockUseCase,
+  molecularDynamicsUseCase,
 } from "./container";
 
 export default function App() {
@@ -26,6 +34,14 @@ export default function App() {
           visualizadorUseCase={visualizadorUseCase}
           visualizadorCifUseCase={visualizadorCifUseCase}
           redockingUseCase={redockingUseCase}
+          configUseCase={configUseCase}
+          homeUseCase={homeUseCase}
+          chemblUseCase={chemblUseCase}
+          admetUseCase={admetUseCase}
+          consensusUseCase={consensusUseCase}
+          clusteringUseCase={clusteringUseCase}
+          neuroDockUseCase={neuroDockUseCase}
+          molecularDynamicsUseCase={molecularDynamicsUseCase}
         />
         <GlobalAccumulatedPanel />
         <GlobalRedockingIndicator />

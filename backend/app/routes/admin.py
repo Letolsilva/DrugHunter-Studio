@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.infra.db.database import get_db
 from app.core.deps import get_usuario_admin
 from app.domain.models import User
-from app.domain.schemas.admin import ConfigUpdate
+from app.domain.schemas.admin import ConfigUpdate, AdminToggle, ValidacaoDrugHunterResponse
 from app.usecases import admin as uc
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
@@ -39,10 +39,7 @@ def atualizar_config(
     db: Session = Depends(get_db),
     admin: User = Depends(get_usuario_admin),
 ):
-    """
-    Atualiza uma configuração do sistema.
-    Chaves: ttl_dias | max_por_proteina | limpeza_automatica
-    """
+    """Atualiza uma configuração do sistema."""
     return uc.uc_atualizar_config(db, chave, body.valor)
 
 
@@ -70,3 +67,38 @@ def organismos_no_banco(
 ):
     """Lista todos os organismos únicos presentes no cache."""
     return uc.uc_organismos(db)
+
+
+@router.get("/users")
+def listar_usuarios(
+    db: Session = Depends(get_db), admin: User = Depends(get_usuario_admin)
+):
+    """Lista todos os usuários cadastrados."""
+    return uc.uc_listar_usuarios(db)
+
+
+@router.get("/validar-drughunter", response_model=ValidacaoDrugHunterResponse)
+def validar_drughunter(
+    db: Session = Depends(get_db), admin: User = Depends(get_usuario_admin)
+):
+    """Verifica se o ambiente do DrugHunter está corretamente configurado."""
+    return uc.uc_validar_drughunter(db)
+
+
+@router.post("/corrigir-bson")
+def corrigir_bson(
+    db: Session = Depends(get_db), admin: User = Depends(get_usuario_admin)
+):
+    """Remove o pacote bson standalone do env DH para resolver conflito com pymongo."""
+    return uc.uc_corrigir_bson(db)
+
+
+@router.patch("/users/{usuario_id}")
+def set_admin(
+    usuario_id: int,
+    body: AdminToggle,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_usuario_admin),
+):
+    """Concede ou remove permissão de administrador de um usuário."""
+    return uc.uc_set_admin(db, usuario_id, body.is_admin, admin.id)

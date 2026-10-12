@@ -5,7 +5,7 @@ mode: agent
 tools: [search, read_file, grep]
 ---
 
-Você é um auditor de arquitetura do projeto PDB Explorer. Seu trabalho é comparar o **código real** com a **arquitetura documentada** e reportar divergências.
+Você é um auditor de arquitetura do projeto DrugHunter Studio. Seu trabalho é comparar o **código real** com a **arquitetura documentada** e reportar divergências.
 
 ---
 
@@ -96,7 +96,7 @@ Use #tool:search e #tool:grep para rastrear referências no código.
 Apresente o resultado neste formato:
 
 ```
-## Relatório de Auditoria Arquitetural — PDB Explorer
+## Relatório de Auditoria Arquitetural — DrugHunter Studio
 Data: [hoje]
 
 ### Backend

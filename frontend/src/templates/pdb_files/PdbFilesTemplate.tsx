@@ -1,9 +1,21 @@
 // templates/pdb_files/PdbFilesTemplate.tsx
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Navbar } from "../../components/layout";
+import { Navbar, DropdownMenu } from "../../components/layout";
 import { Button } from "../../components/ui/Button";
 import { Spinner } from "../../components/ui/Spinner";
-import { AppLogoIcon, DownloadIcon, WarningIcon } from "../../components/icons";
+import {
+  AppLogoIcon,
+  ClockIcon,
+  DownloadIcon,
+  HelpIcon,
+  LogoutIcon,
+  MenuIcon,
+  RefreshIcon,
+  SettingsIcon,
+  WarningIcon,
+} from "../../components/icons";
+import { MiddleBar } from "../../components/nav/MiddleBar";
 import { PdbFileCard } from "../../components/pdb_files/PdbFileCard";
 import type {
   UsePdbFilesPageReturn,
@@ -31,35 +43,32 @@ export default function PdbFilesTemplate({
   handleLogout,
 }: UsePdbFilesPageReturn) {
   const navigate = useNavigate();
+  const [menuAberto, setMenuAberto] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="min-h-screen flex flex-col bg-surface-primary select-none">
+    <div className="min-h-screen flex flex-col bg-surface-primary">
       <Navbar>
         <Navbar.Left>
-          <span className="text-[17px] font-medium text-foreground-muted inline-flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => navigate("/home")}
+            className="cursor-pointer rounded border-none bg-transparent text-[17px] font-medium text-foreground-muted inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
+            title="Início"
+          >
             <AppLogoIcon size={17} className="text-foreground-muted" />
-            PDB<b className="text-foreground font-extrabold">Explorer</b>
-          </span>
+            DrugHunter<b className="text-foreground font-extrabold">Studio</b>
+          </button>
           <span className="ml-1 border-l border-outline pl-3 font-mono text-[12px] text-foreground-subtle">
             Meus PDBs
           </span>
         </Navbar.Left>
 
+        <Navbar.Middle>
+          <MiddleBar activeModule={null} />
+        </Navbar.Middle>
+
         <Navbar.Right>
-          <button
-            type="button"
-            onClick={() => navigate("/search")}
-            className="cursor-pointer rounded border-none bg-transparent px-3 py-1.5 font-mono text-[12px] text-foreground-subtle transition-colors hover:text-foreground"
-          >
-            Busca
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate("/historico")}
-            className="cursor-pointer rounded border-none bg-transparent px-3 py-1.5 font-mono text-[12px] text-foreground-subtle transition-colors hover:text-foreground"
-          >
-            Histórico
-          </button>
           <button
             type="button"
             onClick={() => navigate("/redocking")}
@@ -67,13 +76,31 @@ export default function PdbFilesTemplate({
           >
             Redocking
           </button>
-          <Button
-            variant="ghost"
-            onClick={handleLogout}
-            style={{ padding: "6px 14px", fontSize: 13 }}
+          <DropdownMenu
+            isOpen={menuAberto}
+            menuRef={menuRef}
+            onToggle={() => setMenuAberto((v) => !v)}
+            buttonTitle="Menu"
+            trigger={<MenuIcon size={25} />}
           >
-            Sair
-          </Button>
+            <DropdownMenu.Item
+              icon={<SettingsIcon size={14} />}
+              label="Configurações"
+              onClick={() => { setMenuAberto(false); navigate("/configuracoes"); }}
+              divider
+            />
+            <DropdownMenu.Item
+              icon={<HelpIcon size={14} />}
+              label="Ajuda"
+              onClick={() => { setMenuAberto(false); navigate("/ajuda"); }}
+              divider
+            />
+            <DropdownMenu.Item
+              icon={<LogoutIcon size={14} />}
+              label="Sair"
+              onClick={handleLogout}
+            />
+          </DropdownMenu>
         </Navbar.Right>
       </Navbar>
 
@@ -133,7 +160,7 @@ export default function PdbFilesTemplate({
           <div className="flex flex-col items-center justify-center gap-4 py-32">
             <WarningIcon size={32} className="text-red" />
             <p className="text-[14px] text-red">{erroMsg}</p>
-            <Button variant="ghost" onClick={() => navigate("/search")}>
+            <Button variant="ghost" onClick={() => navigate("/busca-pdb")}>
               Ir para Busca
             </Button>
           </div>
@@ -153,7 +180,7 @@ export default function PdbFilesTemplate({
               Realize uma busca e faça o download de estruturas para vê-las
               aqui.
             </p>
-            <Button variant="ghost" onClick={() => navigate("/search")}>
+            <Button variant="ghost" onClick={() => navigate("/busca-pdb")}>
               Ir para Busca
             </Button>
           </div>

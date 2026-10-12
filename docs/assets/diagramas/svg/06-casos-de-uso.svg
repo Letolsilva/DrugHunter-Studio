@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1060" height="1226" viewBox="0 0 1060 1226" font-family="Arial, Helvetica, sans-serif">
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="tri" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M1,1 L11,6 L1,11 z" fill="white" stroke="#333"/></marker></defs>
+<rect x="285" y="20" width="470" height="1096" rx="14" fill="#fafafa" stroke="#1e3a8a" stroke-width="2"/>
+<text x="520.0" y="46" text-anchor="middle" font-size="17" font-weight="bold" fill="#1e3a8a">DrugHunter Studio</text>
+<line x1="95" y1="1061.0" x2="95" y2="585.0" stroke="#333" stroke-width="1.6" marker-end="url(#tri)"/>
+<text x="103" y="841.0" font-size="11" fill="#555">generalização</text>
+<line x1="113" y1="509.0" x2="330" y2="89.0" stroke="#666" stroke-width="1"/>
+<line x1="113" y1="509.0" x2="330" y2="143.0" stroke="#666" stroke-width="1"/>
+<line x1="113" y1="509.0" x2="330" y2="197.0" stroke="#666" stroke-width="1"/>
+<line x1="113" y1="509.0" x2="330" y2="251.0" stroke="#666" stroke-width="1"/>
+<line x1="113" y1="509.0" x2="330" y2="305.0" stroke="#666" stroke-width="1"/>
+<line x1="113" y1="509.0" x2="330" y2="359.0" stroke="#666" stroke-width="1"/>
+<line x1="710" y1="359.0" x2="957" y2="590.0" stroke="#666" stroke-width="1" stroke-dasharray="3 3"/>
+<line x1="113" y1="509.0" x2="330" y2="413.0" stroke="#666" stroke-width="1"/>
+<line x1="113" y1="509.0" x2="330" y2="467.0" stroke="#666" stroke-width="1"/>
+<line x1="113" y1="509.0" x2="330" y2="521.0" stroke="#666" stroke-width="1"/>
+<line x1="113" y1="509.0" x2="330" y2="575.0" stroke="#666" stroke-width="1"/>
+<line x1="113" y1="509.0" x2="330" y2="629.0" stroke="#666" stroke-width="1"/>
+<line x1="710" y1="629.0" x2="957" y2="590.0" stroke="#666" stroke-width="1" stroke-dasharray="3 3"/>
+<line x1="113" y1="509.0" x2="330" y2="683.0" stroke="#666" stroke-width="1"/>
+<line x1="710" y1="683.0" x2="957" y2="590.0" stroke="#666" stroke-width="1" stroke-dasharray="3 3"/>
+<line x1="113" y1="509.0" x2="330" y2="737.0" stroke="#666" stroke-width="1"/>
+<line x1="710" y1="737.0" x2="957" y2="590.0" stroke="#666" stroke-width="1" stroke-dasharray="3 3"/>
+<line x1="113" y1="509.0" x2="330" y2="791.0" stroke="#666" stroke-width="1"/>
+<line x1="710" y1="791.0" x2="957" y2="590.0" stroke="#666" stroke-width="1" stroke-dasharray="3 3"/>
+<line x1="113" y1="509.0" x2="330" y2="845.0" stroke="#666" stroke-width="1"/>
+<line x1="710" y1="845.0" x2="957" y2="590.0" stroke="#666" stroke-width="1" stroke-dasharray="3 3"/>
+<line x1="113" y1="509.0" x2="330" y2="899.0" stroke="#666" stroke-width="1"/>
+<line x1="113" y1="509.0" x2="330" y2="953.0" stroke="#666" stroke-width="1"/>
+<line x1="113" y1="1089.0" x2="330" y2="1007.0" stroke="#666" stroke-width="1"/>
+<line x1="113" y1="1089.0" x2="330" y2="1061.0" stroke="#666" stroke-width="1"/>
+<ellipse cx="520.0" cy="89.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="93.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC01</tspan> Cadastrar e autenticar</text>
+<ellipse cx="520.0" cy="143.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="147.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC02</tspan> Buscar estruturas PDB por proteína-alvo</text>
+<ellipse cx="520.0" cy="197.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="201.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC03</tspan> Filtrar e exportar resultados da busca</text>
+<ellipse cx="520.0" cy="251.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="255.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC04</tspan> Baixar arquivo PDB/CIF</text>
+<ellipse cx="520.0" cy="305.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="309.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC05</tspan> Selecionar ligantes na árvore de resíduos</text>
+<ellipse cx="520.0" cy="359.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="363.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC06</tspan> Executar redocking</text>
+<ellipse cx="520.0" cy="413.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="417.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC07</tspan> Coletar bioatividade (ChEMBL)</text>
+<ellipse cx="520.0" cy="467.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="471.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC08</tspan> Analisar similaridade entre moléculas</text>
+<ellipse cx="520.0" cy="521.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="525.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC09</tspan> Avaliar ADMET</text>
+<ellipse cx="520.0" cy="575.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="579.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC10</tspan> Agrupar moléculas (clustering)</text>
+<ellipse cx="520.0" cy="629.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="633.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC11</tspan> Executar docking de consenso</text>
+<ellipse cx="520.0" cy="683.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="687.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC12</tspan> Treinar modelo NeuroDock</text>
+<ellipse cx="520.0" cy="737.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="741.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC13</tspan> Realizar triagem virtual</text>
+<ellipse cx="520.0" cy="791.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="795.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC14</tspan> Simular dinâmica molecular</text>
+<ellipse cx="520.0" cy="845.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="849.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC15</tspan> Analisar trajetória de simulação</text>
+<ellipse cx="520.0" cy="899.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="903.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC16</tspan> Consultar histórico de buscas</text>
+<ellipse cx="520.0" cy="953.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="957.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC17</tspan> Validar ambiente e consultar ajuda</text>
+<ellipse cx="520.0" cy="1007.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="1011.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC18</tspan> Configurar DrugHunter, SMTP e cache</text>
+<ellipse cx="520.0" cy="1061.0" rx="190.0" ry="19.0" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.2"/>
+<text x="520.0" y="1065.5" text-anchor="middle" font-size="13"><tspan font-weight="bold">UC19</tspan> Gerenciar usuários</text>
+<g stroke="#333" stroke-width="2" fill="#dbeafe"><circle cx="95" cy="487.0" r="11"/><line x1="95" y1="498.0" x2="95" y2="531.0"/><line x1="77" y1="509.0" x2="113" y2="509.0"/><line x1="95" y1="531.0" x2="79" y2="555.0"/><line x1="95" y1="531.0" x2="111" y2="555.0"/></g><text x="95" y="575.0" text-anchor="middle" font-size="14" font-weight="bold">Pesquisador</text>
+<g stroke="#333" stroke-width="2" fill="#dbeafe"><circle cx="95" cy="1067.0" r="11"/><line x1="95" y1="1078.0" x2="95" y2="1111.0"/><line x1="77" y1="1089.0" x2="113" y2="1089.0"/><line x1="95" y1="1111.0" x2="79" y2="1135.0"/><line x1="95" y1="1111.0" x2="111" y2="1135.0"/></g><text x="95" y="1155.0" text-anchor="middle" font-size="14" font-weight="bold">Administrador</text>
+<g stroke="#333" stroke-width="2" fill="#e5e7eb"><circle cx="975" cy="568.0" r="11"/><line x1="975" y1="579.0" x2="975" y2="612.0"/><line x1="957" y1="590.0" x2="993" y2="590.0"/><line x1="975" y1="612.0" x2="959" y2="636.0"/><line x1="975" y1="612.0" x2="991" y2="636.0"/></g><text x="975" y="656.0" text-anchor="middle" font-size="14" font-weight="bold">Servidor SMTP</text>
+<text x="975" y="672.0" text-anchor="middle" font-size="11" fill="#555">(ator externo; aviso de conclusão)</text>
+</svg>

@@ -6,12 +6,16 @@ interface ConfirmModalProps {
   message: string;
   onConfirm: () => void;
   onCancel: () => void;
+  confirmLabel?: string;
+  cancelLabel?: string;
 }
 
 export function ConfirmModal({
   message,
   onConfirm,
   onCancel,
+  confirmLabel = "Excluir",
+  cancelLabel = "Cancelar",
 }: ConfirmModalProps) {
   // Fecha com Escape
   useEffect(() => {
@@ -38,14 +42,14 @@ export function ConfirmModal({
             onClick={onCancel}
             style={{ padding: "6px 16px", fontSize: 13 }}
           >
-            Cancelar
+            {cancelLabel}
           </Button>
           <Button
             variant="primary"
             onClick={onConfirm}
             style={{ padding: "6px 16px", fontSize: 13 }}
           >
-            Excluir
+            {confirmLabel}
           </Button>
         </div>
       </div>

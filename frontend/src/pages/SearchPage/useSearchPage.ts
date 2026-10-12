@@ -5,15 +5,19 @@ import {
   useCallback,
   useEffect,
   type RefObject,
+  type Dispatch,
+  type SetStateAction,
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import type { SearchUseCase } from "../../data/usecases/search.usecase";
 import type { DashboardUseCase } from "../../data/usecases/dashboard.usecase";
+import type { HistoryUseCase } from "../../data/usecases/history.usecase";
 import type {
   PdbResultModel,
   SearchEventModel,
 } from "../../domain/models/search.model";
+import type { SearchHistoryItem } from "../../domain/models/history.model";
 import type { UserModel } from "../../domain/models/auth.model";
 import {
   useDashboard,
@@ -21,6 +25,8 @@ import {
 } from "../../hooks/useDashboard";
 
 type Fase = "idle" | "buscando" | "resultado";
+
+const HISTORICO_POR_PAGINA = 20;
 
 export interface UseSearchPageReturn {
   user: UserModel | null;
@@ -42,19 +48,30 @@ export interface UseSearchPageReturn {
   menuRef: RefObject<HTMLDivElement | null>;
   handleLogout: () => void;
   toggleMenu: () => void;
-  irParaHistorico: () => void;
   irParaMeusPdbs: () => void;
   irParaRedocking: () => void;
+  irParaConfiguracoes: () => void;
+  irParaAjuda: () => void;
   pausar: () => void;
   cancelar: () => void;
   iniciarBusca: (forcarNovo?: boolean) => void;
   resetBusca: () => void;
   dashboard: UseDashboardReturn;
+  // Histórico integrado
+  historico: SearchHistoryItem[];
+  historicoLoading: boolean;
+  grupos: Record<string, SearchHistoryItem[]>;
+  historicoPagina: number;
+  historicoPaginas: number;
+  setHistoricoPagina: Dispatch<SetStateAction<number>>;
+  abrirHistoricoItem: (item: SearchHistoryItem) => void;
+  deletarHistoricoItem: (id: number) => void;
 }
 
 export function useSearchPage(
   searchUseCase: SearchUseCase,
   dashboardUseCase: DashboardUseCase,
+  historyUseCase: HistoryUseCase,
 ): UseSearchPageReturn {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -99,11 +116,6 @@ export function useSearchPage(
     setMenuAberto((v) => !v);
   }, []);
 
-  const irParaHistorico = useCallback(() => {
-    setMenuAberto(false);
-    navigate("/historico");
-  }, [navigate]);
-
   const irParaMeusPdbs = useCallback(() => {
     setMenuAberto(false);
     navigate("/meus-pdbs");
@@ -112,6 +124,16 @@ export function useSearchPage(
   const irParaRedocking = useCallback(() => {
     setMenuAberto(false);
     navigate("/redocking");
+  }, [navigate]);
+
+  const irParaConfiguracoes = useCallback(() => {
+    setMenuAberto(false);
+    navigate("/configuracoes");
+  }, [navigate]);
+
+  const irParaAjuda = useCallback(() => {
+    setMenuAberto(false);
+    navigate("/ajuda");
   }, [navigate]);
 
   const atualizarBarra = useCallback(
@@ -246,6 +268,46 @@ export function useSearchPage(
 
   const dashboard = useDashboard(resultados, dashboardUseCase);
 
+  // ── Histórico integrado ───────────────────────────────────────────────────
+  const [historico, setHistorico] = useState<SearchHistoryItem[]>([]);
+  const [historicoLoading, setHistoricoLoading] = useState(true);
+  const [historicoPagina, setHistoricoPagina] = useState(1);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token") ?? "";
+    setHistoricoLoading(true);
+    historyUseCase
+      .getHistory(token)
+      .then((items) => setHistorico(items))
+      .catch(() => {})
+      .finally(() => setHistoricoLoading(false));
+  }, [historyUseCase]);
+
+  const historicoPaginas = Math.max(1, Math.ceil(historico.length / HISTORICO_POR_PAGINA));
+  const inicioH = (historicoPagina - 1) * HISTORICO_POR_PAGINA;
+  const itensPagina = historico.slice(inicioH, inicioH + HISTORICO_POR_PAGINA);
+  const grupos: Record<string, SearchHistoryItem[]> = {};
+  itensPagina.forEach((item) => {
+    if (!grupos[item.data_local]) grupos[item.data_local] = [];
+    grupos[item.data_local].push(item);
+  });
+
+  const abrirHistoricoItem = useCallback(
+    (item: SearchHistoryItem) => navigate(`/historico/${item.id}`),
+    [navigate],
+  );
+
+  const deletarHistoricoItem = useCallback(
+    (id: number) => {
+      const token = localStorage.getItem("access_token") ?? "";
+      historyUseCase
+        .deleteItem(id, token)
+        .then(() => setHistorico((prev) => prev.filter((i) => i.id !== id)))
+        .catch(() => {});
+    },
+    [historyUseCase],
+  );
+
   return {
     user,
     input,
@@ -266,13 +328,22 @@ export function useSearchPage(
     menuRef,
     handleLogout,
     toggleMenu,
-    irParaHistorico,
     irParaMeusPdbs,
     irParaRedocking,
+    irParaConfiguracoes,
+    irParaAjuda,
     pausar,
     cancelar,
     iniciarBusca,
     resetBusca,
     dashboard,
+    historico,
+    historicoLoading,
+    grupos,
+    historicoPagina,
+    historicoPaginas,
+    setHistoricoPagina,
+    abrirHistoricoItem,
+    deletarHistoricoItem,
   };
 }

@@ -1,0 +1,32 @@
+flowchart TB
+    pesq["Pesquisador"]
+    rcsb["RCSB PDB"]
+    chembl["ChEMBL"]
+    smtp["SMTP"]
+    p1(["1.0<br/>Gerenciar<br/>estruturas"])
+    p2(["2.0<br/>Executar<br/>jobs CADD"])
+    p3(["3.0<br/>Autenticar e<br/>administrar"])
+    d1[("D1 proteins<br/>searches, downloads")]
+    d2[("D2 tabelas de jobs<br/>e resultados")]
+    d3[("D3 users e<br/>system_config")]
+    d4[("D4 artefatos<br/>CSV, PNG, modelos")]
+    dh["DrugHunter<br/>(subprocesso)"]
+
+    pesq -->|"termos de busca"| p1
+    p1 -->|"estruturas, dashboard"| pesq
+    p1 <-->|"consulta e metadados"| rcsb
+    p1 <--> d1
+    pesq -->|"parâmetros e arquivos"| p2
+    p2 -->|"status, tabelas e gráficos"| pesq
+    p2 <--> d2
+    p2 -->|"config do job (JSON)"| dh
+    dh -->|"eventos JSON-lines"| p2
+    dh <--> d4
+    dh -->|"consulta bioatividade"| chembl
+    p2 -->|"lê"| d4
+    p2 -->|"aviso de conclusão"| smtp
+    p1 -->|"pdb_codes.csv"| p2
+    pesq -->|"credenciais"| p3
+    p3 -->|"JWT"| pesq
+    p3 <--> d3
+    p2 -.->|"valida token e lê config"| p3

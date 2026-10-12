@@ -1,5 +1,5 @@
 """
-PDB Explorer API — FastAPI app principal
+DrugHunter Studio API — FastAPI app principal
 
 Arquitetura Hexagonal:
   core/          → segurança e dependencies de injeção
@@ -36,9 +36,17 @@ from app.routes.search import router as search_router
 from app.routes.admin import router as admin_router
 from app.routes.download import router as download_router
 from app.routes.redocking import router as redocking_router
+from app.routes.home import router as home_router
+from app.routes.chembl import router as chembl_router
+from app.routes.admet import router as admet_router
+from app.routes.consensus import router as consensus_router
+from app.routes.clustering import router as clustering_router
+from app.routes.neurodock import router as neurodock_router
+from app.routes.molecular_dynamics import router as molecular_dynamics_router
+from app.routes.jobs import router as jobs_router
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("pdb_explorer")
+logger = logging.getLogger("drughunter_studio")
 
 
 @asynccontextmanager
@@ -68,8 +76,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="PDB Explorer API",
-    description="API para busca e análise de estruturas proteicas do RCSB PDB",
+    title="DrugHunter Studio API",
+    description="API do DrugHunter Studio — interface para o DrugHunter (busca no RCSB PDB, redocking, ADMET, consenso, clustering, dinâmica molecular)",
     version="4.0.0",
     lifespan=lifespan,
 )
@@ -98,6 +106,14 @@ app.include_router(search_router)
 app.include_router(admin_router)
 app.include_router(download_router)
 app.include_router(redocking_router)
+app.include_router(home_router)
+app.include_router(chembl_router)
+app.include_router(admet_router)
+app.include_router(consensus_router)
+app.include_router(clustering_router)
+app.include_router(neurodock_router)
+app.include_router(molecular_dynamics_router)
+app.include_router(jobs_router)
 
 
 @app.get("/health")

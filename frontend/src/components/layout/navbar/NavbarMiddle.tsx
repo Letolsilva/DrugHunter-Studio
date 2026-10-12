@@ -6,6 +6,8 @@ interface NavbarMiddleProps {
 
 export function NavbarMiddle({ children }: NavbarMiddleProps) {
   return (
-    <div className="flex flex-1 items-center justify-center">{children}</div>
+    <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
+      {children}
+    </div>
   );
 }

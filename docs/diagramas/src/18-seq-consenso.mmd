@@ -1,0 +1,32 @@
+sequenceDiagram
+    actor U as Pesquisador
+    participant FE as useConsensusPage
+    participant R as routes/consensus.py
+    participant UC as usecases/consensus.py
+    participant DB as SQLite
+    participant W as _dh_consensus_worker
+    participant DH as DrugHunter perform_consensus
+    participant FS as resultados/consenso
+
+    U->>FE: Escolhe receptor e ligante de referência
+    FE->>R: GET /redocking-jobs (pré-preenche pdb_id, ligante)
+    FE->>R: POST /api/consensus/iniciar
+    R->>UC: uc_iniciar_consensus
+    UC->>DB: exige ADMET done e cria job (running)
+    UC->>UC: _combinar_moleculas → molecules.csv
+    UC->>W: thread → run_consensus_worker (PATH com Dock6 e Chimera)
+    W->>W: instala shim de sphere_selector e patches Dock6 6.13
+    W->>DH: perform_consensus(...)
+    DH->>DH: SMILES → pdbqt (OpenBabel)
+    DH->>DH: AutoDock Vina
+    DH->>DH: melhor pose → mol2 (Chimera)
+    DH->>DH: Dock6 (superfície, esferas, grid, footprint)
+    DH->>DH: generate_consensus (z-score e min-max)
+    DH->>FS: alvo.csv e correlation.png
+    W-->>UC: done
+    UC->>DB: done, mol_count, caminhos
+    UC->>UC: e-mail de conclusão
+    loop A cada 4 s
+        FE->>R: GET /{job_id}
+    end
+    FE->>R: GET /by-admet/{id}, /download, /correlation

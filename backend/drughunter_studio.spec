@@ -1,4 +1,4 @@
-# pdb_explorer.spec — Configuração do PyInstaller
+# drughunter_studio.spec — Configuração do PyInstaller
 #
 # Gera um executável único que inclui:
 #   - FastAPI + uvicorn + todas as dependências Python
@@ -6,7 +6,7 @@
 #
 # Para gerar:
 #   cd backend
-#   pyinstaller pdb_explorer.spec
+#   pyinstaller drughunter_studio.spec
 
 import sys
 from pathlib import Path
@@ -104,7 +104,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name="pdb-explorer",
+    name="drughunter-studio",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

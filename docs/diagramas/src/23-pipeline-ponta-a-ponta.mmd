@@ -1,0 +1,41 @@
+flowchart TB
+    subgraph A["Etapa 1 — Alvo e estruturas"]
+        A1["Buscar estruturas no RCSB<br/>(SSE, cache em proteins)"] --> A2["Baixar PDB/CIF"]
+        A2 --> A3["Selecionar ligantes<br/>(árvore de resíduos)"]
+        A3 --> A4["pdb_codes.csv"]
+    end
+    subgraph B["Etapa 2 — Validar o protocolo de docking"]
+        B1["Preparar dados do alvo<br/>(pasta datasets/PDB/alvo)"] --> B2["Redocking<br/>Chimera + Vina + RMSD (PyMOL)"]
+        B2 --> B3["pdb_codes.csv com RMSD<br/>escolher melhor par receptor-ligante"]
+    end
+    subgraph C["Etapa 3 — Moléculas candidatas"]
+        C1["ChEMBL: alvos, bioatividade,<br/>moléculas, similares"] --> C2["Análise de similaridade<br/>fingerprints, redes, MCS"]
+        C1 --> C3["ADMET<br/>BOILED-Egg, PAINS, BBB, HIA"]
+    end
+    subgraph D["Etapa 4 — Triagem"]
+        D1["Clustering<br/>PCA + KMeans + t-SNE"]
+        D2["Docking de consenso<br/>Vina + Dock6, z-score e min-max"]
+        D3["Treinar NeuroDock<br/>MLP prediz o score de consenso"]
+        D4["Triagem virtual de biblioteca<br/>top-K por product_score"]
+        D1 --> D3
+        D2 --> D3
+        D3 --> D4
+    end
+    subgraph E["Etapa 5 — Simulação"]
+        E1["Dinâmica molecular<br/>OpenMM, NPT, ns"] --> E2["Análise da trajetória<br/>RMSD, RMSF, Rg, ligações H, PLIP"]
+    end
+    A4 --> B1
+    B3 -.->|"pré-preenche receptor e ligante<br/>(convenção de pastas, sem FK)"| D2
+    C3 --> D1
+    C3 --> D2
+    D2 --> E1
+    D4 -.->|"top-K pode voltar ao consenso"| D2
+
+    classDef pdb fill:#dbeafe,stroke:#1e3a8a,color:#111
+    classDef mol fill:#dcfce7,stroke:#166534,color:#111
+    classDef tri fill:#fef3c7,stroke:#b45309,color:#111
+    classDef sim fill:#fce7f3,stroke:#9d174d,color:#111
+    class A1,A2,A3,A4,B1,B2,B3 pdb
+    class C1,C2,C3 mol
+    class D1,D2,D3,D4 tri
+    class E1,E2 sim

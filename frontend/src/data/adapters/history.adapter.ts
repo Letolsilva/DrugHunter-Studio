@@ -10,7 +10,7 @@ import { adaptSearchResult } from "./search.adapter";
 
 function isoParaDia(iso?: string): string {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("pt-BR");
+  return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function isoParaHora(iso?: string): string {

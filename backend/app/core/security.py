@@ -16,7 +16,7 @@ from passlib.context import CryptContext
 _CHAVE_PADRAO = "TROQUE_ESTA_CHAVE_EM_PRODUCAO_abc123xyz789"
 SECRET_KEY = os.getenv("SECRET_KEY", _CHAVE_PADRAO)
 if SECRET_KEY == _CHAVE_PADRAO:
-    logging.getLogger("pdb_explorer").warning(
+    logging.getLogger("drughunter_studio").warning(
         "⚠️  SECRET_KEY não configurada — usando chave padrão insegura. "
         "Configure a variável de ambiente SECRET_KEY antes de rodar em produção."
     )

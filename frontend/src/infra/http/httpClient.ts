@@ -5,6 +5,16 @@ import {
   type HttpResponse,
 } from "../interfaces/httpClient.interface";
 
+export class HttpError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "HttpError";
+  }
+}
+
 export class HTTPClient extends IHTTPClient {
   private baseURL: string;
 
@@ -34,7 +44,8 @@ export class HTTPClient extends IHTTPClient {
       data = { raw: text };
     }
     if (!res.ok) {
-      throw new Error(
+      throw new HttpError(
+        res.status,
         (data as { detail?: string }).detail ?? `Erro ${res.status}`,
       );
     }

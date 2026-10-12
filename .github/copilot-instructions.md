@@ -1,4 +1,4 @@
-# Instruções Gerais — PDB Explorer
+# Instruções Gerais — DrugHunter Studio
 
 ## Linguagem
 
@@ -9,7 +9,7 @@
 
 ## O Projeto
 
-**PDB Explorer** é uma aplicação web full-stack (TCC/PFC) para busca e análise de estruturas proteicas do RCSB PDB. O objetivo é permitir que usuários não-programadores explorem dados moleculares — do PDB à dinâmica molecular. O estudo de caso é um fungo.
+**DrugHunter Studio** é uma aplicação web full-stack (TCC/PFC) para busca e análise de estruturas proteicas do RCSB PDB. O objetivo é permitir que usuários não-programadores explorem dados moleculares — do PDB à dinâmica molecular. O estudo de caso é um fungo.
 
 Stack: **FastAPI (backend) + React 18 + TypeScript + Tailwind CSS v4 (frontend)**.
 

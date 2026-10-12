@@ -95,7 +95,7 @@ export function useAuthPage(): UseAuthPageReturn {
       } else {
         await register(form.email, form.username, form.password);
       }
-      navigate("/search");
+      navigate("/busca-pdb");
     } catch (err) {
       setErro((err as Error).message);
     } finally {
