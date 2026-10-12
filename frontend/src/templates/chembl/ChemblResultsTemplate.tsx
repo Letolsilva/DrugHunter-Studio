@@ -321,18 +321,20 @@ export default function ChemblResultsTemplate(props: UseChemblResultsPageReturn)
                       const admetStatus = admetStatusByItem[item.id] ?? "none";
                       if (admetStatus === "running") {
                         return (
+                          // Clicável: abre a análise ADMET em andamento (progresso e botão Cancelar)
                           <button
                             key={item.id}
-                            disabled
-                            className="flex items-center gap-1.5 rounded-xl border px-4 py-3 font-mono text-[12px] font-semibold opacity-70 cursor-not-allowed"
+                            onClick={() => onRunAdmet(item.id)}
+                            className="flex items-center gap-1.5 rounded-xl border px-4 py-3 font-mono text-[12px] font-semibold transition-all hover:bg-surface-secondary"
                             style={{
-                              borderColor: "var(--color-outline)",
-                              color: "var(--color-foreground-subtle)",
-                              background: "transparent",
+                              borderColor: "var(--color-accent-25)",
+                              color: "var(--color-accent)",
+                              background: "var(--color-accent-12)",
                             }}
+                            title="Abrir a análise ADMET em andamento"
                           >
                             <span className="spinner" style={{ width: 12, height: 12, borderWidth: 2 }} />
-                            Analisando...
+                            Analisando... ver →
                           </button>
                         );
                       }

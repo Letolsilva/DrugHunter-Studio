@@ -168,13 +168,15 @@ export default function AdmetTemplate(props: UseAdmetPageReturn) {
               <AdmetSummaryCards result={result} />
               <div className="ml-auto">
                 {consensusStatus === "running" ? (
+                  // Clicável: leva à tela do consenso em andamento (progresso e botão Cancelar)
                   <button
-                    disabled
-                    className="flex items-center gap-1.5 rounded-xl border px-4 py-3 font-mono text-[12px] font-semibold opacity-70 cursor-not-allowed"
-                    style={{ borderColor: "var(--color-outline)", color: "var(--color-foreground-subtle)", background: "transparent" }}
+                    onClick={onGoConsensus}
+                    className="flex items-center gap-1.5 rounded-xl border px-4 py-3 font-mono text-[12px] font-semibold transition-all hover:bg-surface-secondary"
+                    style={{ borderColor: "var(--color-accent-25)", color: "var(--color-accent)", background: "var(--color-accent-12)" }}
+                    title="Abrir o consenso em andamento"
                   >
                     <span className="spinner" style={{ width: 12, height: 12, borderWidth: 2 }} />
-                    Processando...
+                    Consenso em andamento — ver →
                   </button>
                 ) : consensusStatus === "done" ? (
                   <button

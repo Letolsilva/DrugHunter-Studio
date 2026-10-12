@@ -362,8 +362,8 @@ export function useChemblResultsPage(
   const onRunAdmet = useCallback(
     (itemId: number) => {
       const status = admetStatusByItem[itemId];
-      if (status === "done") {
-        // Busca o result_id para navegar direto
+      if (status === "done" || status === "running") {
+        // Busca o result_id para navegar direto (em andamento: abre a tela com progresso e Cancelar)
         admetUseCase.getByItem(itemId, token()).then((r) => {
           if (r) navigate(`/admet/${r.id}`);
         });
