@@ -113,7 +113,7 @@ def marcar_concluido(
     result_dir: Optional[str],
     result_csv_path: Optional[str],
 ) -> None:
-    job = db.query(ClusteringJob).filter(ClusteringJob.id == job_id).first()
+    job = db.query(ClusteringJob).filter(ClusteringJob.id == job_id).populate_existing().first()
     if job and job.status != "cancelled":
         job.status = "done"
         job.n_clusters = n_clusters
@@ -147,7 +147,7 @@ def deletar(db: Session, job_id: int, user_id: int) -> bool:
 
 
 def marcar_erro(db: Session, job_id: int, mensagem: str) -> None:
-    job = db.query(ClusteringJob).filter(ClusteringJob.id == job_id).first()
+    job = db.query(ClusteringJob).filter(ClusteringJob.id == job_id).populate_existing().first()
     if job and job.status != "cancelled":
         job.status = "error"
         job.error_msg = mensagem

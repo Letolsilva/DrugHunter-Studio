@@ -77,14 +77,14 @@ def atualizar_output_path(db: Session, job_id: int, base_output_path: str) -> No
 
 
 def marcar_rodando(db: Session, job_id: int) -> None:
-    j = db.query(MDJob).filter(MDJob.id == job_id).first()
+    j = db.query(MDJob).filter(MDJob.id == job_id).populate_existing().first()
     if j and j.status != "cancelled":
         j.status = "running"
         db.commit()
 
 
 def marcar_concluido(db: Session, job_id: int) -> None:
-    j = db.query(MDJob).filter(MDJob.id == job_id).first()
+    j = db.query(MDJob).filter(MDJob.id == job_id).populate_existing().first()
     if j and j.status != "cancelled":
         j.status = "done"
         j.finished_at = datetime.utcnow()
@@ -92,7 +92,7 @@ def marcar_concluido(db: Session, job_id: int) -> None:
 
 
 def marcar_erro(db: Session, job_id: int, mensagem: str) -> None:
-    j = db.query(MDJob).filter(MDJob.id == job_id).first()
+    j = db.query(MDJob).filter(MDJob.id == job_id).populate_existing().first()
     if j and j.status != "cancelled":
         j.status = "error"
         j.error_msg = mensagem
@@ -130,14 +130,14 @@ def buscar_analise_por_id(db: Session, analise_id: int, user_id: int) -> Optiona
 
 
 def marcar_analise_rodando(db: Session, analise_id: int) -> None:
-    a = db.query(MdAnalysisJob).filter(MdAnalysisJob.id == analise_id).first()
+    a = db.query(MdAnalysisJob).filter(MdAnalysisJob.id == analise_id).populate_existing().first()
     if a and a.status != "cancelled":
         a.status = "running"
         db.commit()
 
 
 def marcar_analise_concluida(db: Session, analise_id: int) -> None:
-    a = db.query(MdAnalysisJob).filter(MdAnalysisJob.id == analise_id).first()
+    a = db.query(MdAnalysisJob).filter(MdAnalysisJob.id == analise_id).populate_existing().first()
     if a and a.status != "cancelled":
         a.status = "done"
         a.finished_at = datetime.utcnow()
@@ -145,7 +145,7 @@ def marcar_analise_concluida(db: Session, analise_id: int) -> None:
 
 
 def marcar_analise_erro(db: Session, analise_id: int, mensagem: str) -> None:
-    a = db.query(MdAnalysisJob).filter(MdAnalysisJob.id == analise_id).first()
+    a = db.query(MdAnalysisJob).filter(MdAnalysisJob.id == analise_id).populate_existing().first()
     if a and a.status != "cancelled":
         a.status = "error"
         a.error_msg = mensagem

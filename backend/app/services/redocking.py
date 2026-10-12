@@ -40,7 +40,7 @@ def criar_job(
 
 
 def atualizar_status(db: Session, job_id: int, status: str) -> None:
-    job = db.query(RedockingJob).filter(RedockingJob.id == job_id).first()
+    job = db.query(RedockingJob).filter(RedockingJob.id == job_id).populate_existing().first()
     if job and job.status != "cancelled":
         job.status = status
         db.commit()
@@ -49,7 +49,7 @@ def atualizar_status(db: Session, job_id: int, status: str) -> None:
 def marcar_finalizado(
     db: Session, job_id: int, status: str, erro_msg: Optional[str] = None
 ) -> None:
-    job = db.query(RedockingJob).filter(RedockingJob.id == job_id).first()
+    job = db.query(RedockingJob).filter(RedockingJob.id == job_id).populate_existing().first()
     if job and job.status != "cancelled":
         job.status = status
         job.finalizado_em = datetime.utcnow()

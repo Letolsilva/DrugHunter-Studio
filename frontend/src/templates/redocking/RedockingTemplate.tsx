@@ -86,6 +86,10 @@ export default function RedockingTemplate({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [modalCsvAberto, setModalCsvAberto] = useState(false);
   const [erroExpandidoId, setErroExpandidoId] = useState<number | null>(null);
+  // Mostra a coluna "Ação" (cancelar) só enquanto há algum job em andamento
+  const temJobEmAndamento = jobs.some(
+    (j) => j.status === "pending" || j.status === "running",
+  );
 
   const todosProntos =
     prontidao !== null &&
@@ -650,10 +654,12 @@ export default function RedockingTemplate({
                       "Carga",
                       "Iniciado",
                       "Finalizado",
+                      // Coluna de cancelamento: só aparece enquanto há job em andamento
+                      ...(temJobEmAndamento ? ["Ação"] : []),
                       "",
-                    ].map((col) => (
+                    ].map((col, colIdx) => (
                       <th
-                        key={col}
+                        key={`${col}-${colIdx}`}
                         className="px-4 py-2 text-left font-mono text-[11px] font-semibold text-foreground-subtle uppercase tracking-[0.05em] bg-panel"
                       >
                         {col}
@@ -720,13 +726,18 @@ export default function RedockingTemplate({
                         <td className="px-4 py-1.5 font-mono text-[12px] text-foreground-subtle">
                           {formatDate(job.finalizado_em)}
                         </td>
+                        {temJobEmAndamento && (
+                          <td className="px-3 py-1.5">
+                            {(job.status === "pending" ||
+                              job.status === "running") && (
+                              <CancelJobButton
+                                compact
+                                onCancel={() => handleCancelar(job.id)}
+                              />
+                            )}
+                          </td>
+                        )}
                         <td className="px-2 py-1.5 text-center">
-                          {(job.status === "pending" ||
-                            job.status === "running") && (
-                            <CancelJobButton
-                              onCancel={() => handleCancelar(job.id)}
-                            />
-                          )}
                           <button
                             type="button"
                             onClick={() => onDeleteJob(job.id)}
@@ -745,7 +756,7 @@ export default function RedockingTemplate({
                             className="border-b border-outline"
                           >
                             <td
-                              colSpan={7}
+                              colSpan={temJobEmAndamento ? 8 : 7}
                               className="px-4 py-3 bg-surface-secondary"
                             >
                               <pre className="font-mono text-[11px] text-foreground-subtle whitespace-pre-wrap break-words leading-relaxed border border-outline rounded-lg p-3 bg-panel overflow-x-auto max-h-48">

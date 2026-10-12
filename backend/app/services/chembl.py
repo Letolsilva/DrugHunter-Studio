@@ -57,7 +57,7 @@ def atualizar_status_item(
     molecules_count: Optional[int] = None,
     error_msg: Optional[str] = None,
 ) -> None:
-    item = db.query(ChemblJobItem).filter(ChemblJobItem.id == item_id).first()
+    item = db.query(ChemblJobItem).filter(ChemblJobItem.id == item_id).populate_existing().first()
     if not item or item.status == "cancelled":
         return
     item.status = status
@@ -73,7 +73,7 @@ def atualizar_status_item(
 
 
 def atualizar_status_job(db: Session, job_id: int, status: str) -> None:
-    job = db.query(ChemblJob).filter(ChemblJob.id == job_id).first()
+    job = db.query(ChemblJob).filter(ChemblJob.id == job_id).populate_existing().first()
     if not job or job.status == "cancelled":
         return
     job.status = status
@@ -83,7 +83,7 @@ def atualizar_status_job(db: Session, job_id: int, status: str) -> None:
 def marcar_job_finalizado(
     db: Session, job_id: int, status: str, error_msg: Optional[str] = None
 ) -> None:
-    job = db.query(ChemblJob).filter(ChemblJob.id == job_id).first()
+    job = db.query(ChemblJob).filter(ChemblJob.id == job_id).populate_existing().first()
     if not job or job.status == "cancelled":
         return
     job.status = status

@@ -10,6 +10,8 @@ interface CancelJobButtonProps {
   label?: string;
   message?: string;
   disabled?: boolean;
+  /** Versão menor, para células de tabela. */
+  compact?: boolean;
 }
 
 export function CancelJobButton({
@@ -17,6 +19,7 @@ export function CancelJobButton({
   label = "Cancelar",
   message = "Cancelar este processamento? O trabalho em andamento será interrompido e não poderá ser retomado.",
   disabled,
+  compact = false,
 }: CancelJobButtonProps) {
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -37,7 +40,11 @@ export function CancelJobButton({
         variant="ghost"
         onClick={() => setConfirming(true)}
         disabled={disabled || busy}
-        style={{ padding: "6px 14px", fontSize: 13 }}
+        style={
+          compact
+            ? { padding: "2px 10px", fontSize: 11, whiteSpace: "nowrap" }
+            : { padding: "6px 14px", fontSize: 13 }
+        }
       >
         {busy ? "Cancelando…" : label}
       </Button>

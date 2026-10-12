@@ -80,6 +80,7 @@ neutro "Processamento cancelado" com a opção de **rodar novamente**.
 | Estado | Novo estado terminal **`cancelled`**, distinto de `error`: cancelar não é falha (sem e-mail de erro) |
 | Encerramento | O subprocesso do worker é criado em **grupo de processos próprio**; o cancelamento envia `SIGTERM` ao grupo inteiro (worker e filhos: Chimera, Vina, Dock6…) e `SIGKILL` após 5 s. No Windows, usa `taskkill /T` |
 | Ordem | Primeiro grava `cancelled` no banco, depois encerra o processo. Assim, o worker que termina em seguida não consegue gravar `error` por cima (os `marcar_*` dos *services* preservam `cancelled`) |
+| Sessão da thread | A thread do job mantém uma sessão de banco longa, com o objeto do job em cache; por isso cada `marcar_*` **relê o estado do banco** (`populate_existing`) antes de checar `cancelled`. Sem isso, o worker enxergaria o estado antigo (`running`) e gravaria `error` por cima do cancelamento |
 | ChEMBL | Cancela o grupo inteiro: o item em execução é interrompido e os itens restantes não são iniciados |
 | Exclusão | Excluir um job em andamento (`DELETE`) também encerra o processo |
 | Proteção | Se um runner não tiver criado grupo próprio, o sistema nunca usa `killpg` (derrubaria o servidor); usa `terminate()` |
