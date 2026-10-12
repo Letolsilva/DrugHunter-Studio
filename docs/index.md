@@ -9,8 +9,9 @@ escrita a partir da leitura do código-fonte (backend, frontend e DrugHunter) e 
 arquivo de origem sempre que possível.
 
 !!! info "Estado do levantamento"
-    Documentação baseada na análise **estática** do código da branch `develop` (versão da API 4.0.0).
-    Nada foi executado para produzi-la; pontos que dependem de execução estão marcados como **a confirmar**.
+    Documentação baseada na análise **estática** do código da branch `main` (versão da API 4.0.0).
+    O pipeline científico (DrugHunter e ferramentas externas) não foi executado para produzi-la; pontos que dependem
+    de execução estão marcados como **a confirmar**.
 
 ## Como navegar
 
