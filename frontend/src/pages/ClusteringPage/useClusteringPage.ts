@@ -5,7 +5,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import type { ClusteringUseCase } from "../../data/usecases/clustering.usecase";
 import type { ClusteringJobModel, ClusteringMoleculeRow, TsnePoint } from "../../domain/models/clustering.model";
 
-export type ClusteringPageMode = "setup" | "running" | "results" | "error" | "loading";
+export type ClusteringPageMode = "setup" | "running" | "results" | "error" | "cancelled" | "loading";
 
 export interface UseClusteringPageReturn {
   mode: ClusteringPageMode;
@@ -39,6 +39,8 @@ export interface UseClusteringPageReturn {
   centroidBlobUrls: Record<number, string>;
 
   onRerun: () => void;
+  /** Cancela o clustering em andamento e atualiza o estado do job. */
+  handleCancelar: () => Promise<void>;
   handleLogout: () => void;
   clusteringUseCase: ClusteringUseCase;
   token: string;
@@ -161,6 +163,8 @@ export function useClusteringPage(
     } else if (j.status === "error") {
       setError(j.error_msg ?? "Erro no clustering.");
       setMode("error");
+    } else if (j.status === "cancelled") {
+      setMode("cancelled");
     } else {
       setMode("running");
     }
@@ -173,7 +177,7 @@ export function useClusteringPage(
         const j = await clusteringUseCase.getJob(id, token);
         if (!isMounted.current) return;
         applyJob(j);
-        if (j.status === "done" || j.status === "error") {
+        if (j.status === "done" || j.status === "error" || j.status === "cancelled") {
           clearInterval(pollingRef.current!);
           pollingRef.current = null;
         }
@@ -282,6 +286,24 @@ export function useClusteringPage(
     setMode("setup");
   }, [job]);
 
+  const handleCancelar = useCallback(async () => {
+    if (!job) return;
+    try {
+      await clusteringUseCase.cancelar(job.id, token);
+      const j = await clusteringUseCase.getJob(job.id, token);
+      if (!isMounted.current) return;
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+      applyJob(j);
+    } catch (e) {
+      if (!isMounted.current) return;
+      setError(e instanceof Error ? e.message : "Erro ao cancelar.");
+      setMode("error");
+    }
+  }, [job, clusteringUseCase, token, applyJob]);
+
   const handleLogout = useCallback(() => { logout(); navigate("/"); }, [logout, navigate]);
 
 
@@ -306,6 +328,7 @@ export function useClusteringPage(
     plotBlobUrl,
     centroidBlobUrls,
     onRerun,
+    handleCancelar,
     handleLogout,
     clusteringUseCase,
     token,

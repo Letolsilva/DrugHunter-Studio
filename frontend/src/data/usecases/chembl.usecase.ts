@@ -1,6 +1,7 @@
 // data/usecases/chembl.usecase.ts
 import { IChemblUseCase } from "../../domain/interfaces/chembl.interface";
 import type { IHTTPClient } from "../../infra/interfaces/httpClient.interface";
+import { cancelarJob } from "./cancelar_job";
 import type { ChemblJobModel, ChemblMoleculeModel, NetworkInfo } from "../../domain/models/chembl.model";
 
 export class ChemblUseCase extends IChemblUseCase {
@@ -34,6 +35,10 @@ export class ChemblUseCase extends IChemblUseCase {
     token: string,
   ): Promise<void> {
     await this.httpClient.post("/chembl/analise", payload, { token });
+  }
+
+  async cancelar(id: number, token: string): Promise<void> {
+    await cancelarJob(this.httpClient, "chembl", id, token);
   }
 
   async deletarJob(jobId: number, token: string): Promise<void> {

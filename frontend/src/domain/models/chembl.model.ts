@@ -109,6 +109,7 @@ export interface ChemblJobItemModel {
 
 export interface ChemblJobModel {
   id: number;
+  /** pending | running | done | error | cancelled */
   status: string;
   base_output_path: string;
   created_at: string;

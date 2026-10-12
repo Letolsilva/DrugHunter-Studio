@@ -93,7 +93,7 @@ export const DEFAULT_MD_PARAMS: MDParamsModel = {
 
 export interface MDJobModel {
   id: number;
-  status: "pending" | "running" | "done" | "error";
+  status: "pending" | "running" | "done" | "error" | "cancelled";
   molecule_id: string;
   smiles: string | null;
   target: string | null;
@@ -136,7 +136,7 @@ export interface MDUploadResponse {
 export interface MdAnalysisJobModel {
   id: number;
   md_job_id: number;
-  status: "pending" | "running" | "done" | "error";
+  status: "pending" | "running" | "done" | "error" | "cancelled";
   error_msg: string | null;
   created_at: string;
   finished_at: string | null;

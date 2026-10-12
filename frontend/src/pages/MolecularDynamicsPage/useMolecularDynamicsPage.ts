@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { HttpError } from "../../infra/http/httpClient";
 import type { MolecularDynamicsUseCase } from "../../data/usecases/molecular_dynamics.usecase";
 import type {
   MDJobModel,
@@ -15,7 +16,7 @@ import type {
 } from "../../domain/models/molecular_dynamics.model";
 import { DEFAULT_MD_PARAMS } from "../../domain/models/molecular_dynamics.model";
 
-export type MDMode = "setup" | "running" | "done" | "error" | "analysing" | "analysis_done" | "analysis_error";
+export type MDMode = "setup" | "running" | "done" | "error" | "cancelled" | "analysing" | "analysis_done" | "analysis_error" | "analysis_cancelled";
 export type LigandSource = "consensus" | "upload";
 export type ReceptorSource = "dh_prepared" | "upload" | "manual";
 
@@ -73,6 +74,8 @@ export interface UseMolecularDynamicsPageReturn {
   submitError: string;
 
   onCancelar: () => Promise<void>;
+  onCancelarSimulacao: () => Promise<void>;
+  onCancelarAnalise: () => Promise<void>;
   onNovaSimulacao: () => void;
   onTentarNovamente: () => void;
 
@@ -197,12 +200,16 @@ export function useMolecularDynamicsPage(
           } else if (aj.status === "error") {
             setAnalysisError(aj.error_msg ?? "Erro na análise.");
             setMode("analysis_error");
+          } else if (aj.status === "cancelled") {
+            setMode("analysis_cancelled");
           } else {
             setMode("done");
           }
         }).catch(() => { setMode("done"); });
       } else if (j.status === "error") {
         setMode("error");
+      } else if (j.status === "cancelled") {
+        setMode("cancelled");
       }
     }).catch(() => {});
   }, [jobId, token]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -221,6 +228,9 @@ export function useMolecularDynamicsPage(
           setOutputFiles(files);
         } else if (updated.status === "error") {
           setMode("error");
+          clearInterval(pollRef.current!);
+        } else if (updated.status === "cancelled") {
+          setMode("cancelled");
           clearInterval(pollRef.current!);
         }
       } catch {
@@ -246,6 +256,9 @@ export function useMolecularDynamicsPage(
         } else if (updated.status === "error") {
           setAnalysisError(updated.error_msg ?? "Erro na análise.");
           setMode("analysis_error");
+          clearInterval(analysisPollRef.current!);
+        } else if (updated.status === "cancelled") {
+          setMode("analysis_cancelled");
           clearInterval(analysisPollRef.current!);
         }
       } catch { /* ignora erros transitórios */ }
@@ -357,6 +370,65 @@ export function useMolecularDynamicsPage(
     setMode("setup");
   }, [job, token, navigate, mdUseCase]);
 
+  // Cancela a simulação em andamento (o job permanece no histórico como "cancelado")
+  const onCancelarSimulacao = useCallback(async () => {
+    if (!job) return;
+    try {
+      await mdUseCase.cancelarSimulacao(job.id, token);
+    } catch (e) {
+      // 409: o job já terminou — apenas recarrega o estado abaixo
+      if (!(e instanceof HttpError && e.status === 409)) {
+        alert("Erro ao cancelar o processamento. Tente novamente.");
+        return;
+      }
+    }
+    if (pollRef.current) clearInterval(pollRef.current);
+    try {
+      const updated = await mdUseCase.getJob(job.id, token);
+      setJob(updated);
+      if (updated.status === "done") {
+        setMode("done");
+        mdUseCase.listarArquivos(updated.id, token).then(setOutputFiles).catch(() => {});
+      } else if (updated.status === "error") {
+        setMode("error");
+      } else {
+        setMode("cancelled");
+      }
+    } catch {
+      setMode("cancelled");
+    }
+  }, [job, token, mdUseCase]);
+
+  // Cancela a análise de trajetória em andamento
+  const onCancelarAnalise = useCallback(async () => {
+    if (!job || !analysisJob) return;
+    try {
+      await mdUseCase.cancelarAnalise(analysisJob.id, token);
+    } catch (e) {
+      // 409: a análise já terminou — apenas recarrega o estado abaixo
+      if (!(e instanceof HttpError && e.status === 409)) {
+        alert("Erro ao cancelar o processamento. Tente novamente.");
+        return;
+      }
+    }
+    if (analysisPollRef.current) clearInterval(analysisPollRef.current);
+    try {
+      const updated = await mdUseCase.getAnalise(job.id, token);
+      if (updated) setAnalysisJob(updated);
+      if (updated?.status === "done") {
+        setMode("analysis_done");
+        mdUseCase.listarArquivosAnalise(job.id, token).then(setAnalysisFiles).catch(() => {});
+      } else if (updated?.status === "error") {
+        setAnalysisError(updated.error_msg ?? "Erro na análise.");
+        setMode("analysis_error");
+      } else {
+        setMode("analysis_cancelled");
+      }
+    } catch {
+      setMode("analysis_cancelled");
+    }
+  }, [job, analysisJob, token, mdUseCase]);
+
   const onNovaSimulacao = useCallback(() => {
     if (pollRef.current) clearInterval(pollRef.current);
     navigate("/dinamica-molecular", { replace: true });
@@ -437,7 +509,7 @@ export function useMolecularDynamicsPage(
     receptorManualFilename, onReceptorManualFilename: setReceptorManualFilename,
     params, onParam,
     onSubmit, submitting, submitError,
-    onCancelar, onNovaSimulacao, onTentarNovamente,
+    onCancelar, onCancelarSimulacao, onCancelarAnalise, onNovaSimulacao, onTentarNovamente,
     outputFiles,
     onDownload,
     analysisJob,

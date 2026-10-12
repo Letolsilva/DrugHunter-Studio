@@ -121,7 +121,7 @@ def marcar_concluido(
     correlation_img_path: Optional[str],
 ) -> None:
     job = db.query(ConsensusJob).filter(ConsensusJob.id == job_id).first()
-    if job:
+    if job and job.status != "cancelled":
         job.status = "done"
         job.result_csv_path = result_csv_path
         job.correlation_img_path = correlation_img_path
@@ -131,7 +131,7 @@ def marcar_concluido(
 
 def marcar_erro(db: Session, job_id: int, mensagem: str) -> None:
     job = db.query(ConsensusJob).filter(ConsensusJob.id == job_id).first()
-    if job:
+    if job and job.status != "cancelled":
         job.status = "error"
         job.error_msg = mensagem
         job.finished_at = datetime.utcnow()

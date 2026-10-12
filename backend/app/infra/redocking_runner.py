@@ -12,6 +12,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from app.infra import job_control
 from app.infra.db.database import SessionLocal, get_config
 from app.infra.email_sender import enviar_email_conclusao
 from app.services.redocking import atualizar_status, marcar_finalizado, salvar_csv_usuario
@@ -86,6 +87,10 @@ def executar_redocking_background(
     db = SessionLocal()
     try:
         atualizar_status(db, job_id, "running")
+        _job = db.query(RedockingJob).filter(RedockingJob.id == job_id).first()
+        if _job is not None and _job.status == "cancelled":
+            logger.info("Job %d foi cancelado antes de iniciar.", job_id)
+            return
 
         # Script sempre fica em backend/redocking.py — detectado via __file__
         script = str(Path(__file__).resolve().parent.parent.parent / "redocking.py")
@@ -136,28 +141,43 @@ def executar_redocking_background(
         subprocess_env["PATH"] = _montar_path_ferramentas(python_bin, db)
         logger.info("Job %d PATH do subprocesso: %s", job_id, subprocess_env["PATH"])
 
-        resultado = subprocess.run(
-            [
-                python_bin,
-                script,
-                "--base_input_path",
-                base_input_path,
-                "--target",
-                target,
-                "--base_output_path",
-                base_output_path,
-                "--charge_type",
-                charge_type,
-                "--prepare_complex",
-                "True",
-                "--csv_path",
-                csv_path,
-            ],
-            capture_output=True,
-            text=True,
-            cwd=drug_hunter_dir,
-            env=subprocess_env,
-        )
+        with job_control.track("redocking", job_id):
+            proc = subprocess.Popen(
+                [
+                    python_bin,
+                    script,
+                    "--base_input_path",
+                    base_input_path,
+                    "--target",
+                    target,
+                    "--base_output_path",
+                    base_output_path,
+                    "--charge_type",
+                    charge_type,
+                    "--prepare_complex",
+                    "True",
+                    "--csv_path",
+                    csv_path,
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                cwd=drug_hunter_dir,
+                env=subprocess_env,
+                **job_control.popen_kwargs(),
+            )
+            job_control.attach(proc)
+            _stdout, _stderr = proc.communicate()
+        resultado = subprocess.CompletedProcess(proc.args, proc.returncode, _stdout, _stderr)
+
+        if job_control.was_cancelled("redocking", job_id):
+            # Cancelado pelo usuário: o status "cancelled" já foi gravado pelo endpoint.
+            logger.info("Job %d cancelado pelo usuário — encerrando sem resultado.", job_id)
+            try:
+                os.unlink(csv_path)
+            except OSError:
+                pass
+            return
 
         # Limpa o CSV temporário
         try:

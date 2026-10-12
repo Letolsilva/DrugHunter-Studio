@@ -43,6 +43,7 @@ from app.routes.consensus import router as consensus_router
 from app.routes.clustering import router as clustering_router
 from app.routes.neurodock import router as neurodock_router
 from app.routes.molecular_dynamics import router as molecular_dynamics_router
+from app.routes.jobs import router as jobs_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("drughunter_studio")
@@ -112,6 +113,7 @@ app.include_router(consensus_router)
 app.include_router(clustering_router)
 app.include_router(neurodock_router)
 app.include_router(molecular_dynamics_router)
+app.include_router(jobs_router)
 
 
 @app.get("/health")

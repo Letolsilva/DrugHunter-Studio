@@ -3,7 +3,7 @@
 export interface ConsensusJobModel {
   id: number;
   admet_result_id: number | null;
-  status: "pending" | "running" | "done" | "error";
+  status: "pending" | "running" | "done" | "error" | "cancelled";
   target: string;
   pdb_id: string;
   ligand_resname: string;

@@ -13,6 +13,7 @@ from typing import List, Optional
 import pandas as pd
 from sqlalchemy.orm import Session
 
+from app.infra import job_control
 from app.domain.models import User
 from app.domain.models.admet_result import AdmetResult
 from app.domain.models.chembl_job import ChemblJobItem
@@ -128,6 +129,7 @@ def _combinar_moleculas(
     return len(combined)
 
 
+@job_control.tracked("consensus")
 def _executar_pipeline(job_id: int, max_mols: Optional[int] = None) -> None:
     db = SessionLocal()
     try:
@@ -241,7 +243,7 @@ def _executar_pipeline(job_id: int, max_mols: Optional[int] = None) -> None:
             svc.marcar_erro(db, job_id, str(e))
         except Exception:
             pass
-        if email_notificacao:
+        if email_notificacao and not job_control.was_cancelled("consensus", job_id):
             enviar_email_conclusao(
                 email_notificacao, job_id, job.target,
                 "error", str(e)[:1000], modulo="Docking de Consenso",

@@ -75,7 +75,11 @@ export function RedockingProvider({
         try {
           const updated = await redockingUseCase.statusJob(jobId, token);
           setActiveJobState(updated);
-          if (updated.status === "done" || updated.status === "error") {
+          if (
+            updated.status === "done" ||
+            updated.status === "error" ||
+            updated.status === "cancelled"
+          ) {
             stopPolling();
           }
         } catch (err) {
@@ -96,7 +100,11 @@ export function RedockingProvider({
               token = tokens.access_token;
               const updated = await redockingUseCase.statusJob(jobId, token);
               setActiveJobState(updated);
-              if (updated.status === "done" || updated.status === "error") stopPolling();
+              if (
+                updated.status === "done" ||
+                updated.status === "error" ||
+                updated.status === "cancelled"
+              ) stopPolling();
             } catch {
               stopPolling();
             }

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Navbar, DropdownMenu } from "../../components/layout";
 import { MiddleBar } from "../../components/nav/MiddleBar";
 import { Spinner } from "../../components/ui/Spinner";
+import { CancelJobButton } from "../../components/ui/CancelJobButton";
 import {
   AppLogoIcon,
   ArrowLeftIcon,
@@ -56,7 +57,7 @@ export default function ChemblResultsTemplate(props: UseChemblResultsPageReturn)
     onFingerprintChange, onMetricChange, onRunAnalysis,
     networks, networksLoading, selectedNetwork, onOpenNetwork, onCloseNetwork, getPlotUrl,
     selectedMol, onSelectMol, onCloseMol,
-    handleLogout, voltarChembl,
+    handleLogout, voltarChembl, handleCancelar,
     admetStatusByItem, onRunAdmet,
   } = props;
 
@@ -170,7 +171,7 @@ export default function ChemblResultsTemplate(props: UseChemblResultsPageReturn)
           <div className="flex flex-col gap-6">
             <div className="flex items-center gap-3">
               <Spinner style={{ width: 20, height: 20, borderWidth: 2 }} />
-              <div>
+              <div className="flex-1">
                 <h1 className="text-[20px] font-extrabold text-foreground tracking-tight">
                   Coletando bioatividades...
                 </h1>
@@ -178,6 +179,7 @@ export default function ChemblResultsTemplate(props: UseChemblResultsPageReturn)
                   Você pode fechar esta página — a execução continua no servidor.
                 </p>
               </div>
+              <CancelJobButton onCancel={handleCancelar} />
             </div>
             <div className="flex flex-col gap-2">
               {job.items.map((it: ChemblJobItemModel, idx: number) => (
@@ -195,6 +197,26 @@ export default function ChemblResultsTemplate(props: UseChemblResultsPageReturn)
                 />
               ))}
             </div>
+          </div>
+        ) : job?.status === "cancelled" ? (
+          /* ── Job cancelado pelo usuário — cartão neutro ──────────────────── */
+          <div className="rounded-xl border border-outline bg-panel px-5 py-4 flex flex-col gap-3">
+            <div>
+              <p className="font-mono text-[14px] font-semibold text-foreground mb-1">
+                Processamento cancelado
+              </p>
+              <p className="font-mono text-[12px] text-foreground-subtle">
+                A coleta de bioatividades foi interrompida a pedido do usuário.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={voltarChembl}
+              className="cursor-pointer self-start font-mono text-[12px] rounded-lg border px-4 py-2 transition-colors hover:bg-surface-secondary"
+              style={{ borderColor: "var(--color-outline)", color: "var(--color-foreground-subtle)" }}
+            >
+              ← Novo job ChEMBL
+            </button>
           </div>
         ) : job?.status === "error" && job.items.every((it) => it.status === "error") ? (
           /* ── Todos os itens falharam — estado de erro total ──────────────── */

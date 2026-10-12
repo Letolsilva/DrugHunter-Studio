@@ -14,6 +14,8 @@ import os
 from pathlib import Path
 from typing import AsyncGenerator, List
 
+from app.infra import job_control
+
 logger = logging.getLogger("drughunter_studio")
 
 _WORKER_PATH = str(Path(__file__).parent / "_dh_chembl_worker.py")
@@ -24,6 +26,7 @@ def _sse(data: dict) -> str:
 
 
 async def _run_item_subprocess(
+    job_id: int,
     python_bin: str,
     dh_dir: str,
     target_name: str,
@@ -59,7 +62,9 @@ async def _run_item_subprocess(
         stderr=asyncio.subprocess.PIPE,
         cwd=dh_dir,
         env=env,
+        **job_control.popen_kwargs(),
     )
+    job_control.attach(proc, ("chembl", job_id))
 
     try:
         assert proc.stdout is not None
@@ -120,6 +125,9 @@ async def run_chembl_group(
     yield _sse({"tipo": "inicio_grupo", "job_id": job_id, "total": total})
 
     for idx, item in enumerate(items_data):
+        if job_control.was_cancelled("chembl", job_id):
+            logger.info("Grupo ChEMBL %s cancelado — itens restantes não serão executados.", job_id)
+            break
         item_id = item["item_id"]
         target_name = item["target_name"]
         folder_name = item["folder_name"]
@@ -146,6 +154,7 @@ async def run_chembl_group(
             got_done = False
 
             async for event in _run_item_subprocess(
+                job_id=job_id,
                 python_bin=python_bin,
                 dh_dir=drug_hunter_dir,
                 target_name=target_name,

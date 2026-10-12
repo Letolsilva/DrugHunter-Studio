@@ -3,7 +3,7 @@
 export interface NeuroDockModelModel {
   id: number;
   clustering_job_id: number | null;
-  status: "running" | "done" | "error";
+  status: "running" | "done" | "error" | "cancelled";
   target: string;
   evaluation_name: string;
   fingerprint_type: string;
@@ -23,7 +23,7 @@ export interface NeuroDockModelModel {
 export interface NeuroDockPredictionModel {
   id: number;
   model_id: number;
-  status: "running" | "done" | "error";
+  status: "running" | "done" | "error" | "cancelled";
   input_dataset: string;
   library_csv_path: string;
   top_k: number;

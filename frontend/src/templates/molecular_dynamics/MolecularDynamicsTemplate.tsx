@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Navbar, DropdownMenu } from "../../components/layout";
 import { MiddleBar } from "../../components/nav/MiddleBar";
 import { Spinner } from "../../components/ui/Spinner";
+import { CancelJobButton } from "../../components/ui/CancelJobButton";
 import {
   AppLogoIcon,
   ArrowLeftIcon,
@@ -640,9 +641,11 @@ function JobHistoryCard({
       ? "var(--color-green)"
       : job.status === "error"
         ? "var(--color-red)"
-        : "var(--color-accent)";
+        : job.status === "cancelled"
+          ? "var(--color-foreground-subtle)"
+          : "var(--color-accent)";
   const statusLabel =
-    job.status === "done" ? "concluído" : job.status === "error" ? "erro" : "em andamento";
+    job.status === "done" ? "concluído" : job.status === "error" ? "erro" : job.status === "cancelled" ? "cancelado" : "em andamento";
 
   return (
     <div className="relative">
@@ -717,7 +720,7 @@ export default function MolecularDynamicsTemplate(props: Props) {
     receptorManualFilename, onReceptorManualFilename,
     params, onParam,
     onSubmit, submitting, submitError,
-    onCancelar, onNovaSimulacao, onTentarNovamente,
+    onCancelarSimulacao, onCancelarAnalise, onNovaSimulacao, onTentarNovamente,
     outputFiles,
     analysisJob, analysisFiles, onIniciarAnalise, analysisError, getAnaliseViewUrl, token,
     handleLogout,
@@ -880,13 +883,7 @@ export default function MolecularDynamicsTemplate(props: Props) {
                 Simulações de MD podem levar horas. Você pode fechar a página — o processamento continua no servidor.
               </p>
             </div>
-            <button
-              onClick={onCancelar}
-              className="font-mono text-[12px] rounded-lg border px-4 py-2 transition-colors hover:bg-surface-secondary"
-              style={{ borderColor: "var(--color-outline)", color: "var(--color-foreground-subtle)" }}
-            >
-              Cancelar
-            </button>
+            <CancelJobButton onCancel={onCancelarSimulacao} />
           </div>
         )}
 
@@ -1000,6 +997,7 @@ export default function MolecularDynamicsTemplate(props: Props) {
                 A análise pode levar alguns minutos. Você pode fechar a página — o processamento continua no servidor.
               </p>
             </div>
+            <CancelJobButton onCancel={onCancelarAnalise} />
           </div>
         )}
 
@@ -1210,6 +1208,62 @@ export default function MolecularDynamicsTemplate(props: Props) {
                 style={ACCENT_BTN}
               >
                 Tentar novamente
+              </button>
+              <button
+                onClick={onNovaSimulacao}
+                className="font-mono text-[12px] rounded-xl border px-4 py-3 transition-colors hover:bg-surface-secondary"
+                style={{ borderColor: "var(--color-outline)", color: "var(--color-foreground-subtle)" }}
+              >
+                Nova Simulação
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Analysis Cancelled ────────────────────────────────────────────── */}
+        {mode === "analysis_cancelled" && (
+          <div className="flex flex-col gap-4">
+            <div className="rounded-xl border border-outline bg-panel px-4 py-4">
+              <p className="font-mono text-[13px] font-semibold text-foreground mb-1">Processamento cancelado</p>
+              <p className="font-mono text-[12px] text-foreground-subtle">
+                {analysisJob?.error_msg ?? "Cancelado pelo usuário."}
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={onIniciarAnalise}
+                className="font-mono text-[12px] rounded-xl border px-4 py-3 font-semibold transition-all hover:opacity-80"
+                style={ACCENT_BTN}
+              >
+                Rodar novamente
+              </button>
+              <button
+                onClick={onNovaSimulacao}
+                className="font-mono text-[12px] rounded-xl border px-4 py-3 transition-colors hover:bg-surface-secondary"
+                style={{ borderColor: "var(--color-outline)", color: "var(--color-foreground-subtle)" }}
+              >
+                Nova Simulação
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Cancelled ─────────────────────────────────────────────────────── */}
+        {mode === "cancelled" && (
+          <div className="flex flex-col gap-4">
+            <div className="rounded-xl border border-outline bg-panel px-4 py-4">
+              <p className="font-mono text-[13px] font-semibold text-foreground mb-1">Processamento cancelado</p>
+              <p className="font-mono text-[12px] text-foreground-subtle">
+                {job?.error_msg ?? "Cancelado pelo usuário."}
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={onTentarNovamente}
+                className="font-mono text-[12px] rounded-xl border px-4 py-3 font-semibold transition-all hover:opacity-80"
+                style={ACCENT_BTN}
+              >
+                Rodar novamente
               </button>
               <button
                 onClick={onNovaSimulacao}

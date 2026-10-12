@@ -17,6 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from app.infra import job_control
 from app.core.deps import get_usuario_atual
 from app.domain.models import User
 from app.domain.schemas.clustering import ClusteringIniciarRequest, ClusteringJobResponse
@@ -176,6 +177,7 @@ def deletar_clustering(
     job = svc.buscar_por_id(db, job_id, usuario.id)
     if job is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job não encontrado.")
+    job_control.cancel("clustering", job.id)  # se ainda estiver rodando, encerra o processo
     # Cascata NeuroDock (FK é SET NULL, precisa ser explícito)
     modelo = svc_neurodock.buscar_modelo_por_clustering(db, job.id, usuario.id)
     if modelo:

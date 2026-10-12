@@ -10,7 +10,7 @@ export interface AdmetResultSummary {
 
 export interface AdmetResultModel {
   id: number;
-  status: "pending" | "running" | "done" | "error";
+  status: "pending" | "running" | "done" | "error" | "cancelled";
   source_type: string;
   chembl_job_item_id: number | null;
   target: string | null;

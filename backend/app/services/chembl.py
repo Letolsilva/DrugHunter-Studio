@@ -58,7 +58,7 @@ def atualizar_status_item(
     error_msg: Optional[str] = None,
 ) -> None:
     item = db.query(ChemblJobItem).filter(ChemblJobItem.id == item_id).first()
-    if not item:
+    if not item or item.status == "cancelled":
         return
     item.status = status
     if status == "running" and item.started_at is None:
@@ -74,7 +74,7 @@ def atualizar_status_item(
 
 def atualizar_status_job(db: Session, job_id: int, status: str) -> None:
     job = db.query(ChemblJob).filter(ChemblJob.id == job_id).first()
-    if not job:
+    if not job or job.status == "cancelled":
         return
     job.status = status
     db.commit()
@@ -84,7 +84,7 @@ def marcar_job_finalizado(
     db: Session, job_id: int, status: str, error_msg: Optional[str] = None
 ) -> None:
     job = db.query(ChemblJob).filter(ChemblJob.id == job_id).first()
-    if not job:
+    if not job or job.status == "cancelled":
         return
     job.status = status
     job.finished_at = datetime.utcnow()

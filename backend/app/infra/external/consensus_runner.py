@@ -12,6 +12,8 @@ import threading
 from pathlib import Path
 from typing import Tuple
 
+from app.infra import job_control
+
 logger = logging.getLogger("drughunter_studio")
 
 _WORKER_PATH = str(Path(__file__).parent / "_dh_consensus_worker.py")
@@ -74,7 +76,9 @@ def run_consensus_worker(
         stderr=subprocess.PIPE,
         cwd=dh_dir,
         env=env,
+        **job_control.popen_kwargs(),
     )
+    job_control.attach(proc)
 
     done = False
     error_msg = None

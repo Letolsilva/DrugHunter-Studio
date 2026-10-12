@@ -81,6 +81,8 @@ export interface UseChemblResultsPageReturn {
 
   handleLogout: () => void;
   voltarChembl: () => void;
+  /** Cancela o job inteiro (kind "chembl") e atualiza o estado do job. */
+  handleCancelar: () => Promise<void>;
 
   // ADMET
   admetStatusByItem: Record<number, "none" | "running" | "done">;
@@ -365,6 +367,16 @@ export function useChemblResultsPage(
     [admetStatusByItem, navigate],
   );
 
+  // ── Cancelamento ──────────────────────────────────────────────────────────
+  // O polling para sozinho: só roda enquanto job.status === "running".
+  const handleCancelar = useCallback(async () => {
+    try {
+      await chemblUseCase.cancelar(jobIdNum, token());
+      const refreshed = await chemblUseCase.getJob(jobIdNum, token());
+      setJob(refreshed);
+    } catch {}
+  }, [jobIdNum, chemblUseCase]);
+
   // ── Navbar ────────────────────────────────────────────────────────────────
   const handleLogout = useCallback(() => { logout(); navigate("/"); }, [logout, navigate]);
   const voltarChembl = useCallback(() => navigate("/chembl"), [navigate]);
@@ -387,7 +399,7 @@ export function useChemblResultsPage(
     mccSet, mccSimsSet, mccMolsSet,
     networks, networksLoading, selectedNetwork, onOpenNetwork, onCloseNetwork, getPlotUrl,
     selectedMol, onSelectMol, onCloseMol,
-    handleLogout, voltarChembl,
+    handleLogout, voltarChembl, handleCancelar,
     admetStatusByItem, onRunAdmet,
   };
 }

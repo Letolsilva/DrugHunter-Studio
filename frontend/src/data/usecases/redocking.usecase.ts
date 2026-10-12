@@ -1,6 +1,7 @@
 // data/usecases/redocking.usecase.ts
 import { IRedockingUseCase } from "../../domain/interfaces/redocking.interface";
 import type { IHTTPClient } from "../../infra/interfaces/httpClient.interface";
+import { cancelarJob } from "./cancelar_job";
 import type {
   IniciarRedockingPayload,
   ProntidaoResponse,
@@ -55,6 +56,10 @@ export class RedockingUseCase extends IRedockingUseCase {
 
   async deletarJob(jobId: number, token: string): Promise<void> {
     await this.httpClient.delete(`/redocking/jobs/${jobId}`, { token });
+  }
+
+  async cancelar(id: number, token: string): Promise<void> {
+    await cancelarJob(this.httpClient, "redocking", id, token);
   }
 
   async buscarCsv(token: string): Promise<string | null> {

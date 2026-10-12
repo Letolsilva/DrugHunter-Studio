@@ -11,6 +11,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
+from app.infra import job_control
 from app.domain.models import User
 from app.domain.models.clustering_job import ClusteringJob
 from app.domain.models.consensus_job import ConsensusJob
@@ -56,6 +57,7 @@ def _com_sufixo(path: str, sufixo: str) -> str:
 
 # ── Treinamento ───────────────────────────────────────────────────────────────
 
+@job_control.tracked("neurodock-model")
 def _executar_treinamento(model_id: int, n_trials: int = 20) -> None:
     db = SessionLocal()
     try:
@@ -109,7 +111,7 @@ def _executar_treinamento(model_id: int, n_trials: int = 20) -> None:
             svc.marcar_modelo_erro(db, model_id, str(e))
         except Exception:
             pass
-        if email_notificacao:
+        if email_notificacao and not job_control.was_cancelled("neurodock-model", model_id):
             enviar_email_conclusao(
                 email_notificacao, model_id, model.target or model.evaluation_name,
                 "error", str(e)[:1000], modulo="NeuroDock (Treinamento)",
@@ -225,6 +227,7 @@ def uc_get_model_by_clustering(
 
 # ── Triagem Virtual ───────────────────────────────────────────────────────────
 
+@job_control.tracked("neurodock-prediction")
 def _executar_triagem(pred_id: int) -> None:
     db = SessionLocal()
     try:
@@ -281,7 +284,7 @@ def _executar_triagem(pred_id: int) -> None:
             svc.marcar_predicao_erro(db, pred_id, str(e))
         except Exception:
             pass
-        if email_notificacao:
+        if email_notificacao and not job_control.was_cancelled("neurodock-prediction", pred_id):
             _label = (model.target if model is not None else None) or pred.input_dataset
             enviar_email_conclusao(
                 email_notificacao, pred_id, _label,

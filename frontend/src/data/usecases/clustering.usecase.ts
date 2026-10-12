@@ -2,6 +2,7 @@
 import { IClusteringUseCase } from "../../domain/interfaces/clustering.interface";
 import type { IHTTPClient } from "../../infra/interfaces/httpClient.interface";
 import type { ClusteringJobModel } from "../../domain/models/clustering.model";
+import { cancelarJob } from "./cancelar_job";
 import { HttpError } from "../../infra/http/httpClient";
 
 export class ClusteringUseCase extends IClusteringUseCase {
@@ -10,6 +11,10 @@ export class ClusteringUseCase extends IClusteringUseCase {
   constructor(httpClient: IHTTPClient) {
     super();
     this.httpClient = httpClient;
+  }
+
+  async cancelar(id: number, token: string): Promise<void> {
+    await cancelarJob(this.httpClient, "clustering", id, token);
   }
 
   async iniciar(

@@ -82,6 +82,8 @@ export interface UseRedockingPageReturn {
   handleSubmit: () => Promise<void>;
   handleLogout: () => void;
   onDeleteJob: (jobId: number) => Promise<void>;
+  /** Cancela um job pending/running e reflete o estado "cancelled" na lista. */
+  handleCancelar: (jobId: number) => Promise<void>;
 }
 
 export function useRedockingPage(
@@ -421,6 +423,18 @@ export function useRedockingPage(
     }
   }, [redockingUseCase, showToast]);
 
+  const handleCancelar = useCallback(async (jobId: number) => {
+    const token = localStorage.getItem("access_token") ?? "";
+    try {
+      await redockingUseCase.cancelar(jobId, token);
+      const atualizado = await redockingUseCase.statusJob(jobId, token);
+      setJobs((prev) => prev.map((j) => (j.id === jobId ? atualizado : j)));
+      if (activeJob?.id === jobId) setActiveJob(atualizado);
+    } catch {
+      showToast("Não foi possível cancelar o job.", "error");
+    }
+  }, [redockingUseCase, activeJob?.id, setActiveJob, showToast]);
+
   return {
     csvLinhas,
     csvFileName,
@@ -450,5 +464,6 @@ export function useRedockingPage(
     handleSubmit,
     handleLogout,
     onDeleteJob,
+    handleCancelar,
   };
 }

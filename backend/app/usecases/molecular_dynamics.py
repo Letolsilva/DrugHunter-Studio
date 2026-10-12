@@ -13,6 +13,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
+from app.infra import job_control
 from app.domain.models import User
 from app.domain.models.consensus_job import ConsensusJob
 from app.domain.models.md_job import MDJob
@@ -32,6 +33,7 @@ _running_analyses: set[int] = set()
 
 # ── Execução em background ────────────────────────────────────────────────────
 
+@job_control.tracked("md")
 def _executar_md(job_id: int) -> None:
     db = SessionLocal()
     try:
@@ -85,6 +87,10 @@ def _executar_md(job_id: int) -> None:
         params      = json.loads(job.params_json)
 
         svc.marcar_rodando(db, job_id)
+        db.refresh(job)
+        if job.status == "cancelled":
+            logger.info("MDJob %s foi cancelado antes de iniciar.", job_id)
+            return
         logger.info("MDJob %s iniciado: ligante=%s receptor=%s", job_id, ligand_input_path, receptor_input_path)
 
         warnings = run_md_worker(
@@ -121,7 +127,7 @@ def _executar_md(job_id: int) -> None:
             svc.marcar_erro(db, job_id, str(e))
         except Exception:
             pass
-        if email_notificacao:
+        if email_notificacao and not job_control.was_cancelled("md", job_id):
             enviar_email_conclusao(
                 email_notificacao, job_id, job.target or str(job_id),
                 "error", str(e)[:1000], modulo="Dinâmica Molecular",
@@ -242,6 +248,7 @@ def uc_deletar_job(db: Session, job_id: int, usuario: User) -> bool:
     if not job:
         return False
 
+    job_control.cancel("md", job_id)  # se ainda estiver rodando, encerra o processo
     dh_dir = get_config(db, "drug_hunter_path") or ""
     if job.base_output_path and dh_dir:
         abs_out = Path(dh_dir) / job.base_output_path.lstrip("/")
@@ -258,6 +265,7 @@ def uc_deletar_job(db: Session, job_id: int, usuario: User) -> bool:
 
 
 
+@job_control.tracked("md-analysis")
 def _executar_analise(analise_id: int) -> None:
     db = SessionLocal()
     try:
@@ -288,6 +296,10 @@ def _executar_analise(analise_id: int) -> None:
         reporting_interval_steps_ = int(params.get("reporting_interval_steps", 1000))
 
         svc.marcar_analise_rodando(db, analise_id)
+        db.refresh(analise)
+        if analise.status == "cancelled":
+            logger.info("MdAnalysisJob %s foi cancelado antes de iniciar.", analise_id)
+            return
         logger.info("MdAnalysisJob %s iniciado: md_job=%s target=%s", analise_id, job.id, job.target)
 
         run_md_analyser_worker(
@@ -314,7 +326,7 @@ def _executar_analise(analise_id: int) -> None:
             svc.marcar_analise_erro(db, analise_id, str(e))
         except Exception:
             pass
-        if email_notificacao:
+        if email_notificacao and not job_control.was_cancelled("md-analysis", analise_id):
             enviar_email_conclusao(
                 email_notificacao, analise_id, job.target or str(analise_id),
                 "error", str(e)[:1000], modulo="Análise de Trajetória",

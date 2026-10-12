@@ -1,6 +1,6 @@
 // domain/models/redocking.model.ts
 
-export type RedockingStatus = "pending" | "running" | "done" | "error";
+export type RedockingStatus = "pending" | "running" | "done" | "error" | "cancelled";
 
 export interface RedockingJobModel {
   id: number;

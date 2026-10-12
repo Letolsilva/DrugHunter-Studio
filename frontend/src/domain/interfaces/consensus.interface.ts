@@ -22,6 +22,8 @@ export abstract class IConsensusUseCase {
 
   abstract getJob(jobId: number, token: string): Promise<ConsensusJobModel>;
 
+  abstract cancelarConsenso(id: number, token: string): Promise<void>;
+
   abstract getByAdmet(admetResultId: number, token: string): Promise<ConsensusJobModel | null>;
 
   abstract getRedockingJobs(token: string): Promise<ConsensusRedockingJobsResponse>;

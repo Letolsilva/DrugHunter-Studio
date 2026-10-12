@@ -3,7 +3,7 @@
 export interface ClusteringJobModel {
   id: number;
   admet_result_id: number | null;
-  status: "running" | "done" | "error";
+  status: "running" | "done" | "error" | "cancelled";
   target: string;
   fingerprint_type: string;
   base_input_path: string;

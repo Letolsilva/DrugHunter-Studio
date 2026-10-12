@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Navbar, DropdownMenu } from "../../components/layout";
 import { MiddleBar } from "../../components/nav/MiddleBar";
 import { Spinner } from "../../components/ui/Spinner";
+import { CancelJobButton } from "../../components/ui/CancelJobButton";
 import {
   ArrowLeftIcon,
   HelpIcon,
@@ -38,6 +39,7 @@ export default function ClusteringTemplate(props: UseClusteringPageReturn) {
     plotBlobUrl,
     centroidBlobUrls,
     onRerun,
+    handleCancelar,
     handleLogout,
   } = props;
 
@@ -136,16 +138,57 @@ export default function ClusteringTemplate(props: UseClusteringPageReturn) {
                 continua em segundo plano.
               </p>
             </div>
-            <button
-              onClick={() => navigate(-1)}
-              className="font-mono text-[12px] rounded-lg border px-4 py-2 transition-colors hover:bg-surface-secondary"
-              style={{
-                borderColor: "var(--color-outline)",
-                color: "var(--color-foreground-subtle)",
-              }}
-            >
-              ← Voltar
-            </button>
+            <div className="flex gap-2 items-center">
+              <button
+                onClick={() => navigate(-1)}
+                className="font-mono text-[12px] rounded-lg border px-4 py-2 transition-colors hover:bg-surface-secondary"
+                style={{
+                  borderColor: "var(--color-outline)",
+                  color: "var(--color-foreground-subtle)",
+                }}
+              >
+                ← Voltar
+              </button>
+              <CancelJobButton onCancel={handleCancelar} />
+            </div>
+          </div>
+        )}
+
+        {/* ── Cancelado ────────────────────────────────────────────────────── */}
+        {mode === "cancelled" && (
+          <div className="rounded-xl border border-outline bg-panel px-4 py-4 flex items-start justify-between gap-4">
+            <div>
+              <p className="font-mono text-[13px] font-semibold text-foreground mb-1">
+                Processamento cancelado
+              </p>
+              <p className="font-mono text-[12px] text-foreground-subtle">
+                O clustering foi interrompido a pedido do usuário.
+              </p>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {job && (
+                <button
+                  onClick={onRerun}
+                  className="cursor-pointer shrink-0 font-mono text-[11px] rounded-lg border px-3 py-1.5 transition-colors hover:bg-surface-secondary"
+                  style={{
+                    borderColor: "var(--color-outline)",
+                    color: "var(--color-foreground-subtle)",
+                  }}
+                >
+                  Rodar novamente
+                </button>
+              )}
+              <button
+                onClick={() => window.history.back()}
+                className="cursor-pointer shrink-0 font-mono text-[11px] rounded-lg border px-3 py-1.5 transition-colors hover:bg-surface-secondary"
+                style={{
+                  borderColor: "var(--color-outline)",
+                  color: "var(--color-foreground-subtle)",
+                }}
+              >
+                ← Voltar
+              </button>
+            </div>
           </div>
         )}
 

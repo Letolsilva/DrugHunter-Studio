@@ -18,6 +18,10 @@ export abstract class INeuroDockUseCase {
 
   abstract getModel(modelId: number, token: string): Promise<NeuroDockModelModel>;
 
+  abstract cancelarTreino(id: number, token: string): Promise<void>;
+
+  abstract cancelarTriagem(id: number, token: string): Promise<void>;
+
   abstract getModelByClustering(
     clusteringJobId: number,
     token: string,

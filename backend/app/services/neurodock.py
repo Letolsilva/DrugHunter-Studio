@@ -112,7 +112,7 @@ def marcar_modelo_concluido(
     n_train_mols: Optional[int],
 ) -> None:
     m = db.query(NeuroDockModel).filter(NeuroDockModel.id == model_id).first()
-    if m:
+    if m and m.status != "cancelled":
         m.status = "done"
         m.n_targets = n_targets
         m.n_train_mols = n_train_mols
@@ -122,7 +122,7 @@ def marcar_modelo_concluido(
 
 def marcar_modelo_erro(db: Session, model_id: int, mensagem: str) -> None:
     m = db.query(NeuroDockModel).filter(NeuroDockModel.id == model_id).first()
-    if m:
+    if m and m.status != "cancelled":
         m.status = "error"
         m.error_msg = mensagem
         m.finished_at = datetime.utcnow()
@@ -208,7 +208,7 @@ def marcar_predicao_concluida(
     result_dir: Optional[str],
 ) -> None:
     p = db.query(NeuroDockPrediction).filter(NeuroDockPrediction.id == pred_id).first()
-    if p:
+    if p and p.status != "cancelled":
         p.status = "done"
         p.n_screened = n_screened
         p.n_selected = n_selected
@@ -219,7 +219,7 @@ def marcar_predicao_concluida(
 
 def marcar_predicao_erro(db: Session, pred_id: int, mensagem: str) -> None:
     p = db.query(NeuroDockPrediction).filter(NeuroDockPrediction.id == pred_id).first()
-    if p:
+    if p and p.status != "cancelled":
         p.status = "error"
         p.error_msg = mensagem
         p.finished_at = datetime.utcnow()

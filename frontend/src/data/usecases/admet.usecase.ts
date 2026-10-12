@@ -2,6 +2,7 @@
 import { IAdmetUseCase } from "../../domain/interfaces/admet.interface";
 import type { IHTTPClient } from "../../infra/interfaces/httpClient.interface";
 import type { AdmetMoleculesResponse, AdmetResultModel, AdmetResultSummary } from "../../domain/models/admet.model";
+import { cancelarJob } from "./cancelar_job";
 import { HttpError } from "../../infra/http/httpClient";
 
 export class AdmetUseCase extends IAdmetUseCase {
@@ -58,6 +59,10 @@ export class AdmetUseCase extends IAdmetUseCase {
       { token },
     );
     return res.data;
+  }
+
+  async cancelar(id: number, token: string): Promise<void> {
+    await cancelarJob(this.httpClient, "admet", id, token);
   }
 
   downloadUrl(resultId: number, tipo: string, _token: string): string {

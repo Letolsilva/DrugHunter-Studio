@@ -9,6 +9,8 @@ import logging
 import subprocess
 from pathlib import Path
 
+from app.infra import job_control
+
 logger = logging.getLogger("drughunter_studio")
 
 _WORKER_PATH = str(Path(__file__).parent / "_dh_admet_worker.py")
@@ -49,7 +51,9 @@ def run_admet_worker(
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         cwd=dh_dir,
+        **job_control.popen_kwargs(),
     )
+    job_control.attach(proc)
 
     done_data = None
     error_msg = None

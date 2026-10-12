@@ -5,6 +5,7 @@ import { Navbar, DropdownMenu } from "../../components/layout";
 import { MiddleBar } from "../../components/nav/MiddleBar";
 import { Button } from "../../components/ui/Button";
 import { Spinner } from "../../components/ui/Spinner";
+import { CancelJobButton } from "../../components/ui/CancelJobButton";
 import { Toast } from "../../components/ui/Toast";
 import {
   AppLogoIcon,
@@ -18,7 +19,7 @@ import {
 } from "../../components/icons";
 import { ResolutionBarChart } from "../../components/charts/ResolutionBarChart";
 import { MethodBarChart } from "../../components/charts/MethodBarChart";
-import { LigandDonutChart } from "../../components/charts/LigandDonutChart";
+import { LigandBarChart } from "../../components/charts/LigandBarChart";
 import { InfoTooltip } from "../../components/ui/InfoTooltip";
 import type { UseRedockingPageReturn } from "../../pages/RedockingPage/useRedockingPage";
 
@@ -27,6 +28,7 @@ const STATUS_LABEL: Record<string, string> = {
   running: "Em execução",
   done: "Concluído",
   error: "Erro",
+  cancelled: "Cancelado",
 };
 
 const STATUS_COLOR: Record<string, string> = {
@@ -34,6 +36,7 @@ const STATUS_COLOR: Record<string, string> = {
   running: "var(--color-blue)",
   done: "var(--color-accent)",
   error: "var(--color-red)",
+  cancelled: "var(--color-foreground-muted)",
 };
 
 function formatDate(iso: string | null): string {
@@ -77,6 +80,7 @@ export default function RedockingTemplate({
   handleSubmit,
   handleLogout,
   onDeleteJob,
+  handleCancelar,
 }: UseRedockingPageReturn) {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -357,9 +361,9 @@ export default function RedockingTemplate({
               <div className="flex flex-col gap-2">
                 <span className="uppercase tracking-wide font-medium text-[11px] text-foreground-subtle flex items-center gap-1">
                   Top ligantes
-                  <InfoTooltip text="Moléculas ligantes mais frequentes entre as estruturas filtradas. Cada fatia representa a proporção de estruturas que contém aquele ligante." />
+                  <InfoTooltip text="Moléculas ligantes mais frequentes entre as estruturas filtradas. O comprimento de cada barra é o número de estruturas que contém aquele ligante." />
                 </span>
-                <LigandDonutChart data={dashboard.topLigantes} />
+                <LigandBarChart data={dashboard.topLigantes} />
               </div>
               {dashboard.porCadeia.length > 0 && (
                 <div className="flex flex-col gap-2">
@@ -717,6 +721,12 @@ export default function RedockingTemplate({
                           {formatDate(job.finalizado_em)}
                         </td>
                         <td className="px-2 py-1.5 text-center">
+                          {(job.status === "pending" ||
+                            job.status === "running") && (
+                            <CancelJobButton
+                              onCancel={() => handleCancelar(job.id)}
+                            />
+                          )}
                           <button
                             type="button"
                             onClick={() => onDeleteJob(job.id)}

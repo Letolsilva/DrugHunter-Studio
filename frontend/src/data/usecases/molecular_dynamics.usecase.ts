@@ -1,5 +1,6 @@
 // data/usecases/molecular_dynamics.usecase.ts
 import type { IHTTPClient } from "../../infra/interfaces/httpClient.interface";
+import { cancelarJob } from "./cancelar_job";
 import { IMolecularDynamicsUseCase } from "../../domain/interfaces/molecular_dynamics.interface";
 import type {
   IniciarMDPayload,
@@ -101,6 +102,14 @@ export class MolecularDynamicsUseCase extends IMolecularDynamicsUseCase {
       { token },
     );
     return res.data;
+  }
+
+  async cancelarSimulacao(jobId: number, token: string): Promise<void> {
+    await cancelarJob(this.httpClient, "md", jobId, token);
+  }
+
+  async cancelarAnalise(analysisId: number, token: string): Promise<void> {
+    await cancelarJob(this.httpClient, "md-analysis", analysisId, token);
   }
 
   async deletarJob(jobId: number, token: string): Promise<void> {

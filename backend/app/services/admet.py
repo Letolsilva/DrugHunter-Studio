@@ -110,7 +110,7 @@ def marcar_concluido(
     pgp_plus: int,
 ) -> None:
     result = db.query(AdmetResult).filter(AdmetResult.id == result_id).first()
-    if result:
+    if result and result.status != "cancelled":
         result.status = "done"
         result.total_molecules = total_molecules
         result.excluded_toxic = excluded_toxic
@@ -124,7 +124,7 @@ def marcar_concluido(
 
 def marcar_erro(db: Session, result_id: int, mensagem: str) -> None:
     result = db.query(AdmetResult).filter(AdmetResult.id == result_id).first()
-    if result:
+    if result and result.status != "cancelled":
         result.status = "error"
         result.error_msg = mensagem
         result.finished_at = datetime.utcnow()

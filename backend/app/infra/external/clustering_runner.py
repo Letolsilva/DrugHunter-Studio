@@ -12,6 +12,8 @@ import threading
 from pathlib import Path
 from typing import Optional, Tuple
 
+from app.infra import job_control
+
 logger = logging.getLogger("drughunter_studio")
 
 _WORKER_PATH = str(Path(__file__).parent / "_dh_clustering_worker.py")
@@ -56,7 +58,9 @@ def run_clustering_worker(
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         cwd=dh_dir,
+        **job_control.popen_kwargs(),
     )
+    job_control.attach(proc)
 
     done = False
     error_msg = None

@@ -28,6 +28,7 @@ export abstract class IRedockingUseCase {
     last_target: string | null;
   }>;
   abstract deletarJob(jobId: number, token: string): Promise<void>;
+  abstract cancelar(id: number, token: string): Promise<void>;
   abstract verificarProntidao(
     target: string,
     baseInputPath: string,

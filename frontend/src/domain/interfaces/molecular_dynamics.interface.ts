@@ -20,6 +20,8 @@ export abstract class IMolecularDynamicsUseCase {
   abstract listarJobs(token: string): Promise<MDJobModel[]>;
   abstract getJob(jobId: number, token: string): Promise<MDJobModel>;
   abstract deletarJob(jobId: number, token: string): Promise<void>;
+  abstract cancelarSimulacao(jobId: number, token: string): Promise<void>;
+  abstract cancelarAnalise(analysisId: number, token: string): Promise<void>;
   abstract listarArquivos(jobId: number, token: string): Promise<string[]>;
   abstract getDownloadUrl(jobId: number, filename: string): string;
   abstract iniciarAnalise(jobId: number, token: string): Promise<MdAnalysisJobModel>;

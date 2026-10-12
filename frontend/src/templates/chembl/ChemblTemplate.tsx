@@ -39,9 +39,11 @@ function JobHistoryCard({
       ? "var(--color-green)"
       : job.status === "error"
         ? "var(--color-red)"
-        : "var(--color-accent)";
+        : job.status === "cancelled"
+          ? "var(--color-foreground-subtle)"
+          : "var(--color-accent)";
   const statusLabel =
-    job.status === "done" ? "concluído" : job.status === "error" ? "erro" : "em andamento";
+    job.status === "done" ? "concluído" : job.status === "error" ? "erro" : job.status === "cancelled" ? "cancelado" : "em andamento";
 
   return (
     <div className="relative">

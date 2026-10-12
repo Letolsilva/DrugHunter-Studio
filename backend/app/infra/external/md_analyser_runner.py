@@ -11,6 +11,8 @@ import threading
 from pathlib import Path
 from typing import Optional
 
+from app.infra import job_control
+
 logger = logging.getLogger("drughunter_studio")
 
 _MD_ANALYSER_WORKER_PATH = str(Path(__file__).parent / "_dh_md_analyser_worker.py")
@@ -51,7 +53,9 @@ def run_md_analyser_worker(
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         cwd=dh_dir,
+        **job_control.popen_kwargs(),
     )
+    job_control.attach(proc)
 
     done_event: Optional[dict] = None
     error_msg: Optional[str] = None

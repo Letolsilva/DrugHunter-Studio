@@ -1,5 +1,6 @@
 // data/usecases/neurodock.usecase.ts
 import type { IHTTPClient } from "../../infra/interfaces/httpClient.interface";
+import { cancelarJob } from "./cancelar_job";
 import { INeuroDockUseCase } from "../../domain/interfaces/neurodock.interface";
 import type {
   NeuroDockModelModel,
@@ -13,6 +14,14 @@ export class NeuroDockUseCase extends INeuroDockUseCase {
   constructor(httpClient: IHTTPClient) {
     super();
     this.httpClient = httpClient;
+  }
+
+  async cancelarTreino(id: number, token: string): Promise<void> {
+    await cancelarJob(this.httpClient, "neurodock-model", id, token);
+  }
+
+  async cancelarTriagem(id: number, token: string): Promise<void> {
+    await cancelarJob(this.httpClient, "neurodock-prediction", id, token);
   }
 
   async treinar(

@@ -3,6 +3,7 @@ import { IConsensusUseCase } from "../../domain/interfaces/consensus.interface";
 import type { IHTTPClient } from "../../infra/interfaces/httpClient.interface";
 import type { ConsensusJobModel, ConsensusRedockingJobsResponse } from "../../domain/models/consensus.model";
 import { HttpError } from "../../infra/http/httpClient";
+import { cancelarJob } from "./cancelar_job";
 
 export class ConsensusUseCase extends IConsensusUseCase {
   private httpClient: IHTTPClient;
@@ -52,6 +53,10 @@ export class ConsensusUseCase extends IConsensusUseCase {
       { token },
     );
     return res.data;
+  }
+
+  async cancelarConsenso(id: number, token: string): Promise<void> {
+    await cancelarJob(this.httpClient, "consensus", id, token);
   }
 
   async getByAdmet(admetResultId: number, token: string): Promise<ConsensusJobModel | null> {

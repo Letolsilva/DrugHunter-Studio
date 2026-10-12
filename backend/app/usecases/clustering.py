@@ -11,6 +11,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
+from app.infra import job_control
 from app.domain.models import User
 from app.domain.models.admet_result import AdmetResult
 from app.domain.models.chembl_job import ChemblJobItem
@@ -55,6 +56,7 @@ def _cascade_delete_neurodock(db, clustering_job_id: int) -> None:
 _BASE_INPUT_PATH = "/resultados/maia_input"
 
 
+@job_control.tracked("clustering")
 def _executar_pipeline(job_id: int) -> None:
     db = SessionLocal()
     try:

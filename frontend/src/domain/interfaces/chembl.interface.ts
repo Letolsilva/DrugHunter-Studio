@@ -18,6 +18,8 @@ export abstract class IChemblUseCase {
 
   abstract deletarJob(jobId: number, token: string): Promise<void>;
 
+  abstract cancelar(id: number, token: string): Promise<void>;
+
   abstract getJob(jobId: number, token: string): Promise<ChemblJobModel>;
 
   abstract listarMoleculas(

@@ -12,6 +12,7 @@ from typing import Optional
 import pandas as pd
 from sqlalchemy.orm import Session
 
+from app.infra import job_control
 from app.domain.models import User
 from app.domain.models.chembl_job import ChemblJobItem
 from app.domain.models.admet_result import AdmetResult
@@ -62,6 +63,7 @@ def _ler_counts_de_arquivos(output_dir: Path, stem: str) -> dict:
     }
 
 
+@job_control.tracked("admet")
 def _executar_pipeline(result_id: int, item_id: int) -> None:
     """Lê arquivos ADMET existentes ou executa o worker do DrugHunter se necessário."""
     db = SessionLocal()

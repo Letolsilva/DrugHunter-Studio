@@ -9,9 +9,10 @@ import type {
   ConsensusRedockingJobModel,
   ConsensusResultRowModel,
 } from "../../domain/models/consensus.model";
+import { HttpError } from "../../infra/http/httpClient";
 import type { AdmetResultModel } from "../../domain/models/admet.model";
 
-export type ConsensusPageMode = "setup" | "running" | "results" | "error" | "loading";
+export type ConsensusPageMode = "setup" | "running" | "results" | "error" | "cancelled" | "loading";
 
 export interface UseConsensusPageReturn {
   mode: ConsensusPageMode;
@@ -44,6 +45,7 @@ export interface UseConsensusPageReturn {
 
   onDownload: () => void;
   onRerun: () => void;
+  onCancel: () => Promise<void>;
   onGoCluster: () => void;
   handleLogout: () => void;
   voltarAdmet: () => void;
@@ -102,6 +104,9 @@ export function useConsensusPage(
     } else if (j.status === "error") {
       setError(j.error_msg ?? "Erro no docking de consenso.");
       setMode("error");
+    } else if (j.status === "cancelled") {
+      setError(j.error_msg ?? "Cancelado pelo usuário.");
+      setMode("cancelled");
     } else {
       setMode("running");
     }
@@ -114,7 +119,7 @@ export function useConsensusPage(
         const j = await consensusUseCase.getJob(id, token);
         if (!isMounted.current) return;
         applyJob(j);
-        if (j.status === "done" || j.status === "error") {
+        if (j.status === "done" || j.status === "error" || j.status === "cancelled") {
           clearInterval(pollingRef.current!);
           pollingRef.current = null;
         }
@@ -280,6 +285,30 @@ export function useConsensusPage(
     if (isMounted.current) setMode("setup");
   }, [job, admetResult, admetUseCase, token]);
 
+  // Cancela o consenso em andamento e atualiza o estado do job
+  const onCancel = useCallback(async () => {
+    if (!job) return;
+    try {
+      await consensusUseCase.cancelarConsenso(job.id, token);
+    } catch (e) {
+      // 409: o job já terminou — apenas recarrega o estado abaixo
+      if (!(e instanceof HttpError && e.status === 409)) {
+        alert("Erro ao cancelar o processamento. Tente novamente.");
+        return;
+      }
+    }
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+    try {
+      const j = await consensusUseCase.getJob(job.id, token);
+      if (isMounted.current) applyJob(j);
+    } catch {
+      // mantém o estado atual
+    }
+  }, [job, consensusUseCase, token, applyJob]);
+
   const onGoCluster = useCallback(() => {
     if (!job?.admet_result_id) return;
     navigate(`/clustering?admet_id=${job.admet_result_id}`);
@@ -328,6 +357,7 @@ export function useConsensusPage(
         .catch(() => alert("Erro ao baixar o CSV. Tente novamente."));
     },
     onRerun,
+    onCancel,
     onGoCluster,
     handleLogout,
     voltarAdmet,

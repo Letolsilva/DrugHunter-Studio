@@ -5,6 +5,7 @@ import SmilesDrawer from "smiles-drawer";
 import { Navbar, DropdownMenu } from "../../components/layout";
 import { MiddleBar } from "../../components/nav/MiddleBar";
 import { Spinner } from "../../components/ui/Spinner";
+import { CancelJobButton } from "../../components/ui/CancelJobButton";
 import {
   ArrowLeftIcon,
   CloseIcon,
@@ -40,6 +41,7 @@ export default function NeuroDockTemplate(props: NeuroDockTemplateProps) {
     modelConfig,
     topMolecules, topColumns,
     errorSource,
+    onCancelTrain, onCancelPredict,
     onRetrainFromError, onRetryPredict, onNewPrediction, onRetrainNew, onDownloadTop,
     handleLogout,
   } = props;
@@ -131,6 +133,7 @@ export default function NeuroDockTemplate(props: NeuroDockTemplateProps) {
             }
             hint={`O processo usa Optuna com ${nTrials} trials. Pode levar de 30 minutos a algumas horas. Você pode fechar esta página — o processamento continua no servidor.`}
             onBack={() => navigate(-1)}
+            onCancel={onCancelTrain}
           />
         )}
 
@@ -160,6 +163,7 @@ export default function NeuroDockTemplate(props: NeuroDockTemplateProps) {
             }
             hint={`Processando em batches de ${prediction?.batch_size ?? batchSize} moléculas. Você pode fechar esta página — o processamento continua no servidor.`}
             onBack={() => navigate(-1)}
+            onCancel={onCancelPredict}
           />
         )}
 
@@ -176,6 +180,25 @@ export default function NeuroDockTemplate(props: NeuroDockTemplateProps) {
             plotBlobUrls={plotBlobUrls}
             modelConfig={modelConfig}
           />
+        )}
+
+        {/* ── Cancelado: treinamento / triagem ─────────────────────────────── */}
+        {mode === "cancelled" && (
+          <div className="rounded-xl border border-outline bg-panel px-4 py-4 flex items-start justify-between gap-4">
+            <div>
+              <p className="font-mono text-[13px] font-semibold text-foreground mb-1">
+                Processamento cancelado
+              </p>
+              <p className="font-mono text-[12px] text-foreground-subtle">{error}</p>
+            </div>
+            <button
+              onClick={errorSource === "prediction" ? onRetryPredict : onRetrainFromError}
+              className="cursor-pointer shrink-0 font-mono text-[11px] rounded-lg border px-3 py-1.5 transition-colors hover:bg-surface-secondary"
+              style={{ borderColor: "var(--color-outline)", color: "var(--color-foreground-subtle)" }}
+            >
+              {errorSource === "prediction" ? "↺ Rodar triagem novamente" : "↺ Rodar novamente"}
+            </button>
+          </div>
         )}
 
         {/* ── Erro: acesso direto sem clustering ───────────────────────────── */}
@@ -362,8 +385,8 @@ function TrainForm({
 
 // ── RunningCard ───────────────────────────────────────────────────────────────
 
-function RunningCard({ title, description, hint, onBack }: {
-  title: string; description: string; hint: string; onBack?: () => void;
+function RunningCard({ title, description, hint, onBack, onCancel }: {
+  title: string; description: string; hint: string; onBack?: () => void; onCancel?: () => Promise<void>;
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-5 min-h-[60vh] text-center">
@@ -373,15 +396,18 @@ function RunningCard({ title, description, hint, onBack }: {
         <p className="font-mono text-[12px] text-foreground-subtle max-w-md">{description}</p>
         <p className="font-mono text-[11px] text-foreground-subtle opacity-60 mt-1 max-w-md">{hint}</p>
       </div>
-      {onBack && (
-        <button
-          onClick={onBack}
-          className="font-mono text-[12px] rounded-lg border px-4 py-2 transition-colors hover:bg-surface-secondary"
-          style={{ borderColor: "var(--color-outline)", color: "var(--color-foreground-subtle)" }}
-        >
-          ← Voltar
-        </button>
-      )}
+      <div className="flex gap-2 items-center flex-wrap justify-center">
+        {onCancel && <CancelJobButton onCancel={onCancel} />}
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="font-mono text-[12px] rounded-lg border px-4 py-2 transition-colors hover:bg-surface-secondary"
+            style={{ borderColor: "var(--color-outline)", color: "var(--color-foreground-subtle)" }}
+          >
+            ← Voltar
+          </button>
+        )}
+      </div>
     </div>
   );
 }

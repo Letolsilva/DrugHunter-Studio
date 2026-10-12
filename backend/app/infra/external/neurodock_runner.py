@@ -11,6 +11,8 @@ import threading
 from pathlib import Path
 from typing import Optional, Tuple
 
+from app.infra import job_control
+
 logger = logging.getLogger("drughunter_studio")
 
 _TRAIN_WORKER_PATH = str(Path(__file__).parent / "_dh_neurodock_train_worker.py")
@@ -38,7 +40,9 @@ def _run_worker(
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         cwd=dh_dir,
+        **job_control.popen_kwargs(),
     )
+    job_control.attach(proc)
 
     done_event: Optional[dict] = None
     error_msg: Optional[str] = None

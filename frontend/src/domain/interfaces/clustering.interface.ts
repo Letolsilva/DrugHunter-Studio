@@ -12,6 +12,8 @@ export abstract class IClusteringUseCase {
 
   abstract getJob(jobId: number, token: string): Promise<ClusteringJobModel>;
 
+  abstract cancelar(id: number, token: string): Promise<void>;
+
   abstract getByAdmet(admetResultId: number, token: string): Promise<ClusteringJobModel | null>;
 
   plotUrl(jobId: number): string {

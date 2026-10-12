@@ -17,6 +17,7 @@ export type NeuroDockPageMode =
   | "train_done"
   | "predicting"
   | "results"
+  | "cancelled"
   | "error";
 
 export interface UseNeuroDockPageReturn {
@@ -66,6 +67,8 @@ export interface UseNeuroDockPageReturn {
   topColumns: string[];
 
   // Ações
+  onCancelTrain: () => Promise<void>;
+  onCancelPredict: () => Promise<void>;
   onRetrainFromError: () => void;
   onRetryPredict: () => void;
   onNewPrediction: () => void;
@@ -199,6 +202,10 @@ export function useNeuroDockPage(
       setError(m.error_msg ?? "Erro no treinamento.");
       setErrorSource("training");
       setMode("error");
+    } else if (m.status === "cancelled") {
+      setError(m.error_msg ?? "Cancelado pelo usuário.");
+      setErrorSource("training");
+      setMode("cancelled");
     } else {
       setMode("training");
     }
@@ -213,6 +220,10 @@ export function useNeuroDockPage(
       setError(pred.error_msg ?? "Erro na triagem.");
       setErrorSource("prediction");
       setMode("error");
+    } else if (pred.status === "cancelled") {
+      setError(pred.error_msg ?? "Cancelado pelo usuário.");
+      setErrorSource("prediction");
+      setMode("cancelled");
     } else {
       setMode("predicting");
     }
@@ -225,7 +236,7 @@ export function useNeuroDockPage(
         const m = await neuroDockUseCase.getModel(id, token);
         if (!isMounted.current) return;
         applyModel(m);
-        if (m.status === "done" || m.status === "error") {
+        if (m.status === "done" || m.status === "error" || m.status === "cancelled") {
           clearInterval(pollingRef.current!);
           pollingRef.current = null;
         }
@@ -251,7 +262,7 @@ export function useNeuroDockPage(
         const pred = await neuroDockUseCase.getPrediction(id, token);
         if (!isMounted.current) return;
         applyPrediction(pred);
-        if (pred.status === "done" || pred.status === "error") {
+        if (pred.status === "done" || pred.status === "error" || pred.status === "cancelled") {
           clearInterval(pollingRef.current!);
           pollingRef.current = null;
         }
@@ -412,6 +423,54 @@ export function useNeuroDockPage(
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [neuroDockUseCase, model, libraryCsvPath, inputDataset, topK, batchSize, predictOutputPath, token, navigate]);
 
+  // Cancela o treino em andamento e atualiza o estado do modelo
+  const onCancelTrain = useCallback(async () => {
+    if (!model) return;
+    try {
+      await neuroDockUseCase.cancelarTreino(model.id, token);
+    } catch (e) {
+      // 409: o job já terminou — apenas recarrega o estado abaixo
+      if (!(e instanceof HttpError && e.status === 409)) {
+        alert("Erro ao cancelar o processamento. Tente novamente.");
+        return;
+      }
+    }
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+    try {
+      const m = await neuroDockUseCase.getModel(model.id, token);
+      if (isMounted.current) applyModel(m);
+    } catch {
+      // mantém o estado atual
+    }
+  }, [model, neuroDockUseCase, token, applyModel]);
+
+  // Cancela a triagem em andamento e atualiza o estado da predição
+  const onCancelPredict = useCallback(async () => {
+    if (!prediction) return;
+    try {
+      await neuroDockUseCase.cancelarTriagem(prediction.id, token);
+    } catch (e) {
+      // 409: o job já terminou — apenas recarrega o estado abaixo
+      if (!(e instanceof HttpError && e.status === 409)) {
+        alert("Erro ao cancelar o processamento. Tente novamente.");
+        return;
+      }
+    }
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+    try {
+      const pred = await neuroDockUseCase.getPrediction(prediction.id, token);
+      if (isMounted.current) applyPrediction(pred);
+    } catch {
+      // mantém o estado atual
+    }
+  }, [prediction, neuroDockUseCase, token, applyPrediction]);
+
   const onNewPrediction = useCallback(() => {
     if (pollingRef.current) {
       clearInterval(pollingRef.current);
@@ -525,6 +584,8 @@ export function useNeuroDockPage(
     modelConfig,
     topMolecules,
     topColumns,
+    onCancelTrain,
+    onCancelPredict,
     onRetrainFromError,
     onRetryPredict,
     onNewPrediction,

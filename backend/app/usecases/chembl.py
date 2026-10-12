@@ -14,6 +14,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
+from app.infra import job_control
 from app.domain.models import User
 from app.domain.models.chembl_job import ChemblJob
 from app.domain.schemas.chembl import ChemblRunRequest, ChemblAnalysisRequest
@@ -125,6 +126,7 @@ def uc_deletar_job(db: Session, job_id: int, user_id: int) -> bool:
     job = db.query(ChemblJob).filter(ChemblJob.id == job_id, ChemblJob.user_id == user_id).first()
     if not job:
         return False
+    job_control.cancel("chembl", job_id)  # se ainda estiver rodando, encerra o processo
 
     dh_dir = get_config(db, "drug_hunter_path") or ""
 

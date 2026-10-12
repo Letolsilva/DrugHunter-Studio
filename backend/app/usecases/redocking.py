@@ -11,6 +11,7 @@ from typing import List
 
 from sqlalchemy.orm import Session
 
+from app.infra import job_control
 from app.domain.models import User, RedockingJob
 from app.domain.utils.normalizacao import normalizar_target
 from app.services import redocking as svc
@@ -19,6 +20,7 @@ logger = logging.getLogger("drughunter_studio")
 
 
 def uc_deletar_job(db: Session, job_id: int, user_id: int) -> bool:
+    job_control.cancel("redocking", job_id)  # se ainda estiver rodando, encerra o processo
     return svc.deletar_job(db, job_id, user_id)
 
 

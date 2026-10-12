@@ -32,6 +32,8 @@ export interface UseAdmetPageReturn {
   handleLogout: () => void;
   voltarChembl: () => void;
   onRerun: () => void;
+  /** Cancela a análise em andamento e atualiza o estado do resultado. */
+  handleCancelar: () => Promise<void>;
 
   // Consenso
   consensusStatus: "none" | "running" | "done" | "error";
@@ -110,6 +112,8 @@ export function useAdmetPage(
         } else if (r.status === "error") {
           setError(r.error_msg ?? "Erro na análise ADMET.");
           setLoading(false);
+        } else if (r.status === "cancelled") {
+          setLoading(false);
         } else {
           startPolling(r.id);
         }
@@ -142,6 +146,10 @@ export function useAdmetPage(
             clearInterval(pollingRef.current!);
             pollingRef.current = null;
             setError(r.error_msg ?? "Erro na análise ADMET.");
+            setLoading(false);
+          } else if (r.status === "cancelled") {
+            clearInterval(pollingRef.current!);
+            pollingRef.current = null;
             setLoading(false);
           }
         } catch {
@@ -281,6 +289,25 @@ export function useAdmetPage(
     }
   }, [result, token, admetUseCase, startPolling]);
 
+  // Cancela a análise em andamento (kind "admet"; id = id do AdmetResult)
+  const handleCancelar = useCallback(async () => {
+    if (!result) return;
+    try {
+      await admetUseCase.cancelar(result.id, token);
+      const r = await admetUseCase.getResult(result.id, token);
+      if (!isMounted.current) return;
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+      setResult(r);
+      if (r.status === "cancelled") setLoading(false);
+    } catch (e) {
+      if (!isMounted.current) return;
+      setError(e instanceof Error ? e.message : "Erro ao cancelar.");
+    }
+  }, [result, token, admetUseCase]);
+
   return {
     result,
     loading,
@@ -303,6 +330,7 @@ export function useAdmetPage(
     handleLogout,
     voltarChembl,
     onRerun,
+    handleCancelar,
     consensusStatus,
     onGoConsensus,
   };
