@@ -17,8 +17,8 @@ O Studio é uma **camada de acessibilidade** sobre o DrugHunter. Seus princípio
 4. **Portabilidade** — caminhos relativos, instalação com poucos passos (pacote `.deb` e instalador Windows).
 
 !!! note "Estudo de caso"
-    Para o TCC, a validação é feita escolhendo um fungo como organismo-alvo e percorrendo o pipeline do início ao
-    fim pela interface. O redocking foi o primeiro fluxo funcional ponta a ponta.
+    Para o TCC, a validação é feita escolhendo um organismo-alvo e percorrendo o pipeline do início ao fim pela
+    interface. O redocking foi o primeiro fluxo funcional ponta a ponta.
 
 ## Atores
 

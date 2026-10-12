@@ -51,7 +51,7 @@ precisam de confirmação em execução.
 
 ## Ameaças à validade do estudo de caso
 
-- Estudo de caso com **um alvo** (fungo escolhido); generalização para outros alvos não foi testada.
+- Estudo de caso com **um alvo** (organismo a definir); generalização para outros alvos não foi testada.
 - Resultados científicos dependem do DrugHunter e de ferramentas externas, **não verificados** por este trabalho.
 - Validação do pipeline pela interface foi feita primeiro para o redocking.
 
