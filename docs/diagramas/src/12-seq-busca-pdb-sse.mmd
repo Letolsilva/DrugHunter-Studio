@@ -1,0 +1,41 @@
+sequenceDiagram
+    actor U as Pesquisador
+    participant FE as useSearchPage
+    participant R as routes/search.py
+    participant UC as uc_buscar_stream
+    participant SV as services/search.py
+    participant SC as rcsb_scraper.py
+    participant RCSB as API RCSB PDB
+    participant DB as SQLite
+
+    U->>FE: Digita proteína(s) e limite
+    FE->>R: GET /api/search/stream?proteinas=...&token=... (EventSource)
+    R->>UC: async generator
+    UC->>SV: separar_cache_e_pendentes()
+    SV->>DB: SELECT proteins (ILIKE proteina_buscada)
+    DB-->>SV: acertos de cache
+    UC-->>FE: SSE cache_hit e resultado (cache=true)
+    alt Cache atende o limite
+        UC->>SV: registrar_busca()
+        UC-->>FE: SSE fim (veio_do_cache=true)
+    else Faltam estruturas
+        UC->>SC: executar_scraping()
+        SC->>RCSB: POST /rcsbsearch/v2/query
+        RCSB-->>SC: lista de PDB IDs
+        UC-->>FE: SSE lista_proteinas, ids_encontrados
+        loop Para cada PDB ID (pausa de 0,15 s)
+            SC->>RCSB: GET entry e polymer_entity
+            SC->>RCSB: HEAD files.rcsb.org (.pdb/.cif)
+            SC-->>UC: resultado
+            UC->>SV: salvar_proteina_no_cache (upsert por pdb_id)
+            SV->>DB: INSERT ou UPDATE proteins
+            UC-->>FE: SSE progresso e resultado
+        end
+        UC->>SV: registrar_busca() (Search + SearchResult)
+        UC-->>FE: SSE fim
+    end
+    FE->>FE: fase "resultado": Dashboard com filtros e gráficos
+    opt Usuário pausa ou cancela
+        FE->>FE: fecha o EventSource
+        FE->>R: DELETE /api/search/cancelar-parcial
+    end

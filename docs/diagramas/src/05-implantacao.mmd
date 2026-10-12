@@ -1,0 +1,37 @@
+flowchart TB
+    subgraph dev["Desenvolvimento"]
+        direction TB
+        vite["Vite dev server :5173<br/>proxy /api para :8000"]
+        uv["uvicorn app.main:app :8000"]
+        dbdev[("backend/drughunter_studio.db")]
+        vite --> uv --> dbdev
+    end
+
+    subgraph deb["Produção Linux — pacote .deb"]
+        direction TB
+        opt["/opt/drughunter-studio/<br/>backend/app, static (build React), iniciar.sh"]
+        venv["~/.local/share/drughunter-studio/<br/>.venv, .env, db, pdb_files, log"]
+        uv2["uvicorn 127.0.0.1:8080<br/>serve API + SPA estática"]
+        nav["xdg-open no navegador"]
+        opt --> uv2
+        venv --> uv2
+        uv2 --> nav
+    end
+
+    subgraph win["Produção Windows — instalador NSIS"]
+        direction TB
+        winapp["Setup.exe"]
+        windata["%LOCALAPPDATA%/DrugHunter Studio/<br/>db, pdb_files, .env, logs"]
+        winapp --> windata
+    end
+
+    subgraph ext["Pré-requisitos externos ao pacote"]
+        direction TB
+        dhdir["Diretório do DrugHunter<br/>(drug_hunter_path)"]
+        conda["Ambiente conda DrugHunter<br/>(python_bin)"]
+        tools["Chimera, Dock6, Vina, OpenBabel,<br/>AmberTools, dms"]
+    end
+
+    uv2 -.->|"subprocess com python_bin,<br/>cwd = drug_hunter_path"| conda
+    conda --> dhdir
+    dhdir --> tools

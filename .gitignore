@@ -69,3 +69,7 @@ backend/static/
 # ── Anotações e planos internos ───────────────────────────
 Anotações/
 Plans_executados/
+
+# ── Documentação (MkDocs) ─────────────────────────────────
+site/
+tools/docs/node_modules/

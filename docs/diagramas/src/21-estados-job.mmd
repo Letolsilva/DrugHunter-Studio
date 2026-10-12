@@ -1,0 +1,20 @@
+stateDiagram-v2
+    direction LR
+    [*] --> pending : POST /iniciar<br/>(redocking, MD, ChEMBL)
+    [*] --> running : POST /iniciar<br/>(ADMET, clustering, consenso,<br/>NeuroDock)
+    pending --> running : worker inicia
+    running --> done : returncode 0 e<br/>artefatos válidos
+    running --> error : exceção ou<br/>resultado vazio
+    done --> running : "Rodar novamente"<br/>(substitui o job)
+    error --> running : "Tentar novamente"
+    done --> [*] : DELETE remove<br/>registro e arquivos
+    error --> [*] : DELETE
+    note right of running
+        Não existe estado cancelled nem paused.
+        DELETE não encerra o subprocesso.
+        Se o servidor reinicia com o job running,
+        ChEMBL, clustering, consenso, NeuroDock e MD
+        são recuperados no próximo GET.
+        Redocking, ADMET e análise MD ficam
+        running para sempre.
+    end note

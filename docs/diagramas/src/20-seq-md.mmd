@@ -1,0 +1,37 @@
+sequenceDiagram
+    actor U as Pesquisador
+    participant FE as useMolecularDynamicsPage
+    participant R as routes/molecular_dynamics.py
+    participant UC as usecases/molecular_dynamics.py
+    participant DB as SQLite
+    participant W as _dh_md_worker
+    participant DH as DrugHunter MDSimulator (OpenMM)
+    participant WA as _dh_md_analyser_worker
+
+    U->>FE: Escolhe consenso, ligante (mol2) e receptor
+    FE->>R: GET /consensus/{id}/ligantes e /receptores
+    opt Arquivos próprios
+        FE->>R: POST /upload/ligante ou /upload/receptor
+    end
+    FE->>R: POST /iniciar (params MD)
+    R->>UC: uc_iniciar_md
+    UC->>DB: cria md_jobs (pending)
+    UC->>W: thread → _executar_md → worker
+    DB-->>UC: running
+    W->>DH: prepare_ligand e prepare_receptor
+    W->>DH: build_forcefield_system e solvatação
+    W->>DH: md_simulation (NPT, produção em ns)
+    DH-->>W: complex_min.pdb e trajectory.dcd
+    W-->>UC: done
+    UC->>DB: done + e-mail
+    loop A cada 10 s
+        FE->>R: GET /job/{id}
+    end
+    FE->>R: GET /job/{id}/download/trajectory.dcd
+    FE->>FE: NGL reproduz a trajetória em 3D
+    U->>FE: Analisar trajetória
+    FE->>R: POST /job/{id}/analyse
+    R->>UC: cria md_analysis_jobs
+    UC->>WA: thread → execute_md_analisys
+    WA-->>UC: RMSD, RMSF, Rg, ligações de hidrogênio, PLIP
+    FE->>R: GET /analysis/files e /analysis/view/...

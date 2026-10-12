@@ -1,0 +1,20 @@
+flowchart TB
+    auth["/ <br/>Login e cadastro<br/>(única rota pública)"] -->|"autenticado"| home["/home<br/>Painel inicial"]
+    home --> busca["/busca-pdb<br/>Busca de estruturas"]
+    home --> chembl["/chembl<br/>Bioatividade"]
+    home --> md["/dinamica-molecular"]
+    busca --> hist["/historico/:id<br/>Dashboard salvo"]
+    busca --> meus["/meus-pdbs"]
+    meus --> viz["/visualizador/:pdb_id<br/>/visualizador-cif/:pdb_id"]
+    viz --> red["/redocking"]
+    chembl --> chres["/chembl/:jobId/resultados"]
+    chres --> admet["/admet/:resultId"]
+    admet --> cons["/consensus/:jobId"]
+    admet --> clu["/clustering/:jobId"]
+    clu --> nd["/neurodock/:modelId<br/>/prediction/:predId"]
+    cons --> md
+    red -.->|"pré-preenche"| cons
+    home --> cfg["/configuracoes<br/>(admin)"]
+    home --> ajuda["/ajuda"]
+    classDef pub fill:#dcfce7,stroke:#166534
+    class auth pub

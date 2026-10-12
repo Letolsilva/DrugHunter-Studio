@@ -1,0 +1,38 @@
+sequenceDiagram
+    actor U as Pesquisador
+    participant FE as useNeuroDockPage
+    participant R as routes/neurodock.py
+    participant UC as usecases/neurodock.py
+    participant DB as SQLite
+    participant W1 as _dh_neurodock_train_worker
+    participant W2 as _dh_neurodock_predict_worker
+    participant DH as DrugHunter IA
+
+    rect rgb(240,246,255)
+    Note over U,DH: Treinamento
+    U->>FE: Treinar modelo
+    FE->>R: POST /api/neurodock/treinar
+    R->>UC: uc_iniciar_treinamento
+    UC->>DB: exige clustering done E consenso done (mesmo ADMET)
+    UC->>DB: cria modelo (running) e apaga predições anteriores
+    UC->>W1: thread → worker
+    W1->>DH: _preprocessing (fingerprints × scores de consenso)
+    W1->>DH: NeuroDocking.hyperparameter_search (n_trials=20)
+    W1->>DH: fit (MLP, k-fold)
+    W1-->>UC: done {n_targets, n_train_mols}
+    UC->>DB: done + e-mail
+    end
+
+    rect rgb(255,248,235)
+    Note over U,DH: Triagem virtual
+    U->>FE: Informa CSV da biblioteca e top_k
+    FE->>R: POST /model/{id}/predict
+    R->>UC: uc_iniciar_triagem
+    UC->>UC: valida cabeçalho (smiles e id)
+    UC->>DB: cria predição (running)
+    UC->>W2: thread → worker
+    W2->>DH: predict (lotes, ranking por product_score)
+    W2-->>UC: consensus.csv e molecules.csv (top-K)
+    UC->>DB: done, n_screened, n_selected
+    FE->>R: GET /prediction/{id} e /download/top
+    end

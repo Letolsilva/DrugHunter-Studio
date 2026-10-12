@@ -1,0 +1,83 @@
+erDiagram
+    CHEMBL_JOBS {
+        int id PK
+        int user_id FK "SET NULL"
+        string status
+        string base_output_path
+        text error_msg
+        datetime created_at
+        datetime finished_at
+    }
+    CHEMBL_JOB_ITEMS {
+        int id PK
+        int job_id FK "CASCADE"
+        string target_name
+        string folder_name
+        string status
+        text target_filters "JSON"
+        text bioact_filters "JSON"
+        text mol_filters "JSON"
+        text sim_filters "JSON"
+        int molecules_count
+        text error_msg
+        datetime started_at
+        datetime finished_at
+    }
+    ADMET_RESULTS {
+        int id PK
+        int user_id FK "CASCADE"
+        int chembl_job_item_id FK "SET NULL, UK com user_id"
+        string source_type
+        string status
+        string base_output_path
+        int total_molecules
+        int excluded_toxic
+        int bbb_plus
+        int bbb_minus
+        int hia_plus
+        int pgp_plus
+        text error_msg
+    }
+    CLUSTERING_JOBS {
+        int id PK
+        int user_id FK "CASCADE"
+        int admet_result_id FK "SET NULL"
+        string status
+        string target
+        string fingerprint_type "morgan, maccs, pharmacophore"
+        int max_mols
+        int n_clusters
+        float silhouette_score
+        string result_dir
+        string result_csv_path
+        text error_msg
+    }
+    CONSENSUS_JOBS {
+        int id PK
+        int user_id FK "CASCADE"
+        int admet_result_id FK "SET NULL, UK com user_id"
+        string status
+        string target
+        string pdb_id
+        string ligand_resname
+        int ligand_resnum
+        string chain
+        string charge_type
+        bool prepare_complex
+        text selected_categories "JSON"
+        int mol_count
+        string result_csv_path
+        string correlation_img_path
+        text error_msg
+    }
+    USERS {
+        int id PK
+    }
+    USERS ||--o{ CHEMBL_JOBS : executa
+    CHEMBL_JOBS ||--|{ CHEMBL_JOB_ITEMS : "1 por alvo"
+    CHEMBL_JOB_ITEMS ||--o| ADMET_RESULTS : gera
+    ADMET_RESULTS ||--o{ CLUSTERING_JOBS : alimenta
+    ADMET_RESULTS ||--o| CONSENSUS_JOBS : alimenta
+    USERS ||--o{ ADMET_RESULTS : possui
+    USERS ||--o{ CLUSTERING_JOBS : possui
+    USERS ||--o{ CONSENSUS_JOBS : possui

@@ -1,0 +1,38 @@
+sequenceDiagram
+    actor U as Pesquisador
+    participant FE as Frontend
+    participant R as routes
+    participant UC as usecases
+    participant DB as SQLite
+    participant W as workers DrugHunter
+    participant FS as resultados/
+
+    rect rgb(240,246,255)
+    Note over U,FS: ADMET (requer item ChEMBL com status done)
+    U->>FE: Rodar ADMET
+    FE->>R: POST /api/admet/run
+    R->>UC: uc_iniciar_admet
+    UC->>DB: cria ou substitui admet_results (running)
+    UC->>W: thread → _dh_admet_worker
+    W->>W: MoleculeEvaluator (TPSA, WLOGP, PAINS, BBB, HIA, PGP)
+    W->>FS: ADMET/*.csv e gráfico BOILED-Egg
+    W-->>UC: contagens (bbb_plus, hia_plus, tóxicas...)
+    UC->>DB: done + contagens
+    FE->>R: GET /results/{id} e /molecules
+    end
+
+    rect rgb(255,248,235)
+    Note over U,FS: Clustering (requer ADMET done)
+    U->>FE: Escolhe fingerprint e max_mols
+    FE->>R: POST /api/clustering/iniciar
+    R->>UC: uc_iniciar_clustering
+    UC->>DB: cria job (running) e apaga NeuroDock dependente
+    UC->>W: thread → _dh_clustering_worker
+    W->>W: fingerprints (Morgan, MACCS ou Farmacóforo)
+    W->>W: perform_clustering (PCA + KMeans + silhouette)
+    W->>W: gera tsne_data.json
+    W->>FS: centroides MCS, kmeans.txt, plots
+    UC->>FS: move resultado para alvo_job_id
+    UC->>DB: done, n_clusters, silhouette
+    FE->>R: GET /tsne-data, /centroid/{n}, /download
+    end

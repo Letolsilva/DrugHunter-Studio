@@ -1,0 +1,35 @@
+flowchart TB
+    main["<b>main.tsx / App.tsx</b><br/>Providers: Theme, Auth, Visualizador, Redocking<br/>+ AppRoutes"]
+    container["<b>container.ts</b><br/>Injeção de dependência manual<br/>1 HTTPClient + 16 usecases"]
+
+    subgraph apres["Apresentação"]
+        direction TB
+        pages["<b>pages/</b><br/>XPage + hook useXPage<br/>estado, polling, navegação"]
+        templates["<b>templates/</b><br/>layout completo da tela"]
+        comps["<b>components/</b><br/>ui, layout, charts, icons e<br/>componentes por módulo"]
+        ctx["<b>contexts/</b><br/>Auth, Theme, Redocking,<br/>Visualizador"]
+    end
+
+    subgraph dados["Dados e domínio"]
+        direction TB
+        uc["<b>data/usecases</b><br/>implementam as interfaces"]
+        adp["<b>data/adapters</b><br/>transformam dados p/ gráficos e tabelas"]
+        dom["<b>domain/</b><br/>interfaces IXUseCase + modelos"]
+    end
+
+    subgraph inf["Infraestrutura"]
+        http["<b>infra/http/HTTPClient</b><br/>fetch + Bearer + HttpError"]
+    end
+
+    api(["API REST /api<br/>(proxy Vite :8000 em dev)"])
+
+    main --> container
+    container -->|"props via routes.tsx"| pages
+    pages --> templates
+    templates --> comps
+    pages --> ctx
+    pages --> uc
+    uc -.->|"implementa"| dom
+    uc --> adp
+    uc --> http
+    http --> api

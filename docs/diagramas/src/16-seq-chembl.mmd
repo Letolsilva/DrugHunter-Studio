@@ -1,0 +1,41 @@
+sequenceDiagram
+    actor U as Pesquisador
+    participant FE as useChemblResultsPage
+    participant R as routes/chembl.py
+    participant UC as usecases/chembl.py
+    participant DB as SQLite
+    participant RN as chembl_runner.py
+    participant W as _dh_chembl_worker.py
+    participant DH as DrugHunter crawlers
+    participant FS as resultados/chembl
+
+    U->>FE: Informa alvos e filtros
+    FE->>R: POST /api/chembl/run
+    R->>UC: uc_iniciar_grupo()
+    UC->>DB: cria chembl_jobs + 1 chembl_job_items por alvo
+    UC->>UC: asyncio.create_task(_run_job_background)
+    R-->>FE: job (running)
+    loop Para cada alvo, sequencial
+        RN->>W: create_subprocess_exec(python_bin, worker, JSON)
+        W->>DH: 1 Targets.search
+        W->>DH: 2 Bioactivity
+        W->>DH: 3 Molecule
+        W->>DH: 4 SimilarMols
+        W->>DH: 5 prepare_datamols (DrugBank FULL.csv)
+        DH->>FS: CSVs por etapa
+        W-->>RN: done {molecules_count}
+        RN->>DB: item done ou error
+    end
+    RN->>DB: job done se algum item concluiu
+    loop A cada 3 s
+        FE->>R: GET /jobs/{id}
+        R->>FS: infere etapa atual pelos arquivos existentes
+        R-->>FE: itens, status, current_step
+    end
+    opt Análise molecular
+        FE->>R: POST /analise
+        R->>UC: BackgroundTasks
+        UC->>W: _dh_analysis_worker (fingerprints, similaridade, grafos)
+        FE->>R: GET /analysis-status (estado inferido do disco)
+        FE->>R: GET /networks e /plot/{arquivo}
+    end

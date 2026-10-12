@@ -1,0 +1,39 @@
+sequenceDiagram
+    actor U as Pesquisador
+    participant FE as RedockingContext
+    participant R as routes/redocking.py
+    participant UC as usecases/redocking.py
+    participant PP as pdb_preparador
+    participant BG as BackgroundTasks
+    participant RN as redocking_runner.py
+    participant CLI as backend/redocking.py
+    participant DH as DrugHunter perform_redocking
+    participant DB as SQLite
+
+    U->>FE: Seleciona ligantes e abre Redocking
+    FE->>R: GET /defaults e GET /prontidao
+    R->>PP: verificar_pdb (pasta do alvo)
+    opt Faltam arquivos
+        FE->>R: POST /preparar
+        PP->>PP: copia do cache ou baixa do RCSB
+    end
+    FE->>R: POST /iniciar
+    R->>UC: normaliza alvo, cria job (pending), salva CSV do usuário
+    R->>BG: add_task(executar_redocking_background)
+    R-->>FE: 201 job
+    BG->>RN: status running
+    RN->>CLI: subprocess.run([python_bin, redocking.py, args])
+    CLI->>DH: perform_redocking (Chimera, Vina, PyMOL)
+    DH-->>CLI: pdb_codes.csv com coluna RMSD
+    CLI-->>RN: returncode e logs
+    alt returncode 0 e CSV com dados
+        RN->>DB: job done + CSV atualizado em user_pdb_csv
+    else Falha
+        RN->>DB: job error + erro_msg (até 1200 caracteres)
+    end
+    RN->>RN: envia e-mail
+    loop A cada 10 s
+        FE->>R: GET /jobs/status/{id}
+        R-->>FE: status
+    end
+    FE->>R: GET /csv (tabela com RMSD)

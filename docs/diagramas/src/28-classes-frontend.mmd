@@ -1,0 +1,60 @@
+classDiagram
+    direction LR
+    class IHTTPClient {
+        <<interface>>
+        +get(url) Promise
+        +post(url, body) Promise
+        +put(url, body) Promise
+        +patch(url, body) Promise
+        +delete(url) Promise
+    }
+    class HTTPClient {
+        -baseURL = "/api"
+        +get() +post() +put() +patch() +delete()
+        -addBearerToken()
+    }
+    class HttpError {
+        +status : number
+        +detail : string
+    }
+    class IChemblUseCase { <<interface>> +startJob() +listarJobs() +getJob() }
+    class IAdmetUseCase { <<interface>> +run() +getResult() +listMolecules() }
+    class IConsensusUseCase { <<interface>> +iniciar() +getJob() +getResult() }
+    class IClusteringUseCase { <<interface>> +iniciar() +getJob() }
+    class INeuroDockUseCase { <<interface>> +treinar() +iniciarTriagem() +getModel() }
+    class IMolecularDynamicsUseCase { <<interface>> +iniciarMD() +iniciarAnalise() +getJob() }
+    class ISearchUseCase { <<interface>> +createStream() +adaptEvent() }
+    class ChemblUseCase
+    class AdmetUseCase
+    class ConsensusUseCase
+    class ClusteringUseCase
+    class NeuroDockUseCase
+    class MolecularDynamicsUseCase
+    class SearchUseCase
+    class VisualizadorUseCase
+    class VisualizadorCifUseCase
+    class Container {
+        <<container.ts>>
+        +httpClient : HTTPClient
+        +16 usecases singleton
+    }
+    IHTTPClient <|.. HTTPClient
+    HTTPClient ..> HttpError : lança
+    IChemblUseCase <|.. ChemblUseCase
+    IAdmetUseCase <|.. AdmetUseCase
+    IConsensusUseCase <|.. ConsensusUseCase
+    IClusteringUseCase <|.. ClusteringUseCase
+    INeuroDockUseCase <|.. NeuroDockUseCase
+    IMolecularDynamicsUseCase <|.. MolecularDynamicsUseCase
+    ISearchUseCase <|.. SearchUseCase
+    VisualizadorUseCase <|-- VisualizadorCifUseCase
+    ChemblUseCase --> IHTTPClient
+    AdmetUseCase --> IHTTPClient
+    ConsensusUseCase --> IHTTPClient
+    ClusteringUseCase --> IHTTPClient
+    NeuroDockUseCase --> IHTTPClient
+    MolecularDynamicsUseCase --> IHTTPClient
+    SearchUseCase --> IHTTPClient
+    Container o-- HTTPClient
+    Container o-- ChemblUseCase
+    Container o-- AdmetUseCase

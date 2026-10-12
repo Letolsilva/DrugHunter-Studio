@@ -1,0 +1,39 @@
+flowchart TB
+    pesq["Pesquisador / Administrador<br/>(navegador web)"]
+
+    subgraph maq["Máquina do usuário (instalação local)"]
+        direction TB
+        spa["<b>Frontend SPA</b><br/>React 18 + TypeScript + Vite<br/>Tailwind 4, Recharts, NGL, smiles-drawer"]
+        api["<b>Backend API</b><br/>FastAPI + Python<br/>Arquitetura hexagonal<br/>JWT, SSE, threads de job"]
+        db[("<b>SQLite</b><br/>drughunter_studio.db<br/>17 tabelas")]
+        pdbs[("<b>Cache PDB/CIF</b><br/>pdb_files/")]
+        wk["<b>Workers</b><br/>_dh_*_worker.py<br/>subprocessos Python"]
+        dh["<b>DrugHunter</b><br/>src/wrappers, caad, IA, kernel<br/>(diretório externo)"]
+        art[("<b>Artefatos do pipeline</b><br/>resultados/ e datasets/<br/>no diretório do DrugHunter")]
+        bin["<b>Binários externos</b><br/>Vina, Dock6, Chimera,<br/>OpenMM, PyMOL, OpenBabel"]
+    end
+
+    rcsb["RCSB PDB"]
+    chembl["ChEMBL"]
+    smtp["Servidor SMTP"]
+
+    pesq -->|"HTTP :8080"| spa
+    spa -->|"REST/JSON + SSE<br/>/api, Bearer JWT"| api
+    api -->|"SQLAlchemy"| db
+    api -->|"Leitura/escrita"| pdbs
+    api -->|"Popen + JSON em argv"| wk
+    wk -.->|"JSON-lines no stdout"| api
+    wk -->|"import + chamada"| dh
+    dh -->|"subprocess"| bin
+    dh -->|"grava CSV, PNG, modelos"| art
+    api -->|"lê CSV e PNG"| art
+    api -->|"HTTPS"| rcsb
+    dh -->|"HTTPS"| chembl
+    api -->|"SMTP STARTTLS"| smtp
+
+    classDef int fill:#1e3a8a,stroke:#1e3a8a,color:#fff
+    classDef store fill:#fef3c7,stroke:#b45309,color:#111
+    classDef ext fill:#e5e7eb,stroke:#6b7280,color:#111
+    class spa,api,wk int
+    class db,pdbs,art store
+    class dh,bin,rcsb,chembl,smtp ext
