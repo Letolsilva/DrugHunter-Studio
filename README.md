@@ -4,6 +4,8 @@ Aplicação web local que torna o [DrugHunter](https://github.com/michelclemer/D
 
 **Stack:** FastAPI · React 18 · TypeScript · Tailwind CSS v4
 
+📖 **Documentação técnica:** <https://letolsilva.github.io/PDB-Explorer/> — arquitetura, modelo de dados, fluxos de cada módulo, integração com o DrugHunter, validação (acessibilidade, usabilidade e gráficos) e figuras para o artigo.
+
 ---
 
 ## Índice
