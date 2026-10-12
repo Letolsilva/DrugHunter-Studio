@@ -116,7 +116,7 @@ def listar_redocking_jobs(
             iniciado_em=j.iniciado_em,
         )
         for j in jobs
-        if j.csv_content
+        if j.csv_content and j.status != "cancelled"  # redocking cancelado não é fonte de pré-preenchimento
     ]
     return ConsensusRedockingJobsResponse(jobs=items)
 
