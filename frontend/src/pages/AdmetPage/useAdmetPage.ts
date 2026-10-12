@@ -36,7 +36,7 @@ export interface UseAdmetPageReturn {
   handleCancelar: () => Promise<void>;
 
   // Consenso
-  consensusStatus: "none" | "running" | "done" | "error";
+  consensusStatus: "none" | "running" | "done" | "error" | "cancelled";
   onGoConsensus: () => void;
 }
 
@@ -233,7 +233,7 @@ export function useAdmetPage(
   const voltarChembl = useCallback(() => navigate(-1), [navigate]);
 
   // ── Consenso — status + navegação ─────────────────────────────────────────
-  const [consensusStatus, setConsensusStatus] = useState<"none" | "running" | "done" | "error">("none");
+  const [consensusStatus, setConsensusStatus] = useState<"none" | "running" | "done" | "error" | "cancelled">("none");
   const [consensusJobId, setConsensusJobId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -244,6 +244,7 @@ export function useAdmetPage(
       setConsensusJobId(job.id);
       if (job.status === "done") setConsensusStatus("done");
       else if (job.status === "error") setConsensusStatus("error");
+      else if (job.status === "cancelled") setConsensusStatus("cancelled");
       else setConsensusStatus("running");
     }).catch(() => setConsensusStatus("none"));
   }, [result?.id, result?.status]);  // eslint-disable-line react-hooks/exhaustive-deps
@@ -256,6 +257,7 @@ export function useAdmetPage(
         if (!isMounted.current || !job) return;
         if (job.status === "done") { setConsensusStatus("done"); clearInterval(interval); }
         else if (job.status === "error") { setConsensusStatus("error"); clearInterval(interval); }
+        else if (job.status === "cancelled") { setConsensusStatus("cancelled"); clearInterval(interval); }
       }).catch(() => {});
     }, 5000);
     return () => clearInterval(interval);

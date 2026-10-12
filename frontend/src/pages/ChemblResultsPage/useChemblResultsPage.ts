@@ -335,7 +335,14 @@ export function useChemblResultsPage(
       admetUseCase.getByItem(it.id, token()).then((result) => {
         setAdmetStatusByItem((prev) => ({
           ...prev,
-          [it.id]: result ? (result.status === "done" ? "done" : "running") : "none",
+          // Só "pending"/"running" é andamento; erro e cancelado permitem rodar o ADMET de novo
+          [it.id]: result
+            ? result.status === "done"
+              ? "done"
+              : result.status === "running" || result.status === "pending"
+                ? "running"
+                : "none"
+            : "none",
         }));
       }).catch(() => {});
     });

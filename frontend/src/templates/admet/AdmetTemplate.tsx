@@ -184,6 +184,14 @@ export default function AdmetTemplate(props: UseAdmetPageReturn) {
                   >
                     Ver Consenso →
                   </button>
+                ) : consensusStatus === "cancelled" ? (
+                  <button
+                    onClick={onGoConsensus}
+                    className="flex items-center gap-1.5 rounded-xl border px-4 py-3 font-mono text-[12px] font-semibold transition-all hover:bg-surface-secondary"
+                    style={{ borderColor: "var(--color-outline)", color: "var(--color-foreground-muted)", background: "transparent" }}
+                  >
+                    Consenso cancelado — rodar novamente →
+                  </button>
                 ) : consensusStatus === "error" ? (
                   <button
                     onClick={onGoConsensus}
