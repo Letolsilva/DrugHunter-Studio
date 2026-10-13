@@ -1,17 +1,26 @@
 #!/usr/bin/env bash
-# build.sh — Gera pdb-explorer.deb para Ubuntu/Debian
+# build.sh — Gera drughunter-studio.deb para Ubuntu/Debian
 #
 # Fluxo do usuário:
-#   1. Recebe pdb-explorer.deb
+#   1. Recebe drughunter-studio.deb
 #   2. Duplo-clique → Ubuntu Software → "Instalar" (pede senha sudo uma vez)
 #   3. App aparece no menu GNOME → clica → navegador abre
 #   Sem terminal, sem "Permitir Execução", sem extrair em lugar específico.
 #
-# Dados do usuário ficam em ~/.local/share/pdb-explorer/ (isolado por usuário).
+# Dados do usuário ficam em ~/.local/share/drughunter-studio/ (isolado por usuário).
 
 set -e
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-PKG="$ROOT/pdb-explorer-pkg"
+PKG="$ROOT/drughunter-studio-pkg"
+
+# ── Credenciais SMTP ──────────────────────────────────────────────────────────
+SMTP_SECRET_FILE="$ROOT/.smtp_secret"
+if [ -f "$SMTP_SECRET_FILE" ]; then
+    SMTP_PASSWORD="$(cat "$SMTP_SECRET_FILE")"
+else
+    echo "⚠️  Aviso: .smtp_secret não encontrado — notificações por e-mail desativadas no .deb gerado."
+    SMTP_PASSWORD=""
+fi
 
 # ── Build frontend ─────────────────────────────────────────────────────────────
 echo "▶ Buildando frontend..."
@@ -22,7 +31,7 @@ cp -r "$ROOT/frontend/dist" "$ROOT/backend/static"
 echo "▶ Montando estrutura do pacote..."
 rm -rf "$PKG"
 mkdir -p "$PKG/DEBIAN"
-mkdir -p "$PKG/opt/pdb-explorer/backend"
+mkdir -p "$PKG/opt/drughunter-studio/backend"
 mkdir -p "$PKG/usr/share/applications"
 mkdir -p "$PKG/usr/share/icons/hicolor/scalable/apps"
 
@@ -31,24 +40,28 @@ rsync -a \
     --exclude='__pycache__' --exclude='*.pyc' --exclude='.venv' \
     --exclude='dist' --exclude='build' --exclude='*.db' \
     --exclude='*.db-shm' --exclude='*.db-wal' --exclude='.env' \
-    --exclude='pdb_explorer.spec' --exclude='run.py' \
-    "$ROOT/backend/app/"    "$PKG/opt/pdb-explorer/backend/app/"
-rsync -a "$ROOT/backend/static/"  "$PKG/opt/pdb-explorer/backend/static/"
-mkdir -p "$PKG/opt/pdb-explorer/backend/pdb_files"
-cp "$ROOT/backend/requirements.txt" "$PKG/opt/pdb-explorer/backend/"
-cp "$ROOT/backend/.env.example"     "$PKG/opt/pdb-explorer/backend/"
-cp "$ROOT/backend/redocking.py"     "$PKG/opt/pdb-explorer/backend/"
-cp "$ROOT/assets/pdb-explorer.svg"  "$PKG/usr/share/icons/hicolor/scalable/apps/pdb-explorer.svg"
+    --exclude='drughunter_studio.spec' --exclude='run.py' \
+    "$ROOT/backend/app/"    "$PKG/opt/drughunter-studio/backend/app/"
+rsync -a "$ROOT/backend/static/"  "$PKG/opt/drughunter-studio/backend/static/"
+mkdir -p "$PKG/opt/drughunter-studio/backend/pdb_files"
+cp "$ROOT/backend/requirements.txt" "$PKG/opt/drughunter-studio/backend/"
+cp "$ROOT/backend/.env.example"     "$PKG/opt/drughunter-studio/backend/"
+cp "$ROOT/backend/redocking.py"     "$PKG/opt/drughunter-studio/backend/"
+
+# Injeta a senha SMTP no email_sender.py do pacote (nunca no arquivo do repo)
+sed -i "s|%%SMTP_PASSWORD%%|$SMTP_PASSWORD|g" \
+    "$PKG/opt/drughunter-studio/backend/app/infra/email_sender.py"
+cp "$ROOT/assets/drughunter-studio.svg"  "$PKG/usr/share/icons/hicolor/scalable/apps/drughunter-studio.svg"
 
 # ── iniciar.sh instalado em /opt ──────────────────────────────────────────────
-# Usa zenity para progresso/diálogo. Dados do usuário em ~/.local/share/pdb-explorer/
-cat > "$PKG/opt/pdb-explorer/iniciar.sh" << 'ENDSCRIPT'
+# Usa zenity para progresso/diálogo. Dados do usuário em ~/.local/share/drughunter-studio/
+cat > "$PKG/opt/drughunter-studio/iniciar.sh" << 'ENDSCRIPT'
 #!/usr/bin/env bash
-APP_DIR="/opt/pdb-explorer"
-DATA_DIR="$HOME/.local/share/pdb-explorer"
+APP_DIR="/opt/drughunter-studio"
+DATA_DIR="$HOME/.local/share/drughunter-studio"
 VENV="$DATA_DIR/.venv"
 PID_FILE="$DATA_DIR/.pid"
-LOG="$DATA_DIR/pdb_explorer.log"
+LOG="$DATA_DIR/drughunter_studio.log"
 PORT=8080
 
 mkdir -p "$DATA_DIR/pdb_files"
@@ -57,8 +70,8 @@ mkdir -p "$DATA_DIR/pdb_files"
 if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
     if command -v zenity &>/dev/null; then
         zenity --question \
-            --title="PDB Explorer" \
-            --text="O PDB Explorer já está rodando." \
+            --title="DrugHunter Studio" \
+            --text="O DrugHunter Studio já está rodando." \
             --ok-label="Abrir no navegador" \
             --cancel-label="Encerrar servidor" \
             --width=320 2>/dev/null \
@@ -100,7 +113,7 @@ if [ ! -f "$VENV/bin/python" ]; then
 
     if command -v zenity &>/dev/null; then
         _instalar | zenity --progress \
-            --title="PDB Explorer — Configuração" \
+            --title="DrugHunter Studio — Configuração" \
             --text="Preparando o ambiente pela primeira vez..." \
             --width=400 --auto-close 2>/dev/null
         [ $? -ne 0 ] && exit 1
@@ -125,8 +138,14 @@ if [ ! -f "$DATA_DIR/.env" ] && [ -f "$APP_DIR/backend/.env.example" ]; then
         "$DATA_DIR/.env"
 fi
 
+# ── Remover credenciais SMTP placeholder de instalações antigas ───────────────
+if [ -f "$DATA_DIR/.env" ]; then
+    sed -i '/^SMTP_USER=COLOQUE_/d;/^SMTP_PASSWORD=COLOQUE_/d;/^SMTP_HOST=COLOQUE_/d;/^SMTP_FROM=COLOQUE_/d;/^SMTP_PORT=COLOQUE_/d' \
+        "$DATA_DIR/.env"
+fi
+
 # ── Iniciar servidor ──────────────────────────────────────────────────────────
-export DATABASE_URL="sqlite:///$DATA_DIR/pdb_explorer.db"
+export DATABASE_URL="sqlite:///$DATA_DIR/drughunter_studio.db"
 export PDB_FILES_DIR="$DATA_DIR/pdb_files"
 export DOTENV_PATH="$DATA_DIR/.env"
 
@@ -146,17 +165,17 @@ done
 
 xdg-open "http://localhost:$PORT" 2>/dev/null
 ENDSCRIPT
-chmod +x "$PKG/opt/pdb-explorer/iniciar.sh"
+chmod +x "$PKG/opt/drughunter-studio/iniciar.sh"
 
 # ── .desktop em /usr/share/applications ──────────────────────────────────────
-cat > "$PKG/usr/share/applications/pdb-explorer.desktop" << 'EOF'
+cat > "$PKG/usr/share/applications/drughunter-studio.desktop" << 'EOF'
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=PDB Explorer
-Comment=Busca e análise de estruturas proteicas do RCSB PDB
-Exec=/opt/pdb-explorer/iniciar.sh
-Icon=pdb-explorer
+Name=DrugHunter Studio
+Comment=Interface para o DrugHunter: da busca de estruturas ao redocking e à dinâmica molecular
+Exec=/opt/drughunter-studio/iniciar.sh
+Icon=drughunter-studio
 Terminal=false
 Categories=Science;Education;
 StartupNotify=true
@@ -164,23 +183,25 @@ EOF
 
 # ── DEBIAN/control ────────────────────────────────────────────────────────────
 cat > "$PKG/DEBIAN/control" << 'EOF'
-Package: pdb-explorer
+Package: drughunter-studio
 Version: 4.0.0
 Section: science
 Priority: optional
 Architecture: all
 Depends: python3, python3-venv
-Maintainer: PDB Explorer
-Description: Busca e análise de estruturas proteicas do RCSB PDB
- Aplicação web local para explorar dados moleculares do RCSB PDB.
- Dados do usuário ficam em ~/.local/share/pdb-explorer/.
+Conflicts: pdb-explorer
+Replaces: pdb-explorer
+Maintainer: DrugHunter Studio
+Description: Interface para o DrugHunter, do RCSB PDB à dinâmica molecular
+ Aplicação web local que torna o DrugHunter acessível a quem não programa.
+ Dados do usuário ficam em ~/.local/share/drughunter-studio/.
 EOF
 
 # ── DEBIAN/postinst ───────────────────────────────────────────────────────────
 cat > "$PKG/DEBIAN/postinst" << 'EOF'
 #!/bin/sh
-chmod -R a+rX /opt/pdb-explorer/
-chmod +x /opt/pdb-explorer/iniciar.sh
+chmod -R a+rX /opt/drughunter-studio/
+chmod +x /opt/drughunter-studio/iniciar.sh
 exit 0
 EOF
 chmod +x "$PKG/DEBIAN/postinst"
@@ -188,7 +209,7 @@ chmod +x "$PKG/DEBIAN/postinst"
 # ── DEBIAN/prerm ──────────────────────────────────────────────────────────────
 cat > "$PKG/DEBIAN/prerm" << 'EOF'
 #!/bin/sh
-for pid_file in /home/*/.local/share/pdb-explorer/.pid; do
+for pid_file in /home/*/.local/share/drughunter-studio/.pid; do
     [ -f "$pid_file" ] && kill "$(cat "$pid_file")" 2>/dev/null || true
 done
 exit 0
@@ -198,16 +219,16 @@ chmod +x "$PKG/DEBIAN/prerm"
 # ── Permissões ────────────────────────────────────────────────────────────────
 find "$PKG/opt" -type f -exec chmod 644 {} \;
 find "$PKG/opt" -type d -exec chmod 755 {} \;
-chmod 755 "$PKG/opt/pdb-explorer/iniciar.sh"
+chmod 755 "$PKG/opt/drughunter-studio/iniciar.sh"
 find "$PKG/usr" -type f -exec chmod 644 {} \;
 find "$PKG/usr" -type d -exec chmod 755 {} \;
-chmod 644 "$PKG/usr/share/icons/hicolor/scalable/apps/pdb-explorer.svg"
+chmod 644 "$PKG/usr/share/icons/hicolor/scalable/apps/drughunter-studio.svg"
 
 # ── Gerar .deb ────────────────────────────────────────────────────────────────
-echo "▶ Gerando pdb-explorer.deb..."
+echo "▶ Gerando drughunter-studio.deb..."
 cd "$ROOT"
-fakeroot dpkg-deb --build "$PKG" pdb-explorer.deb
+fakeroot dpkg-deb --build "$PKG" drughunter-studio.deb
 rm -rf "$PKG"
 
 echo "✅ Pronto!"
-ls -lh "$ROOT/pdb-explorer.deb"
+ls -lh "$ROOT/drughunter-studio.deb"

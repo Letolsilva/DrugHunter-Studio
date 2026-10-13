@@ -1,9 +1,10 @@
 """
-services/admin.py — Acesso a dados de cache, TTL e configurações do sistema.
+services/admin.py — Acesso a dados de cache, TTL, configurações e usuários.
 
 Responsabilidade: operações de banco. Não conhece HTTP.
 """
 
+import os
 from datetime import datetime, timedelta
 from typing import List
 from sqlalchemy.orm import Session
@@ -12,6 +13,31 @@ from app.domain.models import Protein, Search, SearchResult, SystemConfig, User
 from app.infra.db.database import get_config, set_config
 
 TTL_PADRAO = 30
+
+# Mapa chave → variável de ambiente para fallback de SMTP
+_SMTP_ENV = {
+    "smtp_host": "SMTP_HOST",
+    "smtp_port": "SMTP_PORT",
+    "smtp_user": "SMTP_USER",
+    "smtp_password": "SMTP_PASSWORD",
+    "smtp_from": "SMTP_FROM",
+}
+
+# Mapa chave → default embutido no build (.deb), para exibir na tela
+from app.infra.email_sender import (
+    _DEFAULT_FROM,
+    _DEFAULT_HOST,
+    _DEFAULT_PORT,
+    _DEFAULT_USER,
+    _default_password,
+)
+
+_SMTP_DEFAULTS = {
+    "smtp_host": _DEFAULT_HOST,
+    "smtp_port": _DEFAULT_PORT,
+    "smtp_user": _DEFAULT_USER,
+    "smtp_from": _DEFAULT_FROM,
+}
 
 
 def _ttl_dias(db: Session) -> int:
@@ -53,16 +79,35 @@ def stats_cache(db: Session) -> dict:
     }
 
 
+_CHAVES_OCULTAS = {"max_por_proteina"}
+
+_DRUG_HUNTER_DEFAULT = "~/DrugHunter"
+
+
 def listar_configs(db: Session) -> dict:
+    """Retorna lista de configs; SMTP usa env vars como fallback."""
     configs = db.query(SystemConfig).all()
-    return {
-        c.chave: {
-            "valor": c.valor,
-            "descricao": c.descricao,
-            "updated_at": str(c.updated_at) if c.updated_at else None,
-        }
-        for c in configs
-    }
+    resultado = []
+    for c in configs:
+        if c.chave in _CHAVES_OCULTAS:
+            continue
+        valor = c.valor
+        if c.chave in _SMTP_ENV:
+            if c.chave == "smtp_password":
+                # Nunca expõe a senha — retorna sentinela se configurada
+                tem_db = bool(valor)
+                tem_env = bool(os.getenv("SMTP_PASSWORD"))
+                tem_default = bool(_default_password())
+                valor = "__set__" if (tem_db or tem_env or tem_default) else ""
+            elif not valor:
+                # Fallback: env var → default embutido no build
+                valor = os.getenv(_SMTP_ENV[c.chave], "") or _SMTP_DEFAULTS.get(
+                    c.chave, ""
+                )
+        elif c.chave == "drug_hunter_path" and not valor:
+            valor = _DRUG_HUNTER_DEFAULT
+        resultado.append({"chave": c.chave, "valor": valor, "descricao": c.descricao})
+    return {"configs": resultado}
 
 
 def atualizar_config(db: Session, chave: str, valor: str) -> SystemConfig:
@@ -112,5 +157,41 @@ def proteinas_proximas_expiracao(db: Session, aviso_dias: int = 7) -> List[dict]
 
 def listar_organismos(db: Session) -> List[str]:
     from app.services.search import listar_organismos_disponiveis
-
     return listar_organismos_disponiveis(db)
+
+
+def listar_usuarios(db: Session) -> dict:
+    """Retorna todos os usuários cadastrados."""
+    usuarios = db.query(User).order_by(User.created_at).all()
+    return {
+        "usuarios": [
+            {
+                "id": u.id,
+                "email": u.email,
+                "username": u.username,
+                "is_admin": u.is_admin,
+                "created_at": str(u.created_at),
+            }
+            for u in usuarios
+        ]
+    }
+
+
+def set_admin_usuario(
+    db: Session, usuario_id: int, is_admin: bool, current_user_id: int
+) -> dict:
+    """Altera permissão de admin de um usuário. Impede auto-alteração."""
+    if usuario_id == current_user_id:
+        raise ValueError("Não é possível alterar sua própria permissão de administrador.")
+    usuario = db.query(User).filter(User.id == usuario_id).first()
+    if not usuario:
+        raise KeyError("Usuário não encontrado.")
+    usuario.is_admin = is_admin
+    db.commit()
+    db.refresh(usuario)
+    return {
+        "id": usuario.id,
+        "email": usuario.email,
+        "username": usuario.username,
+        "is_admin": usuario.is_admin,
+    }

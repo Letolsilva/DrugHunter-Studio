@@ -6,15 +6,15 @@ Inclui seed das configs padrão no SystemConfig.
 """
 
 import os
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import sessionmaker
 from app.domain.models import Base, SystemConfig
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "sqlite:///./pdb_explorer.db",
+    "sqlite:///./drughunter_studio.db",
     # Para PostgreSQL (produção):
-    # "postgresql://user:senha@localhost:5432/pdb_explorer"
+    # "postgresql://user:senha@localhost:5432/drughunter_studio"
 )
 
 # ── Engine ────────────────────────────────────────────────────
@@ -66,13 +66,83 @@ CONFIGS_PADRAO = [
         "valor": "true",
         "descricao": "Executar limpeza de TTL automaticamente ao iniciar o servidor",
     },
+    {
+        "chave": "drug_hunter_path",
+        "valor": "",
+        "descricao": "Caminho absoluto para o diretório raiz do DrugHunter",
+    },
+    {
+        "chave": "python_bin",
+        "valor": "",
+        "descricao": "Interpretador Python usado para executar o DrugHunter",
+    },
+    {
+        "chave": "chimera_path",
+        "valor": "",
+        "descricao": "Caminho para o diretório bin do UCSF Chimera (vazio = detecção automática)",
+    },
+    {
+        "chave": "dock6_path",
+        "valor": "",
+        "descricao": "Caminho para o diretório bin do Dock6 (vazio = detecção automática)",
+    },
+    {
+        "chave": "smtp_host",
+        "valor": "",
+        "descricao": "Host do servidor SMTP (ex: smtp.gmail.com)",
+    },
+    {
+        "chave": "smtp_port",
+        "valor": "587",
+        "descricao": "Porta do servidor SMTP (587 para TLS, 465 para SSL)",
+    },
+    {
+        "chave": "smtp_user",
+        "valor": "",
+        "descricao": "Email ou usuário para autenticar no servidor SMTP",
+    },
+    {
+        "chave": "smtp_password",
+        "valor": "",
+        "descricao": "Senha SMTP (armazenada criptografada no banco de dados)",
+    },
+    {
+        "chave": "smtp_from",
+        "valor": "",
+        "descricao": "Endereço remetente exibido nos emails (ex: DrugHunter Studio <email@gmail.com>)",
+    },
 ]
 
 
 def criar_tabelas():
     """Cria tabelas e popula configs padrão se ainda não existirem."""
     Base.metadata.create_all(bind=engine)
+    _migrate_schema()
     _seed_configs()
+
+
+def _migrate_schema():
+    """Migrações incrementais de schema para bancos existentes.
+
+    create_all() não altera tabelas já criadas. Cada bloco aqui trata uma
+    coluna adicionada após o deploy inicial — idempotente, seguro rodar sempre.
+    """
+    with engine.connect() as conn:
+        tables = {r[0] for r in conn.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))}
+
+        # md_jobs: consensus_job_id adicionado quando redocking foi renomeado para consenso
+        if "md_jobs" in tables:
+            cols = {row[1] for row in conn.execute(text("PRAGMA table_info(md_jobs)"))}
+            if "consensus_job_id" not in cols:
+                conn.execute(text("ALTER TABLE md_jobs ADD COLUMN consensus_job_id INTEGER REFERENCES consensus_jobs(id)"))
+                conn.commit()
+
+        # consensus_jobs: result_json era coluna planejada que nunca foi usada — remove dead code
+        if "consensus_jobs" in tables:
+            cols = {row[1] for row in conn.execute(text("PRAGMA table_info(consensus_jobs)"))}
+            if "result_json" in cols:
+                conn.execute(text("ALTER TABLE consensus_jobs DROP COLUMN result_json"))
+                conn.commit()
 
 
 def _seed_configs():
@@ -83,6 +153,9 @@ def _seed_configs():
             existente = db.query(SystemConfig).filter_by(chave=cfg["chave"]).first()
             if not existente:
                 db.add(SystemConfig(**cfg))
+            elif existente.descricao != cfg["descricao"]:
+                # Descrição não é editável pelo usuário — mantém texto atualizado (ex: renomeação do app)
+                existente.descricao = cfg["descricao"]
         db.commit()
     finally:
         db.close()

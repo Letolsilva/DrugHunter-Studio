@@ -34,6 +34,7 @@ frontend/.vite/
 .env
 .env.*
 !.env.example
+.smtp_secret
 
 # ── IDEs ──────────────────────────────────────────────────
 .vscode/
@@ -50,18 +51,25 @@ Thumbs.db
 logs/
 
 # ── Artefatos de build/distribuição ───────────────────────
-PDB-Explorer-dist/
-PDB-Explorer-linux.zip
+DrugHunter-Studio-dist/
+DrugHunter-Studio-linux.zip
+drughunter-studio.deb
+DrugHunter-Studio-Setup.exe
+# artefatos com o nome antigo (PDB Explorer)
 pdb-explorer.deb
 PDB-Explorer-Setup.exe
-pdb-explorer-pkg/
-pdb-explorer-windows-pkg/
+drughunter-studio-pkg/
+drughunter-studio-windows-pkg/
 backend/static/
 
 # ── Runtime ───────────────────────────────────────────────
 *.pid
-.pdb_explorer.pid
+.drughunter_studio.pid
 
 # ── Anotações e planos internos ───────────────────────────
 Anotações/
 Plans_executados/
+
+# ── Documentação (MkDocs) ─────────────────────────────────
+site/
+tools/docs/node_modules/

@@ -6,6 +6,7 @@ import { useRedocking } from "../../contexts/RedockingContext";
 import type { RedockingUseCase } from "../../data/usecases/redocking.usecase";
 import type {
   CsvLinha,
+  ProntidaoResponse,
   RedockingJobModel,
 } from "../../domain/models/redocking.model";
 
@@ -13,6 +14,20 @@ export type ChargeType = "am1" | "gas";
 
 // Re-exporta CsvLinha para que o template continue importando daqui
 export type { CsvLinha };
+
+/**
+ * Normaliza o nome do alvo para uso seguro em caminhos e shell.
+ * Espelha exatamente a lógica de backend/app/domain/utils/normalizacao.py:
+ * - Remove acentos (NFD → ASCII)
+ * - Remove espaços (igual ao DrugHunter)
+ * - Mantém apenas [A-Za-z0-9_-]
+ */
+function normalizarTarget(nome: string): string {
+  const semAcentos = nome
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+  return semAcentos.replace(/[^A-Za-z0-9_-]/g, "");
+}
 
 export interface ChartDatum {
   name: string;
@@ -39,6 +54,14 @@ export interface UseRedockingPageReturn {
     base_output_path: string;
     charge_type: ChargeType;
   };
+  /** Nome do alvo após normalização (apenas [A-Za-z0-9_-]). */
+  targetNormalizado: string;
+  /** True quando o nome digitado foi modificado pela normalização. */
+  targetAjustado: boolean;
+  /** Estado de prontidão dos arquivos .pdb na pasta do alvo. */
+  prontidao: ProntidaoResponse | null;
+  /** True enquanto a preparação automática está em curso. */
+  preparando: boolean;
   submitting: boolean;
   jobs: RedockingJobModel[];
   userEmail: string;
@@ -50,10 +73,17 @@ export interface UseRedockingPageReturn {
   irParaBusca: () => void;
   irParaHistorico: () => void;
   irParaMeusPdbs: () => void;
+  irParaConfiguracoes: () => void;
+  irParaAjuda: () => void;
   handleImportarCsv: (file: File) => void;
   handleConfigChange: (field: string, value: string) => void;
+  handleVerificarProntidao: () => Promise<void>;
+  handlePreparar: () => Promise<void>;
   handleSubmit: () => Promise<void>;
   handleLogout: () => void;
+  onDeleteJob: (jobId: number) => Promise<void>;
+  /** Cancela um job pending/running e reflete o estado "cancelled" na lista. */
+  handleCancelar: (jobId: number) => Promise<void>;
 }
 
 export function useRedockingPage(
@@ -71,8 +101,11 @@ export function useRedockingPage(
   const navigate = useNavigate();
 
   const [submitting, setSubmitting] = useState(false);
+  const [preparando, setPreparando] = useState(false);
+  const [prontidao, setProntidao] = useState<ProntidaoResponse | null>(null);
   const [menuAberto, setMenuAberto] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const prevJobStatusRef = useRef<string | null>(null);
   const [jobs, setJobs] = useState<RedockingJobModel[]>([]);
   const [toast, setToast] = useState<string | null>(null);
   const [toastVariant, setToastVariant] = useState<"success" | "error">(
@@ -111,6 +144,9 @@ export function useRedockingPage(
           ...(prev.base_input_path === ""
             ? { base_input_path: d.base_input_path }
             : {}),
+          ...(prev.base_output_path === ""
+            ? { base_output_path: d.base_output_path }
+            : {}),
           ...(prev.target === "" && d.last_target
             ? { target: d.last_target }
             : {}),
@@ -123,11 +159,24 @@ export function useRedockingPage(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [redockingUseCase]);
 
-  // Sincroniza o histórico local com o job ativo atualizado pelo polling do contexto
+  // Sincroniza o histórico local com o job ativo atualizado pelo polling do contexto.
+  // Exibe toast quando um job transita para "error".
   useEffect(() => {
     if (!activeJob) return;
     setJobs((prev) => prev.map((j) => (j.id === activeJob.id ? activeJob : j)));
-  }, [activeJob]);
+    if (
+      activeJob.status === "error" &&
+      prevJobStatusRef.current !== "error"
+    ) {
+      showToast(
+        activeJob.erro_msg
+          ? `Falha no redocking: ${activeJob.erro_msg.split("\n")[0]}`
+          : "Falha no redocking. Verifique o histórico para detalhes.",
+        "error",
+      );
+    }
+    prevJobStatusRef.current = activeJob.status;
+  }, [activeJob, showToast]);
 
   const handleImportarCsv = useCallback(
     (file: File) => {
@@ -162,14 +211,55 @@ export function useRedockingPage(
     setConfig((prev) => ({ ...prev, [field]: value }));
     if (field === "target") {
       localStorage.setItem("redocking_target", value);
+      setProntidao(null); // invalida ao mudar o alvo
     } else if (field === "base_input_path") {
       localStorage.setItem("redocking_base_input_path", value);
+      setProntidao(null); // invalida ao mudar a pasta
     }
   }, []);
 
+  const handleVerificarProntidao = useCallback(async () => {
+    const targetNorm = normalizarTarget(config.target);
+    if (!targetNorm || !config.base_input_path || csvLinhas.length === 0) return;
+    const token = localStorage.getItem("access_token") ?? "";
+    try {
+      const resultado = await redockingUseCase.verificarProntidao(
+        targetNorm,
+        config.base_input_path,
+        token,
+      );
+      setProntidao(resultado);
+    } catch {
+      // ignora erros transientes
+    }
+  }, [config.target, config.base_input_path, csvLinhas.length, redockingUseCase]);
+
+  const handlePreparar = useCallback(async () => {
+    const targetNorm = normalizarTarget(config.target);
+    if (!targetNorm || !config.base_input_path) return;
+    const token = localStorage.getItem("access_token") ?? "";
+    setPreparando(true);
+    try {
+      const resultado = await redockingUseCase.preparar(
+        targetNorm,
+        config.base_input_path,
+        token,
+      );
+      setProntidao(resultado);
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : "Erro ao preparar dados.",
+        "error",
+      );
+    } finally {
+      setPreparando(false);
+    }
+  }, [config.target, config.base_input_path, redockingUseCase, showToast]);
+
   const handleSubmit = useCallback(async () => {
     if (csvLinhas.length === 0) return;
-    if (!config.target || !config.base_input_path || !config.base_output_path)
+    const targetNorm = normalizarTarget(config.target);
+    if (!targetNorm || !config.base_input_path || !config.base_output_path)
       return;
 
     const token = localStorage.getItem("access_token") ?? "";
@@ -185,7 +275,7 @@ export function useRedockingPage(
 
       const job = await redockingUseCase.iniciar(
         {
-          target: config.target,
+          target: targetNorm,
           base_input_path: config.base_input_path,
           base_output_path: config.base_output_path,
           charge_type: config.charge_type,
@@ -215,18 +305,35 @@ export function useRedockingPage(
 
   const irParaBusca = useCallback(() => {
     setMenuAberto(false);
-    navigate("/search");
+    navigate("/busca-pdb");
   }, [navigate]);
 
   const irParaHistorico = useCallback(() => {
     setMenuAberto(false);
-    navigate("/historico");
+    navigate("/busca-pdb");
   }, [navigate]);
 
   const irParaMeusPdbs = useCallback(() => {
     setMenuAberto(false);
     navigate("/meus-pdbs");
   }, [navigate]);
+
+  const irParaConfiguracoes = useCallback(() => {
+    setMenuAberto(false);
+    navigate("/configuracoes");
+  }, [navigate]);
+
+  const irParaAjuda = useCallback(() => {
+    setMenuAberto(false);
+    navigate("/ajuda");
+  }, [navigate]);
+
+  const targetNormalizado = useMemo(
+    () => normalizarTarget(config.target),
+    [config.target],
+  );
+  const targetAjustado =
+    config.target.trim() !== "" && targetNormalizado !== config.target.trim();
 
   const dashboard = useMemo((): RedockingDashboard | null => {
     if (csvLinhas.length === 0) return null;
@@ -306,11 +413,37 @@ export function useRedockingPage(
     };
   }, [csvLinhas]);
 
+  const onDeleteJob = useCallback(async (jobId: number) => {
+    const token = localStorage.getItem("access_token") ?? "";
+    try {
+      await redockingUseCase.deletarJob(jobId, token);
+      setJobs((prev) => prev.filter((j) => j.id !== jobId));
+    } catch {
+      showToast("Não foi possível remover o job.", "error");
+    }
+  }, [redockingUseCase, showToast]);
+
+  const handleCancelar = useCallback(async (jobId: number) => {
+    const token = localStorage.getItem("access_token") ?? "";
+    try {
+      await redockingUseCase.cancelar(jobId, token);
+      const atualizado = await redockingUseCase.statusJob(jobId, token);
+      setJobs((prev) => prev.map((j) => (j.id === jobId ? atualizado : j)));
+      if (activeJob?.id === jobId) setActiveJob(atualizado);
+    } catch {
+      showToast("Não foi possível cancelar o job.", "error");
+    }
+  }, [redockingUseCase, activeJob?.id, setActiveJob, showToast]);
+
   return {
     csvLinhas,
     csvFileName,
     dashboard,
     config,
+    targetNormalizado,
+    targetAjustado,
+    prontidao,
+    preparando,
     submitting,
     jobs,
     userEmail: user?.email ?? "",
@@ -322,9 +455,15 @@ export function useRedockingPage(
     irParaBusca,
     irParaHistorico,
     irParaMeusPdbs,
+    irParaConfiguracoes,
+    irParaAjuda,
     handleImportarCsv,
     handleConfigChange,
+    handleVerificarProntidao,
+    handlePreparar,
     handleSubmit,
     handleLogout,
+    onDeleteJob,
+    handleCancelar,
   };
 }

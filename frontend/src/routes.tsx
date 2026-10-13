@@ -1,7 +1,15 @@
 // routes.tsx
-import { Routes, Route, Navigate, type ReactNode } from "react-router-dom";
+import { type ReactNode } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import AuthPage from "./pages/AuthPage/AuthPage";
+import HomePage from "./pages/HomePage/HomePage";
+import ChemblPage from "./pages/ChemblPage/ChemblPage";
+import ChemblResultsPage from "./pages/ChemblResultsPage/ChemblResultsPage";
+import AdmetPage from "./pages/AdmetPage/AdmetPage";
+import ConsensusPage from "./pages/ConsensusPage/ConsensusPage";
+import ClusteringPage from "./pages/ClusteringPage/ClusteringPage";
+import NeuroDockPage from "./pages/NeuroDockPage/NeuroDockPage";
 import SearchPage from "./pages/SearchPage/SearchPage";
 import HistoryListPage from "./pages/HistoryListPage/HistoryListPage";
 import HistoryDashboardPage from "./pages/HistoryDashboardPage/HistoryDashboardPage";
@@ -9,6 +17,8 @@ import PdbFilesPage from "./pages/PdbFilesPage/PdbFilesPage";
 import VisualizadorPage from "./pages/VisualizadorPage/VisualizadorPage";
 import VisualizadorCifPage from "./pages/VisualizadorCifPage/VisualizadorCifPage";
 import RedockingPage from "./pages/RedockingPage/RedockingPage";
+import ConfigPage from "./pages/ConfigPage/ConfigPage";
+import AjudaPage from "./pages/AjudaPage/AjudaPage";
 import type { SearchUseCase } from "./data/usecases/search.usecase";
 import type { HistoryUseCase } from "./data/usecases/history.usecase";
 import type { DashboardUseCase } from "./data/usecases/dashboard.usecase";
@@ -16,6 +26,15 @@ import type { PdbFilesUseCase } from "./data/usecases/pdb_files.usecase";
 import type { VisualizadorUseCase } from "./data/usecases/visualizador.usecase";
 import type { VisualizadorCifUseCase } from "./data/usecases/visualizador_cif.usecase";
 import type { RedockingUseCase } from "./data/usecases/redocking.usecase";
+import type { ConfigUseCase } from "./data/usecases/config.usecase";
+import type { HomeUseCase } from "./data/usecases/home.usecase";
+import type { ChemblUseCase } from "./data/usecases/chembl.usecase";
+import type { AdmetUseCase } from "./data/usecases/admet.usecase";
+import type { ConsensusUseCase } from "./data/usecases/consensus.usecase";
+import type { ClusteringUseCase } from "./data/usecases/clustering.usecase";
+import type { NeuroDockUseCase } from "./data/usecases/neurodock.usecase";
+import MolecularDynamicsPage from "./pages/MolecularDynamicsPage/MolecularDynamicsPage";
+import type { MolecularDynamicsUseCase } from "./data/usecases/molecular_dynamics.usecase";
 
 interface RotaProtegidaProps {
   children: ReactNode;
@@ -27,8 +46,7 @@ function RotaProtegida({ children }: RotaProtegidaProps) {
   if (loading) {
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center gap-4"
-        style={{ background: "#0a0e1a" }}
+        className="min-h-screen flex flex-col items-center justify-center gap-4 bg-surface-primary"
       >
         <span
           className="spinner"
@@ -59,6 +77,14 @@ interface AppRoutesProps {
   visualizadorUseCase: VisualizadorUseCase;
   visualizadorCifUseCase: VisualizadorCifUseCase;
   redockingUseCase: RedockingUseCase;
+  configUseCase: ConfigUseCase;
+  homeUseCase: HomeUseCase;
+  chemblUseCase: ChemblUseCase;
+  admetUseCase: AdmetUseCase;
+  consensusUseCase: ConsensusUseCase;
+  clusteringUseCase: ClusteringUseCase;
+  neuroDockUseCase: NeuroDockUseCase;
+  molecularDynamicsUseCase: MolecularDynamicsUseCase;
 }
 
 export default function AppRoutes({
@@ -69,6 +95,14 @@ export default function AppRoutes({
   visualizadorUseCase,
   visualizadorCifUseCase,
   redockingUseCase,
+  configUseCase,
+  homeUseCase,
+  chemblUseCase,
+  admetUseCase,
+  consensusUseCase,
+  clusteringUseCase,
+  neuroDockUseCase,
+  molecularDynamicsUseCase,
 }: AppRoutesProps) {
   const { user, loading } = useAuth();
 
@@ -78,30 +112,51 @@ export default function AppRoutes({
         path="/"
         element={
           loading ? null : user ? (
-            <Navigate to="/search" replace />
+            <Navigate to="/home" replace />
           ) : (
             <AuthPage />
           )
         }
       />
       <Route
-        path="/search"
+        path="/home"
+        element={
+          <RotaProtegida>
+            <HomePage homeUseCase={homeUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/chembl"
+        element={
+          <RotaProtegida>
+            <ChemblPage chemblUseCase={chemblUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/chembl/:jobId/resultados"
+        element={
+          <RotaProtegida>
+            <ChemblResultsPage chemblUseCase={chemblUseCase} admetUseCase={admetUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/busca-pdb"
         element={
           <RotaProtegida>
             <SearchPage
               searchUseCase={searchUseCase}
               dashboardUseCase={dashboardUseCase}
+              historyUseCase={historyUseCase}
             />
           </RotaProtegida>
         }
       />
       <Route
         path="/historico"
-        element={
-          <RotaProtegida>
-            <HistoryListPage historyUseCase={historyUseCase} />
-          </RotaProtegida>
-        }
+        element={<Navigate to="/busca-pdb" replace />}
       />
       <Route
         path="/historico/:id"
@@ -148,6 +203,111 @@ export default function AppRoutes({
           </RotaProtegida>
         }
       />
+      <Route
+        path="/configuracoes"
+        element={
+          <RotaProtegida>
+            <ConfigPage configUseCase={configUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/ajuda"
+        element={
+          <RotaProtegida>
+            <AjudaPage configUseCase={configUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/admet"
+        element={
+          <RotaProtegida>
+            <AdmetPage admetUseCase={admetUseCase} consensusUseCase={consensusUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/admet/:resultId"
+        element={
+          <RotaProtegida>
+            <AdmetPage admetUseCase={admetUseCase} consensusUseCase={consensusUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/consensus/:jobId"
+        element={
+          <RotaProtegida>
+            <ConsensusPage consensusUseCase={consensusUseCase} admetUseCase={admetUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/consensus"
+        element={
+          <RotaProtegida>
+            <ConsensusPage consensusUseCase={consensusUseCase} admetUseCase={admetUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/clustering/:jobId"
+        element={
+          <RotaProtegida>
+            <ClusteringPage clusteringUseCase={clusteringUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/clustering"
+        element={
+          <RotaProtegida>
+            <ClusteringPage clusteringUseCase={clusteringUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/neurodock/:modelId/prediction/:predId"
+        element={
+          <RotaProtegida>
+            <NeuroDockPage neuroDockUseCase={neuroDockUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/neurodock/:modelId"
+        element={
+          <RotaProtegida>
+            <NeuroDockPage neuroDockUseCase={neuroDockUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/neurodock"
+        element={
+          <RotaProtegida>
+            <NeuroDockPage neuroDockUseCase={neuroDockUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/dinamica-molecular/:jobId"
+        element={
+          <RotaProtegida>
+            <MolecularDynamicsPage molecularDynamicsUseCase={molecularDynamicsUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/dinamica-molecular"
+        element={
+          <RotaProtegida>
+            <MolecularDynamicsPage molecularDynamicsUseCase={molecularDynamicsUseCase} />
+          </RotaProtegida>
+        }
+      />
+      <Route path="/predicao" element={<Navigate to="/chembl" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

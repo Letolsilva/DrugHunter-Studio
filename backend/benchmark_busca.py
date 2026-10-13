@@ -187,8 +187,8 @@ async def main() -> None:
     # Garante que o banco e as tabelas existam antes de qualquer operação
     Base.metadata.create_all(bind=engine)
 
-    print("PDB Explorer — Benchmark de desempenho de busca")
-    print(f"Banco: {os.path.abspath('pdb_explorer.db')}")
+    print("DrugHunter Studio — Benchmark de desempenho de busca")
+    print(f"Banco: {os.path.abspath('drughunter_studio.db')}")
     print(f"Casos: {len(CASOS)} | Scraping: {N_SCRAPING}× | Cache: {N_CACHE}×")
     print("Isso pode levar vários minutos dependendo da velocidade da rede.\n")
 

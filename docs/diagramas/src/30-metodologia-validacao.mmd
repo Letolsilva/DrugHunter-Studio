@@ -1,0 +1,22 @@
+flowchart LR
+    subgraph P1["1. Preparação"]
+        a1["Definir perfil do usuário<br/>e tarefas (estudo de caso:<br/>fungo escolhido)"] --> a2["Definir hipóteses e métricas<br/>ISO 9241-11: eficácia,<br/>eficiência, satisfação"]
+    end
+    subgraph P2["2. Inspeção (sem usuários)"]
+        b1["Acessibilidade<br/>WCAG 2.2 AA: axe, Lighthouse,<br/>teclado, leitor de tela"]
+        b2["Avaliação heurística<br/>10 heurísticas de Nielsen"]
+        b3["Revisão das visualizações<br/>tipo de dado → canal visual"]
+    end
+    subgraph P3["3. Teste com usuários"]
+        c1["Tarefas guiadas<br/>pense em voz alta<br/>5 a 10 participantes"]
+        c2["Métricas: sucesso, tempo, erros"]
+        c3["Questionário SUS<br/>e perguntas sobre os gráficos"]
+        c1 --> c2 --> c3
+    end
+    subgraph P4["4. Análise e iteração"]
+        d1["Priorizar problemas<br/>severidade × frequência"] --> d2["Corrigir"] --> d3["Reteste das<br/>tarefas críticas"]
+    end
+    a2 --> b1 & b2 & b3
+    b1 & b2 & b3 --> c1
+    c3 --> d1
+    d3 -.->|"nova rodada"| c1

@@ -40,8 +40,8 @@ def criar_job(
 
 
 def atualizar_status(db: Session, job_id: int, status: str) -> None:
-    job = db.query(RedockingJob).filter(RedockingJob.id == job_id).first()
-    if job:
+    job = db.query(RedockingJob).filter(RedockingJob.id == job_id).populate_existing().first()
+    if job and job.status != "cancelled":
         job.status = status
         db.commit()
 
@@ -49,8 +49,8 @@ def atualizar_status(db: Session, job_id: int, status: str) -> None:
 def marcar_finalizado(
     db: Session, job_id: int, status: str, erro_msg: Optional[str] = None
 ) -> None:
-    job = db.query(RedockingJob).filter(RedockingJob.id == job_id).first()
-    if job:
+    job = db.query(RedockingJob).filter(RedockingJob.id == job_id).populate_existing().first()
+    if job and job.status != "cancelled":
         job.status = status
         job.finalizado_em = datetime.utcnow()
         job.erro_msg = erro_msg
@@ -72,6 +72,15 @@ def buscar_job(db: Session, job_id: int, user_id: int) -> Optional[RedockingJob]
         .filter(RedockingJob.id == job_id, RedockingJob.user_id == user_id)
         .first()
     )
+
+
+def deletar_job(db: Session, job_id: int, user_id: int) -> bool:
+    job = buscar_job(db, job_id, user_id)
+    if not job:
+        return False
+    db.delete(job)
+    db.commit()
+    return True
 
 
 def salvar_csv_usuario(

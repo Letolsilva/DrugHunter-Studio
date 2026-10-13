@@ -1,21 +1,25 @@
 // templates/redocking/RedockingTemplate.tsx
 import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Navbar, DropdownMenu } from "../../components/layout";
+import { MiddleBar } from "../../components/nav/MiddleBar";
 import { Button } from "../../components/ui/Button";
 import { Spinner } from "../../components/ui/Spinner";
+import { CancelJobButton } from "../../components/ui/CancelJobButton";
 import { Toast } from "../../components/ui/Toast";
 import {
   AppLogoIcon,
   ArrowLeftIcon,
   ClockIcon,
   DownloadIcon,
+  HelpIcon,
   LogoutIcon,
   MenuIcon,
-  SearchIcon,
+  SettingsIcon,
 } from "../../components/icons";
 import { ResolutionBarChart } from "../../components/charts/ResolutionBarChart";
 import { MethodBarChart } from "../../components/charts/MethodBarChart";
-import { LigandDonutChart } from "../../components/charts/LigandDonutChart";
+import { LigandBarChart } from "../../components/charts/LigandBarChart";
 import { InfoTooltip } from "../../components/ui/InfoTooltip";
 import type { UseRedockingPageReturn } from "../../pages/RedockingPage/useRedockingPage";
 
@@ -24,6 +28,7 @@ const STATUS_LABEL: Record<string, string> = {
   running: "Em execução",
   done: "Concluído",
   error: "Erro",
+  cancelled: "Cancelado",
 };
 
 const STATUS_COLOR: Record<string, string> = {
@@ -31,6 +36,7 @@ const STATUS_COLOR: Record<string, string> = {
   running: "var(--color-blue)",
   done: "var(--color-accent)",
   error: "var(--color-red)",
+  cancelled: "var(--color-foreground-muted)",
 };
 
 function formatDate(iso: string | null): string {
@@ -50,6 +56,10 @@ export default function RedockingTemplate({
   csvFileName,
   dashboard,
   config,
+  targetNormalizado,
+  targetAjustado,
+  prontidao,
+  preparando,
   submitting,
   jobs,
   userEmail,
@@ -61,23 +71,41 @@ export default function RedockingTemplate({
   irParaBusca,
   irParaHistorico,
   irParaMeusPdbs,
+  irParaConfiguracoes,
+  irParaAjuda,
   handleImportarCsv,
   handleConfigChange,
+  handleVerificarProntidao,
+  handlePreparar,
   handleSubmit,
   handleLogout,
+  onDeleteJob,
+  handleCancelar,
 }: UseRedockingPageReturn) {
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [modalCsvAberto, setModalCsvAberto] = useState(false);
+  const [erroExpandidoId, setErroExpandidoId] = useState<number | null>(null);
+  // Mostra a coluna "Ação" (cancelar) só enquanto há algum job em andamento
+  const temJobEmAndamento = jobs.some(
+    (j) => j.status === "pending" || j.status === "running",
+  );
+
+  const todosProntos =
+    prontidao !== null &&
+    prontidao.total > 0 &&
+    prontidao.prontos === prontidao.total;
 
   const canSubmit =
     csvLinhas.length > 0 &&
-    config.target.trim() !== "" &&
+    targetNormalizado !== "" &&
     config.base_input_path.trim() !== "" &&
     config.base_output_path.trim() !== "" &&
+    todosProntos &&
     !submitting;
 
   return (
-    <div className="min-h-screen flex flex-col bg-surface-primary select-none">
+    <div className="min-h-screen flex flex-col bg-surface-primary">
       <Navbar>
         <Navbar.Left>
           <button
@@ -88,15 +116,32 @@ export default function RedockingTemplate({
           >
             <ArrowLeftIcon size={16} />
           </button>
-          <span className="text-[17px] font-medium text-foreground-muted inline-flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => navigate("/home")}
+            className="cursor-pointer rounded border-none bg-transparent text-[17px] font-medium text-foreground-muted inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
+            title="Início"
+          >
             <AppLogoIcon size={17} className="text-foreground-muted" />
-            PDB<b className="text-foreground font-extrabold">Explorer</b>
-          </span>
+            DrugHunter<b className="text-foreground font-extrabold">Studio</b>
+          </button>
           <span className="ml-1 border-l border-outline pl-3 text-[13px] text-foreground-subtle">
             Redocking
           </span>
         </Navbar.Left>
+
+        <Navbar.Middle>
+          <MiddleBar activeModule={null} />
+        </Navbar.Middle>
+
         <Navbar.Right>
+          <button
+            type="button"
+            onClick={irParaConfiguracoes}
+            className="cursor-pointer rounded border-none bg-transparent px-3 py-1.5 font-mono text-[12px] text-foreground-subtle transition-colors hover:text-foreground"
+          >
+            Configurações
+          </button>
           <DropdownMenu
             isOpen={menuAberto}
             menuRef={menuRef}
@@ -104,12 +149,6 @@ export default function RedockingTemplate({
             buttonTitle="Menu"
             trigger={<MenuIcon size={25} />}
           >
-            <DropdownMenu.Item
-              icon={<SearchIcon size={14} />}
-              label="Busca"
-              onClick={irParaBusca}
-              divider
-            />
             <DropdownMenu.Item
               icon={<ClockIcon size={14} />}
               label="Histórico"
@@ -120,6 +159,12 @@ export default function RedockingTemplate({
               icon={<DownloadIcon size={14} />}
               label="Meus PDBs"
               onClick={irParaMeusPdbs}
+              divider
+            />
+            <DropdownMenu.Item
+              icon={<HelpIcon size={14} />}
+              label="Ajuda"
+              onClick={irParaAjuda}
               divider
             />
             <DropdownMenu.Item
@@ -320,9 +365,9 @@ export default function RedockingTemplate({
               <div className="flex flex-col gap-2">
                 <span className="uppercase tracking-wide font-medium text-[11px] text-foreground-subtle flex items-center gap-1">
                   Top ligantes
-                  <InfoTooltip text="Moléculas ligantes mais frequentes entre as estruturas filtradas. Cada fatia representa a proporção de estruturas que contém aquele ligante." />
+                  <InfoTooltip text="Moléculas ligantes mais frequentes entre as estruturas filtradas. O comprimento de cada barra é o número de estruturas que contém aquele ligante." />
                 </span>
-                <LigandDonutChart data={dashboard.topLigantes} />
+                <LigandBarChart data={dashboard.topLigantes} />
               </div>
               {dashboard.porCadeia.length > 0 && (
                 <div className="flex flex-col gap-2">
@@ -362,6 +407,26 @@ export default function RedockingTemplate({
                 placeholder="ex: GlucanSynthase"
                 className="rounded border border-outline bg-surface-secondary px-3 py-2 font-mono text-[12px] text-foreground placeholder:text-foreground-subtle focus:outline-none focus:border-outline-strong"
               />
+              {config.target.trim() !== "" && (
+                <div className="flex flex-col gap-0.5">
+                  <p className="font-mono text-[11px] text-foreground-subtle">
+                    Pasta usada:{" "}
+                    <span className="text-foreground-muted">
+                      {config.base_input_path || "/datasets/PDB"}/
+                      {targetNormalizado || "…"}/
+                    </span>
+                  </p>
+                  {targetAjustado && (
+                    <p className="text-[11px] text-amber-500">
+                      ⚠ Nome ajustado para{" "}
+                      <span className="font-mono font-semibold">
+                        {targetNormalizado}
+                      </span>{" "}
+                      (caracteres inválidos removidos).
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Pasta dos PDBs */}
@@ -425,6 +490,109 @@ export default function RedockingTemplate({
             </div>
           </div>
 
+          {/* Seção Preparar dados */}
+          {csvLinhas.length > 0 &&
+            targetNormalizado !== "" &&
+            config.base_input_path.trim() !== "" && (
+              <div className="rounded-lg border border-outline bg-surface-raised p-4 flex flex-col gap-3">
+                <h3 className="text-[13px] font-semibold text-foreground-muted uppercase tracking-wide">
+                  Preparar dados
+                </h3>
+
+                {/* Pasta alvo */}
+                <div className="flex items-start gap-2">
+                  <span className="text-[12px] text-foreground-subtle shrink-0">
+                    Pasta:
+                  </span>
+                  <span className="font-mono text-[11px] text-foreground-muted break-all select-all">
+                    {prontidao?.pasta ??
+                      `${config.base_input_path}/${targetNormalizado}`}
+                  </span>
+                </div>
+
+                {/* Checklist após verificação */}
+                {prontidao && (
+                  <>
+                    <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
+                      {prontidao.itens.map((item) => {
+                        const ok = item.presente && item.formato_ok;
+                        return (
+                          <div
+                            key={item.codigo}
+                            className="flex items-center gap-2 text-[12px]"
+                          >
+                            <span>{ok ? "🟢" : "🔴"}</span>
+                            <span
+                              className={`font-mono ${ok ? "text-foreground" : "text-red-500"}`}
+                            >
+                              {item.codigo}.pdb
+                            </span>
+                            {!ok && (
+                              <span className="text-[10px] text-red-400">
+                                — arquivo não encontrado
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <p className="text-[12px] text-foreground-muted">
+                      {prontidao.prontos}/{prontidao.total} prontos
+                    </p>
+
+                    {/* Instrução quando há arquivos faltando */}
+                    {prontidao.prontos < prontidao.total && (
+                      <div className="rounded-md border border-red-400/40 bg-red-500/10 px-3 py-2 flex flex-col gap-2">
+                        <p className="text-[12px] font-semibold text-red-400">
+                          Arquivos .pdb ausentes
+                        </p>
+                        <ol className="text-[12px] text-foreground-muted leading-relaxed list-decimal list-inside flex flex-col gap-1">
+                          <li>
+                            Vá até <span className="font-semibold">Busca</span>{" "}
+                            e localize cada código marcado com 🔴.
+                          </li>
+                          <li>
+                            Clique no ícone{" "}
+                            <span className="font-semibold">↓ PDB</span> e
+                            escolha o formato{" "}
+                            <span className="font-mono">Legacy PDB (.pdb)</span>.
+                          </li>
+                          <li>
+                            Na janela de seleção de pasta, navegue até e
+                            selecione{" "}
+                            <span className="font-mono font-semibold break-all">
+                              {prontidao.pasta}
+                            </span>
+                            . O arquivo será salvo com o nome correto
+                            automaticamente.
+                          </li>
+                          <li>
+                            Repita para cada código faltante e clique em{" "}
+                            <span className="font-semibold">
+                              Verificar prontidão
+                            </span>{" "}
+                            novamente.
+                          </li>
+                        </ol>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Botão verificar */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={handleVerificarProntidao}
+                    className="btn-primary text-[12px]"
+                  >
+                    Verificar prontidão
+                  </button>
+                </div>
+              </div>
+            )}
+
           {/* Info do e-mail */}
           {userEmail && (
             <p className="text-[12px] text-foreground-subtle">
@@ -442,6 +610,13 @@ export default function RedockingTemplate({
               type="button"
               onClick={handleSubmit}
               disabled={!canSubmit}
+              title={
+                !canSubmit && csvLinhas.length > 0 && targetNormalizado !== ""
+                  ? !todosProntos
+                    ? "Verifique a prontidão dos arquivos .pdb antes de iniciar"
+                    : "Preencha todos os campos de configuração"
+                  : undefined
+              }
               className={`btn-primary inline-flex items-center gap-2 ${
                 canSubmit
                   ? "opacity-100 cursor-pointer"
@@ -479,56 +654,119 @@ export default function RedockingTemplate({
                       "Carga",
                       "Iniciado",
                       "Finalizado",
-                    ].map((col) => (
+                      // Coluna de cancelamento: só aparece enquanto há job em andamento
+                      ...(temJobEmAndamento ? ["Ação"] : []),
+                      "",
+                    ].map((col, colIdx) => (
                       <th
-                        key={col}
+                        key={`${col}-${colIdx}`}
+                        scope="col"
                         className="px-4 py-2 text-left font-mono text-[11px] font-semibold text-foreground-subtle uppercase tracking-[0.05em] bg-panel"
                       >
-                        {col}
+                        {col || <span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap" }}>Ações</span>}
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {jobs.map((job, i) => (
-                    <tr
-                      key={job.id}
-                      className="border-b border-outline"
-                      style={{
-                        background:
-                          i % 2 === 0
-                            ? "var(--color-panel)"
-                            : "var(--color-surface-secondary)",
-                      }}
-                    >
-                      <td className="px-4 py-1.5 font-mono text-[12px] text-foreground-subtle">
-                        #{job.id}
-                      </td>
-                      <td className="px-4 py-1.5 font-mono text-[12px] text-foreground">
-                        {job.target}
-                      </td>
-                      <td className="px-4 py-1.5">
-                        <span
-                          className="text-[11px] font-semibold font-mono"
-                          style={{
-                            color:
-                              STATUS_COLOR[job.status] ??
-                              "var(--color-foreground-subtle)",
-                          }}
-                        >
-                          {STATUS_LABEL[job.status] ?? job.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-1.5 font-mono text-[12px] text-foreground-muted">
-                        {job.charge_type}
-                      </td>
-                      <td className="px-4 py-1.5 font-mono text-[12px] text-foreground-subtle">
-                        {formatDate(job.iniciado_em)}
-                      </td>
-                      <td className="px-4 py-1.5 font-mono text-[12px] text-foreground-subtle">
-                        {formatDate(job.finalizado_em)}
-                      </td>
-                    </tr>
+                    <>
+                      <tr
+                        key={job.id}
+                        className="border-b border-outline"
+                        style={{
+                          background:
+                            i % 2 === 0
+                              ? "var(--color-panel)"
+                              : "var(--color-surface-secondary)",
+                        }}
+                      >
+                        <td className="px-4 py-1.5 font-mono text-[12px] text-foreground-subtle">
+                          #{job.id}
+                        </td>
+                        <td className="px-4 py-1.5 font-mono text-[12px] text-foreground">
+                          {job.target}
+                        </td>
+                        <td className="px-4 py-1.5">
+                          {job.status === "error" && job.erro_msg ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setErroExpandidoId(
+                                  erroExpandidoId === job.id ? null : job.id,
+                                )
+                              }
+                              className="flex items-center gap-1 text-[11px] font-semibold font-mono cursor-pointer bg-transparent border-none p-0"
+                              style={{ color: STATUS_COLOR["error"] }}
+                              title="Clique para ver detalhes do erro"
+                            >
+                              {STATUS_LABEL["error"]}
+                              <span className="text-[10px] opacity-60">
+                                {erroExpandidoId === job.id ? "▲" : "▼"}
+                              </span>
+                            </button>
+                          ) : (
+                            <span
+                              className="text-[11px] font-semibold font-mono"
+                              style={{
+                                color:
+                                  STATUS_COLOR[job.status] ??
+                                  "var(--color-foreground-subtle)",
+                              }}
+                            >
+                              {STATUS_LABEL[job.status] ?? job.status}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-1.5 font-mono text-[12px] text-foreground-muted">
+                          {job.charge_type}
+                        </td>
+                        <td className="px-4 py-1.5 font-mono text-[12px] text-foreground-subtle">
+                          {formatDate(job.iniciado_em)}
+                        </td>
+                        <td className="px-4 py-1.5 font-mono text-[12px] text-foreground-subtle">
+                          {formatDate(job.finalizado_em)}
+                        </td>
+                        {temJobEmAndamento && (
+                          <td className="px-3 py-1.5">
+                            {(job.status === "pending" ||
+                              job.status === "running") && (
+                              <CancelJobButton
+                                compact
+                                onCancel={() => handleCancelar(job.id)}
+                              />
+                            )}
+                          </td>
+                        )}
+                        <td className="px-2 py-1.5 text-center">
+                          <button
+                            type="button"
+                            onClick={() => onDeleteJob(job.id)}
+                            className="flex items-center justify-center rounded w-6 h-6 font-mono text-[13px] text-foreground-subtle hover:text-foreground transition-colors mx-auto"
+                            title="Remover do histórico"
+                          >
+                            ×
+                          </button>
+                        </td>
+                      </tr>
+                      {job.status === "error" &&
+                        job.erro_msg &&
+                        erroExpandidoId === job.id && (
+                          <tr
+                            key={`${job.id}-erro`}
+                            className="border-b border-outline"
+                          >
+                            <td
+                              colSpan={temJobEmAndamento ? 8 : 7}
+                              className="px-4 py-3 bg-surface-secondary"
+                            >
+                              <pre className="font-mono text-[11px] text-foreground-subtle whitespace-pre-wrap break-words leading-relaxed border border-outline rounded-lg p-3 bg-panel overflow-x-auto max-h-48">
+                                {job.erro_msg}
+                              </pre>
+                            </td>
+                          </tr>
+                        )}
+                    </>
                   ))}
                 </tbody>
               </table>

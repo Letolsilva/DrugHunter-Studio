@@ -1,0 +1,50 @@
+site_name: DrugHunter Studio — Documentação técnica
+site_url: https://letolsilva.github.io/PDB-Explorer/
+site_description: Documentação de arquitetura, modelo de dados, fluxos e validação do DrugHunter Studio (TCC)
+docs_dir: docs
+exclude_docs: |
+  diagramas/src/
+theme:
+  name: material
+  language: pt-BR
+  font: false
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - toc.follow
+    - content.code.copy
+  palette:
+    - scheme: default
+      toggle: { icon: material/weather-night, name: Tema escuro }
+    - scheme: slate
+      toggle: { icon: material/weather-sunny, name: Tema claro }
+plugins:
+  - search:
+      lang: pt
+markdown_extensions:
+  - tables
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc: { permalink: true }
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed: { alternate_style: true }
+nav:
+  - Início: index.md
+  - Visão geral: 01-visao-geral.md
+  - Arquitetura: 02-arquitetura.md
+  - Modelo de dados: 03-modelo-de-dados.md
+  - Fluxos e módulos: 04-fluxos-e-modulos.md
+  - Integração com o DrugHunter: 05-integracao-drughunter.md
+  - Frontend: 06-frontend.md
+  - API REST: 07-api.md
+  - Implantação e segurança: 08-implantacao-e-seguranca.md
+  - Validação:
+      - Estratégia de validação: 10-validacao.md
+      - Acessibilidade: 11-acessibilidade.md
+      - Usabilidade: 12-usabilidade.md
+      - Visualização de dados: 13-visualizacao-de-dados.md
+  - Limitações e trabalhos futuros: 14-limitacoes.md
+  - Figuras para o artigo: 15-figuras.md

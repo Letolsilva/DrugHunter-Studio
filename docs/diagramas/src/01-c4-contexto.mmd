@@ -1,0 +1,24 @@
+flowchart TB
+    pesq["<b>Pesquisador</b><br/>Pessoa não programadora<br/>(biólogo, farmacêutico, químico)"]
+    adm["<b>Administrador</b><br/>Configura ambiente,<br/>usuários e cache"]
+    studio["<b>DrugHunter Studio</b><br/>Interface web local que guia o pesquisador<br/>pelo pipeline de triagem virtual,<br/>do alvo à dinâmica molecular"]
+    dh["<b>DrugHunter</b><br/>Biblioteca Python de CADD<br/>(sistema existente, não modificado)"]
+    rcsb["<b>RCSB PDB</b><br/>Estruturas 3D de proteínas"]
+    chembl["<b>ChEMBL</b><br/>Bioatividade de moléculas"]
+    smtp["<b>Servidor SMTP</b><br/>Aviso de conclusão de jobs"]
+    ferr["<b>Ferramentas CADD</b><br/>AutoDock Vina, Dock6, UCSF Chimera,<br/>OpenMM, PyMOL, OpenBabel"]
+
+    pesq -->|"Busca alvos, configura e<br/>acompanha experimentos"| studio
+    adm -->|"Administra"| studio
+    studio -->|"Busca e baixa estruturas<br/>HTTPS"| rcsb
+    studio -->|"Envia e-mail"| smtp
+    studio -->|"Executa etapas<br/>subprocesso + JSON"| dh
+    dh -->|"Consulta bioatividade<br/>HTTPS"| chembl
+    dh -->|"Invoca binários"| ferr
+
+    classDef pessoa fill:#dbeafe,stroke:#1e3a8a,color:#111
+    classDef sistema fill:#1e3a8a,stroke:#1e3a8a,color:#fff
+    classDef externo fill:#e5e7eb,stroke:#6b7280,color:#111
+    class pesq,adm pessoa
+    class studio sistema
+    class dh,rcsb,chembl,smtp,ferr externo

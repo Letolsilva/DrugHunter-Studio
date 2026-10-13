@@ -1,5 +1,5 @@
 {
-  "name": "pdb-explorer",
+  "name": "drughunter-studio",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -10,11 +10,13 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.1",
+    "ngl": "^2.5.0",
     "papaparse": "^5.4.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2",
     "recharts": "^2.12.7",
+    "smiles-drawer": "^2.4.1",
     "tailwindcss": "^4.2.1",
     "yup": "^1.7.1"
   },

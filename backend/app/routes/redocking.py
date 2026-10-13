@@ -13,6 +13,8 @@ from app.core.deps import get_usuario_atual
 from app.domain.models import User
 from app.domain.schemas.redocking import (
     IniciarRedockingRequest,
+    PrepararRequest,
+    ProntidaoResponse,
     RedockingJobListResponse,
     RedockingJobResponse,
     RedockingDefaultsResponse,
@@ -71,6 +73,18 @@ def listar_jobs(
     return RedockingJobListResponse(jobs=jobs)
 
 
+@router.delete("/jobs/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
+def deletar_job(
+    job_id: int,
+    db: Session = Depends(get_db),
+    usuario: User = Depends(get_usuario_atual),
+):
+    """Remove um job de redocking do histórico do usuário."""
+    deleted = uc.uc_deletar_job(db, job_id, usuario.id)
+    if not deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job não encontrado.")
+
+
 @router.get("/jobs/status/{job_id}", response_model=RedockingJobResponse)
 def status_job(
     job_id: int,
@@ -120,3 +134,30 @@ def defaults_redocking(
 ):
     """Retorna valores padrão para os campos de configuração do redocking."""
     return uc.uc_defaults_redocking(db, usuario)
+
+
+@router.get("/prontidao", response_model=ProntidaoResponse)
+def prontidao_redocking(
+    target: str,
+    base_input_path: str,
+    db: Session = Depends(get_db),
+    usuario: User = Depends(get_usuario_atual),
+):
+    """Verifica se os arquivos .pdb de cada PDB_CODE estão prontos na pasta do alvo."""
+    try:
+        return uc.uc_prontidao(db, usuario, target, base_input_path)
+    except (EnvironmentError, ValueError) as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+
+
+@router.post("/preparar", response_model=ProntidaoResponse)
+def preparar_redocking(
+    dados: PrepararRequest,
+    db: Session = Depends(get_db),
+    usuario: User = Depends(get_usuario_atual),
+):
+    """Baixa/copia os .pdb faltantes para a pasta do alvo e (re)escreve pdb_codes.csv."""
+    try:
+        return uc.uc_preparar_dados(db, usuario, dados.target, dados.base_input_path)
+    except (EnvironmentError, ValueError) as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))

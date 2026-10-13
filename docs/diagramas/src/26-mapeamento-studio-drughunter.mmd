@@ -1,0 +1,43 @@
+flowchart LR
+    subgraph ST["DrugHunter Studio (módulos)"]
+        direction TB
+        m1["Busca PDB"]
+        m2["ChEMBL"]
+        m2b["Análise de similaridade"]
+        m3["ADMET"]
+        m4["Clustering"]
+        m5["Redocking"]
+        m6["Consenso"]
+        m7["NeuroDock treino"]
+        m8["NeuroDock triagem"]
+        m9["Dinâmica molecular"]
+        m10["Análise MD"]
+    end
+    subgraph DH["DrugHunter (funções chamadas)"]
+        direction TB
+        d0["Nenhuma<br/>(RCSB direto)"]
+        d1["crawlers.targets, bioactivities,<br/>molecules + prepare_datamols"]
+        d2["wrappers.molecular_analyzer<br/>fingerprints, similarity, graphs"]
+        d3["caad.admet<br/>MoleculeEvaluator, BoiledEggPlotter"]
+        d4["wrappers.molecular_ai_analyzer<br/>perform_clustering"]
+        d5["wrappers.docking<br/>perform_redocking"]
+        d6["wrappers.docking<br/>perform_consensus"]
+        d7["IA.neuralnetwork<br/>NeuroDocking"]
+        d8["wrappers.molecular_ai_analyzer<br/>predict"]
+        d9["caad.dynamics<br/>MDSimulator (OpenMM)"]
+        d10["wrappers.molecular_dynamics<br/>execute_md_analisys"]
+    end
+    m1 -.->|"reimplementa"| d0
+    m2 --> d1
+    m2b --> d2
+    m3 --> d3
+    m4 --> d4
+    m5 --> d5
+    m6 --> d6
+    m7 --> d7
+    m8 --> d8
+    m9 --> d9
+    m10 --> d10
+    adp["Adaptações do Studio:<br/>shims (sphere_selector, pkg_resources),<br/>patches Dock6 6.13, bson,<br/>t-SNE próprio, paths DH-relativos"]:::nota
+    ST --- adp
+    classDef nota fill:#fef3c7,stroke:#b45309,color:#111

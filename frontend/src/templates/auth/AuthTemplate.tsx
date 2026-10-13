@@ -33,7 +33,7 @@ export default function AuthTemplate({
   const isRegister = modo === "register";
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-surface-primary select-none">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-surface-primary">
       <DecorativeBackground />
 
       <div className="relative px-8 z-10 bg-panel border border-outline-strong rounded-2xl w-full max-w-[420px] shadow-[0_24px_64px_rgba(0,0,0,0.55)] fade-in">
@@ -42,7 +42,7 @@ export default function AuthTemplate({
           <div className="inline-flex items-center gap-2 mb-2">
             <AppLogoIcon size={24} className="text-accent" />
             <span className="text-[22px] font-normal text-foreground tracking-tight">
-              PDB<b className="font-bold text-accent">Explorer</b>
+              DrugHunter<b className="font-bold text-accent">Studio</b>
             </span>
           </div>
           <p className="text-[12px] text-foreground-subtle leading-snug mt-1">

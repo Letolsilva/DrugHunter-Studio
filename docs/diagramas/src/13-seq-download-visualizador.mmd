@@ -1,0 +1,34 @@
+sequenceDiagram
+    actor U as Pesquisador
+    participant FE as Frontend
+    participant RD as routes/download.py
+    participant ST as LocalStorageService
+    participant RCSB as files.rcsb.org
+    participant DB as SQLite
+    participant VZ as usecases/visualizador.py
+
+    U->>FE: Clica em baixar estrutura
+    FE->>RD: GET /api/download/pdb/{pdb_id}
+    RD->>ST: arquivo já existe em pdb_files/?
+    alt Não existe
+        RD->>RCSB: GET {ID}.pdb (timeout 30 s)
+        RCSB-->>RD: conteúdo
+        RD->>ST: save()
+        RD->>DB: atualiza proteins (pdb_file_cached, size)
+    end
+    RD->>DB: registra user_pdb_downloads (formato legacy)
+    RD-->>FE: arquivo (attachment)
+    U->>FE: Abre o visualizador da estrutura
+    FE->>VZ: GET /api/download/visualizar/{pdb_id}
+    VZ->>DB: o usuário baixou esta proteína?
+    alt Sem permissão
+        VZ-->>FE: 403
+    else Autorizado
+        VZ->>ST: lê o arquivo
+        VZ->>VZ: construir_arvore (ATOM/HETATM, resname, cadeia, resíduo)
+        VZ-->>FE: árvore de resíduos
+        FE->>VZ: GET .../linhas (carga sob demanda)
+    end
+    U->>FE: Marca ligantes
+    FE->>FE: VisualizadorContext acumula seleção
+    FE->>FE: gera pdb_codes.csv

@@ -1,6 +1,6 @@
 // domain/models/redocking.model.ts
 
-export type RedockingStatus = "pending" | "running" | "done" | "error";
+export type RedockingStatus = "pending" | "running" | "done" | "error" | "cancelled";
 
 export interface RedockingJobModel {
   id: number;
@@ -28,6 +28,20 @@ export interface CsvLinha {
   chain: string;
   resolution: string;
   rmsd?: string;
+}
+
+export interface ProntidaoItem {
+  codigo: string;
+  presente: boolean;
+  formato_ok: boolean;
+  origem: "pasta" | "cache" | "rcsb" | "faltando" | null;
+}
+
+export interface ProntidaoResponse {
+  pasta: string;
+  itens: ProntidaoItem[];
+  prontos: number;
+  total: number;
 }
 
 /** Parseia uma string CSV (com header) em array de CsvLinha */

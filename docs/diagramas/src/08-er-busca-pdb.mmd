@@ -1,0 +1,78 @@
+erDiagram
+    USERS {
+        int id PK
+        string email UK
+        string username UK
+        string hashed_password
+        bool is_active
+        bool is_admin
+        datetime created_at
+    }
+    SEARCHES {
+        int id PK
+        int user_id FK "anulável (busca anônima)"
+        string proteina_query
+        string organismo_query
+        int total_resultados
+        bool veio_do_cache
+        bool teve_erro
+        text mensagem_erro
+        datetime criado_em
+    }
+    SEARCH_RESULTS {
+        int id PK
+        int search_id FK "CASCADE"
+        int protein_id FK "CASCADE"
+    }
+    PROTEINS {
+        int id PK
+        string pdb_id UK
+        string proteina_buscada
+        text titulo
+        string organismo
+        string classificacao
+        float resolucao
+        string metodo
+        bool tem_ligante
+        string depositado_em
+        string link_pdb
+        bool pdb_file_cached
+        string pdb_storage_key
+        int pdb_file_size
+        bool cif_file_cached
+        string cif_storage_key
+        int cif_file_size
+        bool tem_legacy
+        bool tem_cif
+        datetime criado_em
+        datetime ultima_consulta
+        int total_consultas
+    }
+    USER_PDB_DOWNLOADS {
+        int id PK
+        int user_id FK "CASCADE"
+        int protein_id FK "CASCADE"
+        string formato "legacy ou cif"
+        datetime downloaded_at
+    }
+    USER_PDB_CSV {
+        int id PK
+        int user_id FK "UK, CASCADE"
+        text csv_content
+        string target
+        string base_input_path
+        datetime updated_at
+    }
+    SYSTEM_CONFIG {
+        int id PK
+        string chave UK
+        text valor
+        text descricao
+        datetime updated_at
+    }
+    USERS ||--o{ SEARCHES : realiza
+    SEARCHES ||--o{ SEARCH_RESULTS : contem
+    PROTEINS ||--o{ SEARCH_RESULTS : "aparece em"
+    USERS ||--o{ USER_PDB_DOWNLOADS : baixa
+    PROTEINS ||--o{ USER_PDB_DOWNLOADS : "é baixada"
+    USERS ||--o| USER_PDB_CSV : possui

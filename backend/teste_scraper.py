@@ -15,7 +15,7 @@ from app.services.scraper import executar_scraping
 
 async def main(proteinas_input: str):
     print("=" * 70)
-    print("  PDB Explorer — Teste do Scraper")
+    print("  DrugHunter Studio — Teste do Scraper")
     print(f"  Proteínas: {proteinas_input}")
     print("=" * 70)
 

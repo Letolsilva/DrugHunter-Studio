@@ -1,0 +1,35 @@
+sequenceDiagram
+    participant FE as Frontend
+    participant R as routes
+    participant UC as usecases
+    participant DB as SQLite
+    participant T as Thread daemon
+    participant RN as *_runner.py
+    participant W as _dh_*_worker.py
+    participant DH as DrugHunter (wrappers)
+    participant FS as Disco (resultados/)
+
+    FE->>R: POST /iniciar
+    R->>UC: uc_iniciar_*()
+    UC->>UC: valida pré-requisitos (job anterior "done")
+    UC->>DB: cria ou substitui job (status running)
+    UC->>T: inicia thread
+    UC-->>FE: 202 + job
+    par Execução em segundo plano
+        T->>RN: run_*_worker(config)
+        RN->>W: Popen([python_bin, worker.py, JSON], cwd=drug_hunter_path)
+        W->>DH: chama função do DrugHunter
+        DH->>FS: grava CSV, PNG, modelos
+        W-->>RN: stdout JSON-lines (etapa, log, done, error)
+        RN-->>T: resultado
+        T->>DB: status done (ou error) + contagens
+        T->>T: envia e-mail de conclusão (quando aplicável)
+    and Polling do cliente
+        loop A cada 2,5 a 10 s
+            FE->>R: GET /{job_id}
+            R->>DB: lê status
+            R-->>FE: status, error_msg
+        end
+    end
+    FE->>R: GET resultados (CSV, imagens)
+    R->>FS: lê artefatos

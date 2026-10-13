@@ -59,6 +59,38 @@
   --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
 }
 
+/* ── Tema claro — sobrescreve tokens do @theme ───────────── */
+[data-theme="light"] {
+  --color-surface-primary: #e5ecf4;
+  --color-surface-secondary: #d9e5f0;
+  --color-panel: #cedeec;
+  --color-panel-hover: #c2d4e7;
+
+  --color-outline: #bccedd;
+  --color-outline-strong: #a0b8cc;
+
+  --color-foreground: #1e2d3d;
+  --color-foreground-muted: #3d5470;
+  --color-foreground-subtle: #486888;
+
+  --color-accent: #009e80;
+  --color-accent-hover: #008a70;
+  --color-accent-12: rgba(0, 158, 128, 0.12);
+  --color-accent-15: rgba(0, 158, 128, 0.15);
+  --color-accent-25: rgba(0, 158, 128, 0.25);
+  --color-accent-30: rgba(0, 158, 128, 0.3);
+  --color-accent-muted: rgba(0, 158, 128, 0.25);
+
+  --color-blue-12: rgba(59, 130, 246, 0.12);
+  --color-blue-15: rgba(59, 130, 246, 0.15);
+  --color-blue-25: rgba(59, 130, 246, 0.25);
+  --color-blue-30: rgba(59, 130, 246, 0.3);
+
+  --shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-accent-glow: 0 0 10px rgba(0, 158, 128, 0.2);
+  --shadow-yellow-glow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
 /* ── Reset & base ─────────────────────────────────────────── */
 @layer base {
   *,

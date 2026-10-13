@@ -1,0 +1,44 @@
+flowchart LR
+    http(["Requisição HTTP"])
+
+    subgraph ent["Adapters de entrada"]
+        direction TB
+        routes["<b>routes/</b><br/>12 routers FastAPI<br/>valida schema, delega"]
+        deps["<b>core/</b><br/>deps.py: autenticação por JWT<br/>security.py: criar e decodificar tokens"]
+    end
+
+    subgraph app["Aplicação"]
+        uc["<b>usecases/</b><br/>orquestra regras de negócio<br/>e dispara jobs"]
+    end
+
+    subgraph dom["Domínio"]
+        direction TB
+        models["<b>domain/models</b><br/>17 entidades SQLAlchemy"]
+        schemas["<b>domain/schemas</b><br/>DTOs Pydantic"]
+        util["<b>domain/utils</b><br/>normalização de alvo"]
+    end
+
+    subgraph sai["Adapters de saída"]
+        direction TB
+        svc["<b>services/</b><br/>repositórios: consultas ao banco"]
+        dbi["<b>infra/db</b><br/>engine, sessão, seed de config"]
+        runners["<b>infra/external</b><br/>*_runner.py + _dh_*_worker.py<br/>rcsb_scraper.py"]
+        stor["<b>infra/storage</b><br/>arquivos .pdb e .cif"]
+        misc["<b>infra</b><br/>scheduler TTL, email_sender,<br/>crypto Fernet, pdb_preparador"]
+    end
+
+    http --> routes
+    routes --> deps
+    routes --> uc
+    uc --> svc
+    uc --> runners
+    uc --> stor
+    uc --> misc
+    svc --> dbi
+    svc --> models
+    uc --> schemas
+    routes --> schemas
+    uc --> util
+    dbi --> sql[("SQLite / PostgreSQL")]
+    runners --> dhx["DrugHunter<br/>RCSB API"]
+    stor --> fs[("Disco")]

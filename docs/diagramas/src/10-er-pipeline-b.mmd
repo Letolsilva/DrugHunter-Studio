@@ -1,0 +1,82 @@
+erDiagram
+    NEURODOCK_MODELS {
+        int id PK
+        int user_id FK "CASCADE"
+        int clustering_job_id FK "SET NULL, UK com user_id"
+        string status
+        string target
+        string evaluation_name
+        string fingerprint_type
+        string consensus_type "min-max ou z-score"
+        string model_output_path
+        string history_output_path
+        int n_targets
+        int n_train_mols
+        text error_msg
+    }
+    NEURODOCK_PREDICTIONS {
+        int id PK
+        int user_id FK "CASCADE"
+        int model_id FK "CASCADE"
+        string status
+        string library_csv_path
+        int top_k
+        int batch_size
+        int n_screened
+        int n_selected
+        string result_dir
+        text error_msg
+    }
+    MD_JOBS {
+        int id PK
+        int user_id FK "CASCADE"
+        int consensus_job_id FK "SET NULL"
+        string status
+        string molecule_id
+        text smiles
+        string ligand_source "consensus ou upload"
+        string receptor_source "dh_prepared, upload, manual"
+        string target
+        text params_json
+        string base_output_path
+        text error_msg
+    }
+    MD_ANALYSIS_JOBS {
+        int id PK
+        int user_id FK "CASCADE"
+        int md_job_id FK "CASCADE"
+        string status
+        text error_msg
+    }
+    REDOCKING_JOBS {
+        int id PK
+        int user_id FK "CASCADE"
+        string status "pending, running, done, error, cancelled"
+        string target
+        string base_input_path
+        string base_output_path
+        string charge_type "am1 ou gas"
+        string email_notificacao
+        text csv_content
+        string erro_msg
+        datetime iniciado_em
+        datetime finalizado_em
+    }
+    USERS {
+        int id PK
+    }
+    CLUSTERING_JOBS {
+        int id PK
+    }
+    CONSENSUS_JOBS {
+        int id PK
+    }
+    USERS ||--o{ REDOCKING_JOBS : executa
+    CLUSTERING_JOBS ||--o| NEURODOCK_MODELS : treina
+    NEURODOCK_MODELS ||--o{ NEURODOCK_PREDICTIONS : "gera triagens"
+    CONSENSUS_JOBS ||--o{ MD_JOBS : "fornece ligante"
+    MD_JOBS ||--o{ MD_ANALYSIS_JOBS : analisa
+    USERS ||--o{ NEURODOCK_MODELS : possui
+    USERS ||--o{ NEURODOCK_PREDICTIONS : possui
+    USERS ||--o{ MD_JOBS : possui
+    USERS ||--o{ MD_ANALYSIS_JOBS : possui

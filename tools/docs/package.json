@@ -1,0 +1,7 @@
+{
+  "name": "drughunter-studio-docs-tools",
+  "private": true,
+  "description": "Renderiza os diagramas Mermaid (docs/diagramas/src/*.mmd) em PNG e SVG",
+  "scripts": { "diagramas": "bash render-diagramas.sh" },
+  "devDependencies": { "@mermaid-js/mermaid-cli": "^11.4.0" }
+}
