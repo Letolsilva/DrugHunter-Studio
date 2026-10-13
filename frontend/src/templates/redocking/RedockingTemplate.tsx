@@ -660,9 +660,10 @@ export default function RedockingTemplate({
                     ].map((col, colIdx) => (
                       <th
                         key={`${col}-${colIdx}`}
+                        scope="col"
                         className="px-4 py-2 text-left font-mono text-[11px] font-semibold text-foreground-subtle uppercase tracking-[0.05em] bg-panel"
                       >
-                        {col}
+                        {col || <span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap" }}>Ações</span>}
                       </th>
                     ))}
                   </tr>

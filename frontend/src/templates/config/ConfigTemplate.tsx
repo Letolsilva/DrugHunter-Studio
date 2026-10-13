@@ -310,6 +310,7 @@ export default function ConfigTemplate({
                       type="button"
                       role="switch"
                       aria-checked={u.is_admin}
+                      aria-label={`Permissão de admin: ${u.email}`}
                       disabled={u.id === user?.id || togglingAdmin[u.id]}
                       onClick={() => handleToggleAdmin(u.id, !u.is_admin)}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors border-none shrink-0 ${
@@ -362,6 +363,7 @@ export default function ConfigTemplate({
                             type="button"
                             role="switch"
                             aria-checked={valor(chave) === "true"}
+                            aria-label={LABEL[chave] ?? chave}
                             onClick={() => {
                               const next =
                                 valor(chave) === "true" ? "false" : "true";
@@ -392,6 +394,7 @@ export default function ConfigTemplate({
                               min={1}
                               max={chave === "ttl_dias" ? 365 : 500}
                               placeholder={chave === "ttl_dias" ? "30" : "50"}
+                              aria-label={LABEL[chave] ?? chave}
                               className="w-24 rounded border border-outline bg-surface-secondary px-3 py-1.5 font-mono text-[13px] text-foreground text-right placeholder:text-foreground-subtle"
                             />
                             <Button
@@ -474,7 +477,7 @@ export default function ConfigTemplate({
                   {dhChaves.map((chave) => (
                     <div key={chave} className="flex flex-col gap-2">
                       <div className="flex flex-col gap-0.5">
-                        <label className="text-[13px] font-medium text-foreground">
+                        <label htmlFor={`config-dh-${chave}`} className="text-[13px] font-medium text-foreground">
                           {LABEL[chave] ?? chave}
                         </label>
                         <span className="text-[12px] text-foreground-subtle leading-relaxed">
@@ -587,6 +590,7 @@ export default function ConfigTemplate({
                       <div className="flex items-center gap-2">
                         <div className="flex-1 relative">
                           <input
+                            id={`config-dh-${chave}`}
                             type="text"
                             value={valor(chave)}
                             onChange={(e) => setCampo(chave, e.target.value)}

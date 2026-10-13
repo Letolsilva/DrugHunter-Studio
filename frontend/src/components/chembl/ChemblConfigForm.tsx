@@ -17,8 +17,8 @@ function FieldRow({ label, children }: { label: string; children: React.ReactNod
   );
 }
 
-function TextInput({ value, onChange, placeholder }: {
-  value: string; onChange: (v: string) => void; placeholder?: string;
+function TextInput({ value, onChange, placeholder, "aria-label": ariaLabel }: {
+  value: string; onChange: (v: string) => void; placeholder?: string; "aria-label"?: string;
 }) {
   return (
     <input
@@ -26,13 +26,14 @@ function TextInput({ value, onChange, placeholder }: {
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
+      aria-label={ariaLabel}
       className="w-full rounded border border-outline bg-surface-secondary px-3 py-1 font-mono text-[12px] text-foreground placeholder:text-foreground-subtle focus:outline-none focus:border-outline-strong"
     />
   );
 }
 
-function NumberInput({ value, onChange, min, max }: {
-  value: number; onChange: (v: number) => void; min?: number; max?: number;
+function NumberInput({ value, onChange, min, max, "aria-label": ariaLabel }: {
+  value: number; onChange: (v: number) => void; min?: number; max?: number; "aria-label"?: string;
 }) {
   return (
     <input
@@ -41,6 +42,7 @@ function NumberInput({ value, onChange, min, max }: {
       min={min}
       max={max}
       onChange={(e) => onChange(Number(e.target.value))}
+      aria-label={ariaLabel}
       className="w-full rounded border border-outline bg-surface-secondary px-3 py-1 font-mono text-[12px] text-foreground focus:outline-none focus:border-outline-strong"
     />
   );
@@ -153,6 +155,7 @@ function TagInput({ values, onChange }: {
         ref={inputRef}
         type="text"
         value={input}
+        aria-label="Adicionar alvos"
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === "," || e.key === "Tab") {
@@ -242,6 +245,7 @@ export function ChemblConfigForm({ item, index, onChange, onRemove, canRemove }:
           value={item.chembl_search_id}
           onChange={(e) => onChange(item.id, { chembl_search_id: e.target.value })}
           placeholder="ex: CHEMBL1914"
+          aria-label="ID ChEMBL para busca"
           className="rounded border border-outline bg-surface-primary px-3 py-1.5 font-mono text-[12px] text-foreground placeholder:text-foreground-subtle focus:outline-none focus:border-outline-strong"
         />
       </div>
@@ -257,6 +261,7 @@ export function ChemblConfigForm({ item, index, onChange, onRemove, canRemove }:
               value={item.target_filters.organism}
               onChange={(v) => patchTarget({ organism: v })}
               placeholder="Homo sapiens"
+              aria-label="Organismo"
             />
           </FieldRow>
         </div>
@@ -277,6 +282,7 @@ export function ChemblConfigForm({ item, index, onChange, onRemove, canRemove }:
               value={item.bioact_filters.max_value_ref}
               onChange={(v) => patchBioact({ max_value_ref: v })}
               min={1}
+              aria-label="Valor máximo (nM)"
             />
           </FieldRow>
         </div>
@@ -311,6 +317,7 @@ export function ChemblConfigForm({ item, index, onChange, onRemove, canRemove }:
               onChange={(v) => patchSim({ similarity: v })}
               min={1}
               max={100}
+              aria-label="Similaridade (%)"
             />
           </FieldRow>
           <FieldRow label="Peso mol. máx.">
@@ -318,6 +325,7 @@ export function ChemblConfigForm({ item, index, onChange, onRemove, canRemove }:
               value={item.sim_filters.molecular_weight__lte}
               onChange={(v) => patchSim({ molecular_weight__lte: v })}
               min={50}
+              aria-label="Peso molecular máximo"
             />
           </FieldRow>
         </div>

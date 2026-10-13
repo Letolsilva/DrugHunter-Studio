@@ -194,6 +194,7 @@ export default function ChemblTemplate(props: UseChemblPageReturn) {
             value={baseOutputPath}
             onChange={(e) => setBaseOutputPath(e.target.value)}
             placeholder="resultados/chembl"
+            aria-label="Pasta de saída"
             className="flex-1 rounded border border-outline bg-surface-secondary px-3 py-1.5 font-mono text-[12px] text-foreground placeholder:text-foreground-subtle focus:outline-none focus:border-outline-strong"
           />
         </div>

@@ -1,5 +1,6 @@
 // templates/molecular_dynamics/MolecularDynamicsTemplate.tsx
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback, useId } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Navbar, DropdownMenu } from "../../components/layout";
 import { MiddleBar } from "../../components/nav/MiddleBar";
@@ -233,6 +234,7 @@ function TrajectoryViewer({ jobId, token, topologyFile }: { jobId: number | unde
           </button>
           <input type="range" min={0} max={Math.max(totalFrames - 1, 0)} value={frame}
             onChange={(e) => goToFrame(Number(e.target.value))} className="flex-1"
+            aria-label="Frame da trajetória"
             style={{ accentColor: "var(--color-accent)", minWidth: 120 }} />
           <span className="font-mono text-[10px] text-foreground-subtle whitespace-nowrap">{frame + 1} / {totalFrames}</span>
           <div className="flex items-center gap-1.5 ml-auto">
@@ -1986,13 +1988,18 @@ function SetupForm({
 // ── Componentes auxiliares ────────────────────────────────────────────────────
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  const id = useId();
+  const count = React.Children.count(children);
+  const child = count === 1
+    ? React.cloneElement(React.Children.only(children) as React.ReactElement<{ id?: string }>, { id })
+    : children;
   return (
     <div className="flex flex-col gap-1">
-      <label className="font-mono text-[11px] font-medium text-foreground-subtle">
+      <label htmlFor={id} className="font-mono text-[11px] font-medium text-foreground-subtle">
         {label}
         {hint && <span className="ml-1 opacity-60 font-normal">({hint})</span>}
       </label>
-      {children}
+      {child}
     </div>
   );
 }

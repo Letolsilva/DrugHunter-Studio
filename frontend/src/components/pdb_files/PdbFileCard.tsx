@@ -31,7 +31,6 @@ export function PdbFileCard({ arquivo, onExcluir, onAbrir }: PdbFileCardProps) {
     <div
       className="group relative flex flex-col gap-3 rounded-xl border border-outline bg-panel p-4 transition-colors hover:border-outline-strong hover:bg-panel-hover cursor-pointer"
       onClick={() => onAbrir(arquivo.pdb_id, arquivo.formato)}
-      role="button"
       tabIndex={0}
       onKeyDown={(e) =>
         e.key === "Enter" && onAbrir(arquivo.pdb_id, arquivo.formato)
@@ -60,6 +59,7 @@ export function PdbFileCard({ arquivo, onExcluir, onAbrir }: PdbFileCardProps) {
           type="button"
           className="cursor-pointer rounded border-none bg-transparent p-1 text-foreground-subtle opacity-0 transition-opacity group-hover:opacity-100 hover:text-red"
           title="Remover"
+          aria-label={`Remover ${arquivo.pdb_id}`}
           onClick={(e) => {
             e.stopPropagation();
             onExcluir(arquivo.pdb_id, arquivo.formato);
