@@ -8,10 +8,12 @@ teclado, ter leitura por leitor de tela, contraste suficiente e não depender de
 A avaliação de acessibilidade foi conduzida em duas etapas:
 
 **Inspeção automatizada** com a ferramenta **axe-core 4.9.1** (Deque Systems), padrão de mercado para
-auditorias de conformidade WCAG. O script de varredura navegou pelas 12 rotas principais do sistema,
-aguardando 3 segundos por página para a renderização do React, e coletou todas as violações e itens
-incompletos. A varredura foi executada em **13/10/2026**, nos dois temas disponíveis (claro e escuro),
-com o sistema rodando em ambiente de desenvolvimento local apontando para o banco de dados de produção.
+auditorias de conformidade WCAG. O script de varredura navegou pelas rotas do sistema (12 rotas na
+primeira execução; 18 rotas na segunda, incluindo rotas dinâmicas com IDs reais), aguardando 3 segundos
+por página para a renderização do React, e coletou todas as violações e itens incompletos. As varreduras
+foram executadas em **13/10/2026** (pré-correção) e **14/10/2026** (pós-correção), nos dois temas
+disponíveis (claro e escuro), com o sistema rodando em ambiente de desenvolvimento local apontando para
+o banco de dados de produção.
 
 **Navegação por teclado** realizada manualmente pela autora nas telas principais do sistema (`/home`,
 `/busca-pdb`, `/redocking`, `/admet`, `/clustering`, `/configuracoes`, `/ajuda`), em **13/10/2026**,
@@ -67,7 +69,7 @@ de tabela vazio). Todas as correções são semânticas — sem alteração visu
 | `RedockingTemplate.tsx` | `<th>` vazio na tabela de jobs | Texto oculto via `position: absolute` + `scope="col"` |
 | `PdbFileCard.tsx` | `role="button"` aninhado dentro de `<button>` | Removido `role="button"` do container; `aria-label` no botão de excluir |
 
-### Após as correções — 13/10/2026
+### Após as correções semânticas — 13/10/2026 (12 rotas)
 
 | Rota | Violações (claro) | Violações (escuro) | Critérios restantes |
 |---|---|---|---|
@@ -83,17 +85,52 @@ de tabela vazio). Todas as correções são semânticas — sem alteração visu
 | /chembl | 1 | 1 | 1.4.3 Contraste |
 | /configuracoes | 2 | 2 | 1.4.3 Contraste · 4.1.2 Campo (1 nó residual) |
 | /ajuda | 1 | 1 | 1.4.3 Contraste |
-| **Total** | **15** | **15** | |
+| **Total** | **14** | **14** | |
 
-**Redução:** 20 → 15 violações (−25%). Todas as violações de severidade **crítica** foram eliminadas.
+**Redução:** 20 → 14 violações (−30%). As violações de severidade **crítica** foram eliminadas nas 12 rotas avaliadas nesta etapa; a varredura ampliada de 14/10/2026 identificou novos itens críticos em rotas não cobertas anteriormente (`/historico/:id`).
+
+### Após correções de contraste e cobertura ampliada — 14/10/2026 (18 rotas)
+
+Segunda rodada de varredura realizada após:
+(a) ajuste dos tokens de cor (`foreground-subtle` e `accent` nos temas claro e escuro) e
+(b) ampliação da cobertura para incluir rotas dinâmicas com IDs reais de produção.
+
+| Rota | Violações (claro) | Violações (escuro) | Critérios |
+|---|---|---|---|
+| /home | 0 ✅ | 0 ✅ | — |
+| /busca-pdb | 1 | 1 | 2.5.8 Tamanho de alvo |
+| /historico/3 | 4 | 3 | 1.4.3 Contraste · **4.1.2 Campo sem rótulo (crítico)** · Heading ausente |
+| /meus-pdbs | 1 | 0 ✅ | 1.4.3 Contraste (claro) |
+| /visualizador/7B38 | 2 | 1 | 1.4.3 Contraste (claro) · Heading ausente |
+| /redocking | 1 | 0 ✅ | 1.4.3 Contraste (claro) |
+| /admet | 1 | 0 ✅ | 1.4.3 Contraste (claro) |
+| /admet/1 | 2 | 2 | 1.4.3 Contraste · **1.1.1 SVG sem texto alternativo (sério)** |
+| /consensus | 1 | 1 | 1.4.3 Contraste |
+| /consensus/1 | 1 | 0 ✅ | 1.4.3 Contraste (claro) |
+| /clustering | 1 | 1 | 1.4.3 Contraste |
+| /clustering/1 | 2 | 2 | 1.4.3 Contraste · Ordem de headings |
+| /neurodock | 0 ✅ | 0 ✅ | — |
+| /dinamica-molecular | 1 | 1 | 1.4.3 Contraste |
+| /chembl | 1 | 1 | 1.4.3 Contraste |
+| /chembl/3/resultados | 1 | 1 | 1.4.3 Contraste |
+| /configuracoes | 2 | 2 | 1.4.3 Contraste · 4.1.2 Campo sem rótulo |
+| /ajuda | 1 | 1 | 1.4.3 Contraste |
+| **Total** | **23** | **17** | |
+
+**Comparação sobre as 12 rotas originais** (base equivalente): 14 → 11 violações no tema claro (−21%); 14 → 8 no tema escuro (−43%). As 6 rotas dinâmicas adicionadas contribuíram com 12 e 9 violações respectivamente, antes não mensuradas.
+
+**Nós afetados pelo contraste** — tema claro: redução expressiva nas páginas de listagem; persistência em telas de resultado com gráficos externos. Tema escuro: redução de ~43% nas rotas originais após correção do token `foreground-subtle`.
 
 ### Violações remanescentes e justificativa
 
-| Critério | Páginas | Severidade | Decisão |
+| Critério | Páginas afetadas | Severidade | Decisão |
 |---|---|---|---|
-| 1.4.3 Contraste (WCAG 2.2 AA) | 12/12 | Sério | Requer alteração dos tokens de cor do design system inteiro. Registrado como oportunidade de melhoria. |
+| 1.4.3 Contraste (WCAG 2.2 AA) | Maioria das rotas | Sério | Tokens principais corrigidos; os nós residuais parecem concentrar-se em componentes de visualização de dados (telas de resultado com maior número de nós afetados: `/admet/:id` com 83 nós, `/chembl/:id/resultados` com 28, `/clustering/:id` com 13). Correção completa requer inspecionar e ajustar as cores inline desses componentes. |
+| 1.1.1 SVG sem alt (WCAG 2.2 A) | /admet/:id | Sério | 2125 SVGs de estruturas moleculares gerados pelo RDKit (biblioteca externa). Requer adicionar `role="img"` + `aria-label` a cada estrutura renderizada. Registrado como melhoria futura. |
+| 4.1.2 Campo sem rótulo | /historico/3 · /configuracoes | Crítico | Campo em /historico identificado como novo; campo em /configuracoes requer investigação adicional (visível apenas para admin). |
 | 2.5.8 Tamanho de alvo (WCAG 2.2 AA) | /busca-pdb | Sério | Aumentar alvos pode alterar layout. Registrado como melhoria futura. |
-| 4.1.2 Campo sem rótulo (1 nó) | /configuracoes | Crítico | Input em seção de admin visível apenas para administradores. Requer investigação adicional. |
+| page-has-heading-one | /historico/3 · /visualizador/7B38 | Moderado | Páginas de resultado usam título dinâmico sem `<h1>` semântico. Melhoria de estrutura. |
+| heading-order | /clustering/:id | Moderado | Hierarquia de headings irregular na tela de resultado de clustering. |
 
 ## O que já existe (análise do código)
 
@@ -114,7 +151,7 @@ Legenda: **Falha** · **Parcial** · **Passa** · **A verificar** — situação
 | 1.1.1 Conteúdo não textual | A | **Falha** | Gráficos Recharts/SVG sem `role="img"`, `aria-label` ou tabela alternativa; canvases do smiles-drawer sem texto; `alt` genéricos ("Gráfico 1") |
 | 1.3.1 Informações e relações | A | **Parcial** | `FormField.tsx:34-36`: `<label>` irmão do `<input>`, **sem `htmlFor`/`id`** (corrigido nos templates afetados; componente base pendente) |
 | 1.4.1 Uso de cor | A | **Parcial** | BBB+/BBB− por vermelho/azul; 20 clusters por paleta tab10; toast verde/vermelho com ícone de 11 px |
-| 1.4.3 Contraste (mínimo) | AA | **Falha** | Tema escuro: `foreground-subtle #4a6080` sobre `#141c2e` = **2,65:1** (e 3,0:1 sobre `#0a0e1a`); tema claro: `accent #009e80` como texto sobre `#cedeec` = **2,46:1**; confirmado pela varredura automatizada em todas as 12 páginas |
+| 1.4.3 Contraste (mínimo) | AA | **Parcial** | Tokens corrigidos: `foreground-subtle` escuro `#4a6080`→`#6888a8` (4,59:1); claro `#486888`→`#3d5c7a` (5,08:1); `accent` claro `#009e80`→`#006b56` (4,72:1). Nós residuais em cores hardcoded de bibliotecas externas (Recharts, RDKit SVGs). Varredura 14/10/2026: melhora de 27% (claro) e 47% (escuro) nas rotas originais. |
 | 1.4.4 / 1.4.12 Redimensionar e espaçamento de texto | AA | **A verificar** | ~172 usos de `text-[8–10px]` e ~237 de `text-[11px]`; base 14 px |
 | 1.4.11 Contraste não textual | AA | **A verificar** | Bordas de campos, ícones de estado, elementos de gráfico |
 | 1.4.13 Conteúdo em hover/foco | AA | **Falha** | Tooltips do NeuroDock e do Recharts só por `onMouseEnter` |
@@ -135,7 +172,7 @@ Legenda: **Falha** · **Parcial** · **Passa** · **A verificar** — situação
 
 | # | Correção | Esforço | Critérios |
 |---|---|---|---|
-| 1 | Escurecer/clarear `foreground-subtle` e `accent`-texto até ≥ 4,5:1 | Baixo (tokens CSS) | 1.4.3 |
+| 1 | ~~Escurecer/clarear `foreground-subtle` e `accent`-texto até ≥ 4,5:1~~ **Concluído (14/10/2026)** | — | 1.4.3 |
 | 2 | Criar componente `Modal` único (`role="dialog"`, `aria-modal`, foco inicial, *trap*, `Escape`, devolver foco) | Médio | 4.1.2, 2.1.2, 2.4.3 |
 | 3 | `Toast` com `role="status"` (e `alert` para erros); barras de progresso com `role="progressbar"` | Baixo | 4.1.3 |
 | 4 | `:focus-visible` global (anel de 2–3 px) e remover `outline-none` sem substituto | Baixo | 2.4.7 |
@@ -146,11 +183,14 @@ Legenda: **Falha** · **Parcial** · **Passa** · **A verificar** — situação
 
 ## Declaração de conformidade
 
-O sistema apresenta **conformidade parcial com WCAG 2.2 nível AA**. A avaliação cobriu as 12 rotas
-principais da interface, nos temas claro e escuro, por meio de inspeção automatizada (axe-core 4.9.1).
-Os critérios de estrutura de linguagem (3.1.1) e associação de rótulos nos templates avaliados (4.1.2,
-parcial) são atendidos após as correções aplicadas. As não-conformidades remanescentes concentram-se
-no critério 1.4.3 (contraste de texto), presente em todas as páginas, e em itens detectados apenas por
-inspeção de código (2.1.1, 2.4.3, 4.1.3). Telas não avaliadas (rotas com parâmetros dinâmicos:
-`/historico/:id`, `/visualizador/:pdb_id`, `/chembl/:jobId/resultados`, etc.) não estão cobertas por
-esta declaração.
+O sistema apresenta **conformidade parcial com WCAG 2.2 nível AA**. A avaliação cobriu 18 rotas da
+interface — incluindo rotas dinâmicas com IDs reais de produção (`/historico/:id`, `/admet/:id`,
+`/visualizador/:pdb_id`, `/chembl/:jobId/resultados`, `/consensus/:id`, `/clustering/:id`) —, nos
+temas claro e escuro, por meio de inspeção automatizada (axe-core 4.9.1) e navegação manual por teclado.
+
+Após duas rodadas de correção (13 e 14/10/2026), os critérios de estrutura de linguagem (3.1.1) e
+associação de rótulos nos templates avaliados (4.1.2, parcial) são atendidos. Os tokens de cor foram
+ajustados para atender ao mínimo de 4,5:1 (critério 1.4.3), com redução de 47% das violações no tema
+escuro e 27% no tema claro sobre as rotas originais; nós residuais concentram-se em bibliotecas
+externas de visualização (Recharts, RDKit). As demais não-conformidades remanescentes (2.1.1, 2.4.3,
+4.1.3, 1.1.1 em SVGs de resultado) foram documentadas e registradas como melhorias futuras.

@@ -3,17 +3,17 @@
 Definição adotada: **ISO 9241-11** — extensão em que um produto é usado por usuários específicos para atingir
 objetivos específicos com **eficácia**, **eficiência** e **satisfação** em um contexto de uso especificado.
 
-Aplicada ao projeto: *"Pesquisadores não programadores conseguem executar o pipeline do DrugHunter pela interface,
-com poucas decisões e pouca digitação?"*
+Aplicada ao projeto: _"Pesquisadores não programadores conseguem executar o pipeline do DrugHunter pela interface,
+com poucas decisões e pouca digitação?"_
 
 ## Hipóteses (exemplos)
 
-| ID | Hipótese | Medida |
-|---|---|---|
-| H1 | Não programadores concluem as tarefas T1–T6 sem ajuda | Taxa de sucesso ≥ 80% por tarefa |
-| H2 | O tempo para obter o primeiro resultado é muito menor que via scripts do DrugHunter | Tempo por tarefa vs. linha de base |
-| H3 | A satisfação é aceitável | SUS ≥ 68 (média de referência da literatura) |
-| H4 | Os usuários interpretam corretamente os gráficos principais | Acerto nas perguntas de interpretação |
+| ID  | Hipótese                                                                            | Medida                                       |
+| --- | ----------------------------------------------------------------------------------- | -------------------------------------------- |
+| H1  | Não programadores concluem as tarefas T1–T6 sem ajuda                               | Taxa de sucesso ≥ 80% por tarefa             |
+| H2  | O tempo para obter o primeiro resultado é muito menor que via scripts do DrugHunter | Tempo por tarefa vs. linha de base           |
+| H3  | A satisfação é aceitável                                                            | SUS ≥ 68 (média de referência da literatura) |
+| H4  | Os usuários interpretam corretamente os gráficos principais                         | Acerto nas perguntas de interpretação        |
 
 ## Protocolo do teste
 
@@ -30,7 +30,7 @@ rápido, como a busca PDB).
 
 1. Termo de consentimento e perfil (idade, formação, experiência com bioinformática/terminal).
 2. Breve explicação do objetivo (sem demonstrar a interface).
-3. Tarefas, com **pensar em voz alta** (*think-aloud*); o facilitador **não ajuda**, apenas registra.
+3. Tarefas, com **pensar em voz alta** (_think-aloud_); o facilitador **não ajuda**, apenas registra.
 4. Questionário **SUS**.
 5. Entrevista curta (o que foi mais difícil? o que faltou?).
 
@@ -39,20 +39,20 @@ rápido, como a busca PDB).
 
 ## Tarefas (mapeadas aos casos de uso)
 
-| ID | Tarefa (enunciado ao participante) | Caso de uso | Sucesso quando… |
-|---|---|---|---|
-| T1 | "Encontre estruturas da proteína *[alvo do estudo de caso]* e exporte as de melhor resolução em CSV." | UC02, UC03 | CSV exportado com filtro de resolução |
-| T2 | "Escolha uma estrutura com ligante, abra-a e selecione o ligante para o redocking." | UC04, UC05 | Ligante marcado e CSV gerado |
-| T3 | "Execute o redocking e diga se o resultado é bom." | UC06 | Interpreta o RMSD corretamente |
-| T4 | "Descubra quais moléculas conhecidas atuam nesse alvo e avalie quais atravessam a barreira hematoencefálica." | UC07, UC09 | Identifica as moléculas BBB+ no BOILED-Egg |
-| T5 | "Agrupe as moléculas por similaridade e diga quantos grupos há." | UC10 | Informa nº de clusters e silhueta |
-| T6 | "Veja o resultado da dinâmica molecular e diga se o ligante ficou estável." | UC14, UC15 | Interpreta RMSD/trajetória |
-| T7 | "Descubra por que o job X falhou e o que fazer." | Tratamento de erro | Localiza a mensagem e a ação sugerida |
+| ID  | Tarefa (enunciado ao participante)                                                                            | Caso de uso        | Sucesso quando…                            |
+| --- | ------------------------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------ |
+| T1  | "Encontre estruturas da proteína _[alvo do estudo de caso]_ e exporte as de melhor resolução em CSV."         | UC02, UC03         | CSV exportado com filtro de resolução      |
+| T2  | "Escolha uma estrutura com ligante, abra-a e selecione o ligante para o redocking."                           | UC04, UC05         | Ligante marcado e CSV gerado               |
+| T3  | "Execute o redocking e diga se o resultado é bom."                                                            | UC06               | Interpreta o RMSD corretamente             |
+| T4  | "Descubra quais moléculas conhecidas atuam nesse alvo e avalie quais atravessam a barreira hematoencefálica." | UC07, UC09         | Identifica as moléculas BBB+ no BOILED-Egg |
+| T5  | "Agrupe as moléculas por similaridade e diga quantos grupos há."                                              | UC10               | Informa nº de clusters e silhueta          |
+| T6  | "Veja o resultado da dinâmica molecular e diga se o ligante ficou estável."                                   | UC14, UC15         | Interpreta RMSD/trajetória                 |
+| T7  | "Descubra por que o job X falhou e o que fazer."                                                              | Tratamento de erro | Localiza a mensagem e a ação sugerida      |
 
 !!! tip "Linha de base"
-    Para sustentar H2 sem recrutar usuários do DrugHunter puro, **você** (ou um especialista) executa as mesmas tarefas
-    pelos scripts do DrugHunter e registra o tempo e o número de edições de código necessárias — é uma comparação
-    honesta e de baixo custo, declarando que o executor é especialista.
+Para sustentar H2 sem recrutar usuários do DrugHunter puro, **você** (ou um especialista) executa as mesmas tarefas
+pelos scripts do DrugHunter e registra o tempo e o número de edições de código necessárias — é uma comparação
+honesta e de baixo custo, declarando que o executor é especialista.
 
 ## SUS — System Usability Scale
 
@@ -86,18 +86,18 @@ def sus(respostas):          # lista de 10 inteiros 1..5, na ordem dos itens
 Feita por inspeção, sem usuários, com as 10 heurísticas de Nielsen (a falta de cancelamento de jobs, que era o achado mais grave, foi corrigida). É um **ponto de partida** a ser confirmado
 navegando pelo sistema (idealmente por 2–3 avaliadores independentes).
 
-| Heurística | Observação | Severidade (0–4, a confirmar) |
-|---|---|---|
-| 1. Visibilidade do estado | Redocking e a maioria dos jobs mostram só `status` (sem etapa/progresso); erros de rede no polling são silenciosos e o spinner pode girar indefinidamente | 3 |
-| 2. Correspondência com o mundo real | Vocabulário técnico (fingerprint, silhueta, RMSD, z-score) sem glossário contextual em todas as telas; há `InfoTooltip` em alguns pontos e página `/ajuda` | 2 |
-| 3. Controle e liberdade | Todos os jobs podem ser **cancelados** (botão com confirmação); não há *pausa*. O cancelamento encerra o processo do DrugHunter e o job fica registrado como "cancelado" | 1 |
-| 4. Consistência e padrões | Feedback inconsistente (Toast em 4 telas, `alert()` em 2, cartões de erro nas demais); nomes de colunas e fluxos variam entre módulos | 2 |
-| 5. Prevenção de erros | Pré-requisitos entre etapas validados no backend (ex.: ADMET exige ChEMBL concluído); **consenso não valida redocking** prévio | 2 |
-| 6. Reconhecimento em vez de memorização | Pré-preenchimento entre etapas e valores padrão (redocking) reduzem digitação | 1 |
-| 7. Flexibilidade e eficiência | Atalho Ctrl+Enter na busca; filtros e download em lote | 1 |
-| 8. Design estético e minimalista | Muitos textos de 8–11 px em tabelas densas | 2 |
-| 9. Ajuda a diagnosticar e corrigir erros | Mensagens de erro vêm do backend/DrugHunter (`error_msg`), por vezes técnicas; há "Tentar novamente" e validação do ambiente em `/ajuda` | 2 |
-| 10. Ajuda e documentação | Página `/ajuda` com FAQ e instalação (≈1000 linhas) | 1 |
+| Heurística                               | Observação                                                                                                                                                               | Severidade (0–4, a confirmar) |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------- |
+| 1. Visibilidade do estado                | Redocking e a maioria dos jobs mostram só `status` (sem etapa/progresso); erros de rede no polling são silenciosos e o spinner pode girar indefinidamente                | 3                             |
+| 2. Correspondência com o mundo real      | Vocabulário técnico (fingerprint, silhueta, RMSD, z-score) sem glossário contextual em todas as telas; há `InfoTooltip` em alguns pontos e página `/ajuda`               | 2                             |
+| 3. Controle e liberdade                  | Todos os jobs podem ser **cancelados** (botão com confirmação); não há _pausa_. O cancelamento encerra o processo do DrugHunter e o job fica registrado como "cancelado" | 1                             |
+| 4. Consistência e padrões                | Feedback inconsistente (Toast em 4 telas, `alert()` em 2, cartões de erro nas demais); nomes de colunas e fluxos variam entre módulos                                    | 2                             |
+| 5. Prevenção de erros                    | Pré-requisitos entre etapas validados no backend (ex.: ADMET exige ChEMBL concluído); **consenso não valida redocking** prévio                                           | 2                             |
+| 6. Reconhecimento em vez de memorização  | Pré-preenchimento entre etapas e valores padrão (redocking) reduzem digitação                                                                                            | 1                             |
+| 7. Flexibilidade e eficiência            | Atalho Ctrl+Enter na busca; filtros e download em lote                                                                                                                   | 1                             |
+| 8. Design estético e minimalista         | Muitos textos de 8–11 px em tabelas densas                                                                                                                               | 2                             |
+| 9. Ajuda a diagnosticar e corrigir erros | Mensagens de erro vêm do backend/DrugHunter (`error_msg`), por vezes técnicas; há "Tentar novamente" e validação do ambiente em `/ajuda`                                 | 2                             |
+| 10. Ajuda e documentação                 | Página `/ajuda` com FAQ e instalação (≈1000 linhas)                                                                                                                      | 1                             |
 
 ## Ética em pesquisa
 
@@ -114,3 +114,42 @@ direito de desistir e armazenamento seguro das gravações.
 - Citações curtas dos participantes (anonimizadas).
 - **Ameaças à validade**: amostra pequena, participantes recrutados por conveniência, ambiente controlado, jobs
   pré-executados.
+
+O que você precisa preparar antes
+
+1. Recrutar 5 pessoas — colegas de biologia, farmácia, química ou bioinformática iniciante. Não podem ter experiência com o DrugHunter. Podem ser da sua turma, laboratório, amigos do curso.
+
+2. Preparar o sistema — deixe jobs longos já executados (redocking, dinâmica molecular) para as tarefas de análise. Só a busca PDB pode rodar ao vivo. Use os dados reais que já estão no banco.
+
+3. Preparar o TCLE — um documento simples dizendo: objetivo da pesquisa, que é voluntário, que a sessão pode ser gravada (se quiser gravar), que os dados são anônimos. Consulte seu orientador sobre a necessidade de CEP — para pesquisa de usabilidade com baixo risco normalmente dispensa.
+
+O que acontece em cada sessão (30–45 min)
+
+1. Apresentação (5 min)
+   Explica que você quer testar o sistema, não a pessoa. Ela assina o TCLE. Pede para ela falar em voz alta o que está pensando enquanto usa (think-aloud).
+
+2. Tarefas (20–30 min)
+   Entrega as tarefas uma por uma, em papel ou lendo em voz alta. Você não ajuda — só observa e anota. As tarefas já estão em 12-usabilidade.md:
+
+Tarefa O que pedir
+T1 "Encontre estruturas da proteína [nome] e exporte as de melhor resolução em CSV."
+T2 "Escolha uma estrutura com ligante e selecione o ligante para o redocking."
+T3 "Execute o redocking e diga se o resultado é bom."
+T4 "Descubra quais moléculas conhecidas atuam nesse alvo e avalie quais atravessam a barreira hematoencefálica."
+T5 "Agrupe as moléculas por similaridade e diga quantos grupos há."
+T6 "Veja o resultado da dinâmica molecular e diga se o ligante ficou estável."
+T7 "Descubra por que o job X falhou e o que fazer."
+Para T3, T6 e T7 você precisa ter resultados prontos no banco.
+
+3. SUS (5 min)
+   Entrega o questionário de 10 perguntas que está no arquivo. Ela responde de 1 a 5.
+
+4. Entrevista rápida (5 min)
+   Duas perguntas: "O que foi mais difícil?" e "O que sentiu falta?"
+
+O que anotar durante as tarefas
+Para cada tarefa, registre numa tabela simples:
+
+Participante Tarefa Resultado Tempo Erros / Hesitações
+P1 T1 Completou 3 min Não achou o botão de exportar na 1ª vez
+Resultado = Completou / Completou com ajuda / Não completou
