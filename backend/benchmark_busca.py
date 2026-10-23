@@ -35,10 +35,10 @@ from app.services.search import separar_cache_e_pendentes, salvar_proteina_no_ca
 # Casos de teste: (rótulo, termo_de_busca, limite_estruturas)
 # limite=None → busca todas (pode ser muito lento)
 CASOS = [
-    ("Candida auris",        "Candida auris",        15),
-    ("Candida albicans",     "Candida albicans",      50),
-    ("Aspergillus fumigatus","Aspergillus fumigatus", 100),
-    ("Aspergillus (geral)",  "Aspergillus",           200),
+    ("Tau (proteína tau)",           "tau",                   15),
+    ("BChE (butirilcolinesterase)",  "butyrylcholinesterase", 50),
+    ("AChE (acetilcolinesterase)",   "acetylcholinesterase",  100),
+    ("BACE1 (beta-secretase 1)",     "beta-secretase",        200),
 ]
 
 # Quantas vezes repetir cada medição

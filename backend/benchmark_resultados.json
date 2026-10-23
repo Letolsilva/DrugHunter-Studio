@@ -5,95 +5,95 @@
   },
   "resultados": [
     {
-      "label": "Candida auris",
-      "query": "Candida auris",
+      "label": "Tau (proteína tau)",
+      "query": "tau",
       "limite": 15,
-      "n_estruturas": 12,
-      "scraping_media": 22.8795,
-      "scraping_dp": 7.7851,
-      "cache_media": 0.003612,
-      "cache_dp": 0.001426,
-      "fator_reducao": 6333.4,
+      "n_estruturas": 15,
+      "scraping_media": 28.1287,
+      "scraping_dp": 5.6321,
+      "cache_media": 0.003109,
+      "cache_dp": 0.001328,
+      "fator_reducao": 9048.5,
       "tempos_scraping": [
-        31.2977,
-        15.9395,
-        21.4012
+        34.6307,
+        24.9966,
+        24.7588
       ],
       "tempos_cache": [
-        0.006104,
-        0.003284,
-        0.003266,
-        0.002556,
-        0.002853
+        0.005378,
+        0.002971,
+        0.002745,
+        0.002533,
+        0.001916
       ]
     },
     {
-      "label": "Candida albicans",
-      "query": "Candida albicans",
+      "label": "BChE (butirilcolinesterase)",
+      "query": "butyrylcholinesterase",
       "limite": 50,
       "n_estruturas": 50,
-      "scraping_media": 87.7045,
-      "scraping_dp": 33.1736,
-      "cache_media": 0.00512,
-      "cache_dp": 0.001758,
-      "fator_reducao": 17130.4,
+      "scraping_media": 99.9588,
+      "scraping_dp": 21.0262,
+      "cache_media": 0.003855,
+      "cache_dp": 0.000762,
+      "fator_reducao": 25927.6,
       "tempos_scraping": [
-        126.0078,
-        68.9084,
-        68.1973
+        124.2299,
+        88.3603,
+        87.2863
       ],
       "tempos_cache": [
-        0.00817,
-        0.004598,
-        0.004911,
-        0.004132,
-        0.003789
+        0.00472,
+        0.003762,
+        0.004504,
+        0.00341,
+        0.002881
       ]
     },
     {
-      "label": "Aspergillus fumigatus",
-      "query": "Aspergillus fumigatus",
+      "label": "AChE (acetilcolinesterase)",
+      "query": "acetylcholinesterase",
       "limite": 100,
       "n_estruturas": 100,
-      "scraping_media": 182.6912,
-      "scraping_dp": 70.4007,
-      "cache_media": 0.008529,
-      "cache_dp": 0.001854,
-      "fator_reducao": 21419.6,
+      "scraping_media": 181.3597,
+      "scraping_dp": 38.9464,
+      "cache_media": 0.00748,
+      "cache_dp": 0.000592,
+      "fator_reducao": 24246.3,
       "tempos_scraping": [
-        263.9763,
-        142.9515,
-        141.1458
+        226.3119,
+        160.0233,
+        157.7439
       ],
       "tempos_cache": [
-        0.010659,
-        0.007518,
-        0.010357,
-        0.007558,
-        0.006554
+        0.007578,
+        0.007876,
+        0.007094,
+        0.008161,
+        0.00669
       ]
     },
     {
-      "label": "Aspergillus (geral)",
-      "query": "Aspergillus",
+      "label": "BACE1 (beta-secretase 1)",
+      "query": "beta-secretase",
       "limite": 200,
       "n_estruturas": 200,
-      "scraping_media": 338.9786,
-      "scraping_dp": 108.648,
-      "cache_media": 0.010957,
-      "cache_dp": 0.003228,
-      "fator_reducao": 30937.2,
+      "scraping_media": 360.2549,
+      "scraping_dp": 76.5089,
+      "cache_media": 0.008329,
+      "cache_dp": 0.001576,
+      "fator_reducao": 43251.7,
       "tempos_scraping": [
-        464.3732,
-        279.6765,
-        272.886
+        448.569,
+        318.1171,
+        314.0785
       ],
       "tempos_cache": [
-        0.016308,
-        0.008809,
-        0.010738,
-        0.010868,
-        0.008062
+        0.010987,
+        0.008355,
+        0.007973,
+        0.007296,
+        0.007035
       ]
     }
   ]
