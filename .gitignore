@@ -70,6 +70,8 @@ backend/static/
 Anotações/
 Plans_executados/
 
+# architecture/ é rastreado (contratos de engenharia)
+
 # ── Documentação (MkDocs) ─────────────────────────────────
 site/
 tools/docs/node_modules/
