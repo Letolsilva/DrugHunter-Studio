@@ -4,7 +4,7 @@ Aplicação web local que torna o [DrugHunter](https://github.com/michelclemer/D
 
 **Stack:** FastAPI · React 18 · TypeScript · Tailwind CSS v4
 
-📖 **Documentação técnica:** <https://letolsilva.github.io/PDB-Explorer/> — arquitetura, modelo de dados, fluxos de cada módulo, integração com o DrugHunter, validação (acessibilidade, usabilidade e gráficos) e figuras para o artigo.
+📖 **Documentação técnica:** <https://letolsilva.github.io/DrugHunter-Studio/> — arquitetura, modelo de dados, fluxos de cada módulo, integração com o DrugHunter, validação (acessibilidade, usabilidade e gráficos) e figuras para o artigo.
 
 ---
 
@@ -58,8 +58,8 @@ sudo apt install inkscape imagemagick
 
 ```bash
 # Clone o repositório
-git clone https://github.com/Letolsilva/PDB-Explorer.git
-cd PDB-Explorer
+git clone https://github.com/Letolsilva/DrugHunter-Studio.git
+cd DrugHunter-Studio
 
 # ── Backend ──────────────────────────────────────────────────────────
 cd backend
@@ -96,8 +96,8 @@ O script `build.sh` compila o frontend, empacota o backend e gera um único arqu
 
 ```bash
 # 1. Clone o repositório (se ainda não fez)
-git clone https://github.com/Letolsilva/PDB-Explorer.git
-cd PDB-Explorer
+git clone https://github.com/Letolsilva/DrugHunter-Studio.git
+cd DrugHunter-Studio
 
 # 2. Instale as dependências de build (necessário apenas uma vez)
 sudo apt install fakeroot dpkg-dev nodejs npm
@@ -345,7 +345,7 @@ Os dados em `%LOCALAPPDATA%\DrugHunter Studio\` são removidos automaticamente p
 ## Estrutura do projeto
 
 ```
-PDB-Explorer/
+DrugHunter-Studio/
 ├── build.sh                  # Script de build — gera drughunter-studio.deb
 ├── build-windows.sh          # Script de build — gera DrugHunter-Studio-Setup.exe
 ├── assets/

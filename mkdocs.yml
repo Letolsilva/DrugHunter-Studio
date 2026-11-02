@@ -1,5 +1,5 @@
 site_name: DrugHunter Studio — Documentação técnica
-site_url: https://letolsilva.github.io/PDB-Explorer/
+site_url: https://letolsilva.github.io/DrugHunter-Studio/
 site_description: Documentação de arquitetura, modelo de dados, fluxos e validação do DrugHunter Studio (TCC)
 docs_dir: docs
 exclude_docs: |
