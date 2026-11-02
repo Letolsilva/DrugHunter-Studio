@@ -1,6 +1,7 @@
 // templates/config/ConfigTemplate.tsx
 import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
+import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import { Navbar, DropdownMenu } from "../../components/layout";
 import { MiddleBar } from "../../components/nav/MiddleBar";
 import { Button } from "../../components/ui/Button";
@@ -114,8 +115,10 @@ export default function ConfigTemplate({
   loadingUsuarios,
   togglingAdmin,
   handleToggleAdmin,
+  handleResetarBanco,
 }: UseConfigPageReturn) {
   const navigate = useNavigate();
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false);
   const getValor = (chave: string) =>
     configs.find((c) => c.chave === chave)?.valor ?? "";
 
@@ -928,7 +931,50 @@ export default function ConfigTemplate({
                 </div>
               )}
             </Section>
+
+            {/* Zona de Perigo */}
+            <Section title="Zona de Perigo" badge="Admin">
+              <div className="flex items-start justify-between gap-6">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[13px] font-medium text-foreground">
+                    Zerar banco de dados
+                  </span>
+                  <span className="text-[12px] text-foreground-subtle">
+                    Apaga proteínas, buscas, jobs e histórico de atividades.
+                    Usuários e configurações são preservados. Ação irreversível.
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  onClick={() => setConfirmResetOpen(true)}
+                  disabled={saving["reset_banco"]}
+                  className="shrink-0 px-3 py-1.5 text-[12px] border-red-500/40 text-red-400 hover:bg-red-500/10"
+                >
+                  {saving["reset_banco"] ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Spinner style={{ width: 12, height: 12, borderWidth: 2 }} />
+                      Zerando...
+                    </span>
+                  ) : (
+                    "Zerar banco"
+                  )}
+                </Button>
+              </div>
+            </Section>
           </>
+        )}
+
+        {confirmResetOpen && (
+          <ConfirmModal
+            message="Tem certeza? Esta ação apagará permanentemente todas as proteínas, buscas, jobs e histórico de atividades. Usuários e configurações serão mantidos. Não é possível desfazer."
+            confirmLabel="Zerar banco"
+            cancelLabel="Cancelar"
+            onConfirm={async () => {
+              setConfirmResetOpen(false);
+              await handleResetarBanco();
+            }}
+            onCancel={() => setConfirmResetOpen(false)}
+          />
         )}
 
         {/* Aviso para não-admins */}

@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app.infra.db.database import get_db
 from app.core.deps import get_usuario_atual, get_usuario_admin
 from app.domain.models import User
-from app.domain.schemas.auth import RegistroRequest, RefreshRequest, AlterarSenhaRequest
+from app.domain.schemas.auth import RegistroRequest, RefreshRequest, AlterarSenhaRequest, EsqueceuSenhaRequest, ResetarSenhaRequest
 from app.usecases import auth as uc
 
 router = APIRouter(prefix="/api/auth", tags=["Autenticação"])
@@ -84,6 +84,18 @@ def alterar_senha(
 ):
     """Altera a senha do usuário autenticado."""
     return uc.uc_alterar_senha(db, usuario, body.senha_atual, body.nova_senha)
+
+
+@router.post("/forgot-password")
+def forgot_password(body: EsqueceuSenhaRequest, db: Session = Depends(get_db)):
+    """Solicita redefinição de senha por e-mail."""
+    return uc.uc_solicitar_reset(db, body.email)
+
+
+@router.post("/reset-password")
+def reset_password(body: ResetarSenhaRequest, db: Session = Depends(get_db)):
+    """Redefine a senha usando o token recebido por e-mail."""
+    return uc.uc_resetar_senha(db, body.token, body.nova_senha)
 
 
 @router.get("/admin/usuarios")

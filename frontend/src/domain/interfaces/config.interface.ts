@@ -7,4 +7,5 @@ export abstract class IConfigUseCase {
   abstract limparCache(token: string): Promise<{ removidas: number }>;
   abstract listarUsuarios(token: string): Promise<UsuariosModel>;
   abstract setAdmin(usuarioId: number, isAdmin: boolean, token: string): Promise<void>;
+  abstract resetarBanco(token: string): Promise<{ mensagem: string; removidos: Record<string, number> }>;
 }

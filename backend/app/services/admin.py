@@ -9,7 +9,12 @@ from datetime import datetime, timedelta
 from typing import List
 from sqlalchemy.orm import Session
 
-from app.domain.models import Protein, Search, SearchResult, SystemConfig, User
+from app.domain.models import (
+    Protein, Search, SearchResult, SystemConfig, User,
+    UserPdbDownload, UserPdbCsv, RedockingJob, ChemblJob, ChemblJobItem,
+    AdmetResult, ConsensusJob, ClusteringJob, NeuroDockModel, NeuroDockPrediction,
+    MDJob, MdAnalysisJob,
+)
 from app.infra.db.database import get_config, set_config
 
 TTL_PADRAO = 30
@@ -175,6 +180,22 @@ def listar_usuarios(db: Session) -> dict:
             for u in usuarios
         ]
     }
+
+
+def reset_dados_plataforma(db: Session) -> dict:
+    """Apaga todos os dados de atividade (proteínas, buscas, jobs). Mantém usuários e configs."""
+    tabelas = [
+        MdAnalysisJob, MDJob, NeuroDockPrediction, NeuroDockModel,
+        ClusteringJob, ConsensusJob, AdmetResult, ChemblJobItem, ChemblJob,
+        RedockingJob, UserPdbCsv, UserPdbDownload,
+        SearchResult, Search, Protein,
+    ]
+    totais = {}
+    for Model in tabelas:
+        n = db.query(Model).delete(synchronize_session=False)
+        totais[Model.__tablename__] = n
+    db.commit()
+    return {"mensagem": "Banco de dados resetado com sucesso.", "removidos": totais}
 
 
 def set_admin_usuario(

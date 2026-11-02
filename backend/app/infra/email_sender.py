@@ -145,3 +145,42 @@ def enviar_email_conclusao(
         logger.warning(
             "Falha ao enviar e-mail para %s (job %d): %s", destinatario, job_id, exc
         )
+
+
+def _enviar_smtp(destinatario: str, assunto: str, corpo: str) -> bool:
+    """Envia e-mail genérico. Retorna True se enviado, False se SMTP não configurado."""
+    host, port, user, password, from_addr = _get_smtp_config()
+    if not host or not user or not password:
+        logger.warning("SMTP não configurado — e-mail para %s ignorado", destinatario)
+        return False
+    msg = MIMEText(corpo, "plain", "utf-8")
+    msg["Subject"] = assunto
+    msg["From"] = from_addr
+    msg["To"] = destinatario
+    try:
+        with smtplib.SMTP(host, int(port)) as smtp:
+            smtp.ehlo()
+            smtp.starttls()
+            smtp.login(user, password)
+            smtp.sendmail(from_addr, destinatario, msg.as_string())
+        logger.info("E-mail enviado para %s: %s", destinatario, assunto)
+        return True
+    except Exception as exc:
+        logger.warning("Falha ao enviar e-mail para %s: %s", destinatario, exc)
+        return False
+
+
+def enviar_email_reset_senha(destinatario: str, token: str) -> bool:
+    porta = os.getenv("PORT", "8080")
+    link = f"http://localhost:{porta}/resetar-senha?token={token}"
+    assunto = "[DrugHunter Studio] Recuperação de senha"
+    corpo = (
+        "Olá,\n\n"
+        "Recebemos uma solicitação para redefinir a senha da sua conta.\n\n"
+        "Clique no link abaixo para definir uma nova senha:\n\n"
+        f"  {link}\n\n"
+        "O link expira em 15 minutos. Se você não solicitou a recuperação, "
+        "ignore este e-mail.\n\n"
+        "—\nDrugHunter Studio"
+    )
+    return _enviar_smtp(destinatario, assunto, corpo)

@@ -3,6 +3,8 @@ import { type ReactNode } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import AuthPage from "./pages/AuthPage/AuthPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage/ResetPasswordPage";
 import HomePage from "./pages/HomePage/HomePage";
 import ChemblPage from "./pages/ChemblPage/ChemblPage";
 import ChemblResultsPage from "./pages/ChemblResultsPage/ChemblResultsPage";
@@ -307,6 +309,8 @@ export default function AppRoutes({
           </RotaProtegida>
         }
       />
+      <Route path="/esqueceu-senha" element={<ForgotPasswordPage />} />
+      <Route path="/resetar-senha" element={<ResetPasswordPage />} />
       <Route path="/predicao" element={<Navigate to="/chembl" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

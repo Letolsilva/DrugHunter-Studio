@@ -21,6 +21,15 @@ class AlterarSenhaRequest(BaseModel):
     nova_senha: str = Field(..., min_length=6)
 
 
+class EsqueceuSenhaRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetarSenhaRequest(BaseModel):
+    token: str
+    nova_senha: str = Field(..., min_length=6)
+
+
 class HistoricoItemSchema(BaseModel):
     id: int
     proteina_query: Optional[str]

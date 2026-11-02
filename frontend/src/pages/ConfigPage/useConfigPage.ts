@@ -34,6 +34,7 @@ export interface UseConfigPageReturn {
   loadingUsuarios: boolean;
   togglingAdmin: Record<number, boolean>;
   handleToggleAdmin: (id: number, isAdmin: boolean) => Promise<void>;
+  handleResetarBanco: () => Promise<void>;
 }
 
 export function useConfigPage(
@@ -224,6 +225,20 @@ export function useConfigPage(
     [configUseCase, showToast],
   );
 
+  const handleResetarBanco = useCallback(async () => {
+    const token = localStorage.getItem("access_token") ?? "";
+    setSaving((prev) => ({ ...prev, reset_banco: true }));
+    try {
+      const result = await configUseCase.resetarBanco(token);
+      showToast(result.mensagem, "success");
+      setConfigs((prev) => prev);
+    } catch {
+      showToast("Erro ao zerar o banco de dados.", "error");
+    } finally {
+      setSaving((prev) => ({ ...prev, reset_banco: false }));
+    }
+  }, [configUseCase, showToast]);
+
   return {
     user,
     configs,
@@ -250,5 +265,6 @@ export function useConfigPage(
     loadingUsuarios,
     togglingAdmin,
     handleToggleAdmin,
+    handleResetarBanco,
   };
 }

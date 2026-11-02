@@ -58,3 +58,13 @@ def decodificar_token(token: str) -> Optional[dict]:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError:
         return None
+
+
+def criar_reset_token(user_id: int) -> str:
+    """Gera JWT de uso único para reset de senha (15 min)."""
+    payload = {
+        "sub": str(user_id),
+        "type": "reset",
+        "exp": datetime.utcnow() + timedelta(minutes=15),
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)

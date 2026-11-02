@@ -10,4 +10,6 @@ export abstract class IAuthUseCase {
   ): Promise<void>;
   abstract fetchMe(token: string): Promise<UserModel>;
   abstract refreshToken(refreshToken: string): Promise<TokensModel>;
+  abstract forgotPassword(email: string): Promise<{ mensagem: string }>;
+  abstract resetPassword(token: string, novaSenha: string): Promise<{ mensagem: string }>;
 }

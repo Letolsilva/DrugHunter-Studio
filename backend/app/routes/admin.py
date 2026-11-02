@@ -85,6 +85,14 @@ def validar_drughunter(
     return uc.uc_validar_drughunter(db)
 
 
+@router.post("/reset-dados")
+def reset_dados(
+    db: Session = Depends(get_db), admin: User = Depends(get_usuario_admin)
+):
+    """[Admin] Apaga todos os dados de atividade. Usuários e configurações são preservados."""
+    return uc.uc_reset_dados(db)
+
+
 @router.post("/corrigir-bson")
 def corrigir_bson(
     db: Session = Depends(get_db), admin: User = Depends(get_usuario_admin)

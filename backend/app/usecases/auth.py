@@ -93,6 +93,26 @@ def uc_alterar_senha(
     return {"mensagem": "Senha alterada com sucesso."}
 
 
+def uc_solicitar_reset(db: Session, email: str) -> dict:
+    resultado = service.solicitar_reset_senha(db, email)
+    if resultado:
+        from app.infra.email_sender import enviar_email_reset_senha
+        token, dest_email = resultado
+        enviado = enviar_email_reset_senha(dest_email, token)
+        if not enviado:
+            raise HTTPException(
+                status_code=503,
+                detail="SMTP não configurado. Configure as credenciais de e-mail nas configurações do sistema.",
+            )
+    # Resposta genérica para não vazar se o email existe
+    return {"mensagem": "Se o e-mail estiver cadastrado, você receberá as instruções em breve."}
+
+
+def uc_resetar_senha(db: Session, token: str, nova_senha: str) -> dict:
+    service.resetar_senha(db, token, nova_senha)
+    return {"mensagem": "Senha redefinida com sucesso. Faça login com a nova senha."}
+
+
 def uc_listar_usuarios(db: Session) -> list:
     """[Admin] Lista todos os usuários cadastrados."""
     users = db.query(User).order_by(User.created_at.desc()).all()

@@ -59,6 +59,15 @@ export class ConfigUseCase extends IConfigUseCase {
     );
     return res.data;
   }
+
+  async resetarBanco(token: string): Promise<{ mensagem: string; removidos: Record<string, number> }> {
+    const res = await this.httpClient.post<{ mensagem: string; removidos: Record<string, number> }>(
+      "/admin/reset-dados",
+      {},
+      { token },
+    );
+    return res.data;
+  }
 }
 
 export interface CheckItemDH {

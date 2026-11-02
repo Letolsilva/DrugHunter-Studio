@@ -437,6 +437,11 @@ def uc_validar_drughunter(db: Session) -> dict:
     return {"checks": checks}
 
 
+def uc_reset_dados(db: Session) -> dict:
+    """Apaga todos os dados de atividade, mantendo usuários e configurações."""
+    return service.reset_dados_plataforma(db)
+
+
 def uc_corrigir_bson(db: Session) -> dict:
     """Remove o pacote bson standalone do env DH, resolvendo o conflito com pymongo."""
     python_bin = get_config(db, "python_bin") or os.environ.get("PYTHON_BIN", "")

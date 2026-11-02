@@ -37,4 +37,16 @@ export class AuthUseCase extends IAuthUseCase {
       .post<TokensModel>("/auth/refresh", { refresh_token: refreshToken })
       .then((res) => res.data);
   }
+
+  async forgotPassword(email: string): Promise<{ mensagem: string }> {
+    return this.httpClient
+      .post<{ mensagem: string }>("/auth/forgot-password", { email })
+      .then((res) => res.data);
+  }
+
+  async resetPassword(token: string, novaSenha: string): Promise<{ mensagem: string }> {
+    return this.httpClient
+      .post<{ mensagem: string }>("/auth/reset-password", { token, nova_senha: novaSenha })
+      .then((res) => res.data);
+  }
 }

@@ -1,5 +1,6 @@
 // templates/auth/AuthTemplate.tsx
 import type { ChangeEvent, FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { Spinner } from "../../components/ui/Spinner";
 import { FormField } from "../../components/ui/FormField";
 import { TabSwitcher } from "../../components/ui/TabSwitcher";
@@ -114,7 +115,7 @@ export default function AuthTemplate({
           </div>
 
           {/* Botão com espaçamento superior fixo */}
-          <div className="flex justify-center pt-1 pb-7">
+          <div className="flex flex-col items-center gap-2 pt-1 pb-7">
             <button
               type="submit"
               className="btn-primary px-12 py-2.5 text-[13px] h-auto rounded-lg"
@@ -130,6 +131,14 @@ export default function AuthTemplate({
                 "Entrar"
               )}
             </button>
+            {!isRegister && (
+              <Link
+                to="/esqueceu-senha"
+                className="text-[12px] text-foreground-subtle hover:text-accent transition-colors"
+              >
+                Esqueceu a senha?
+              </Link>
+            )}
           </div>
         </form>
       </div>

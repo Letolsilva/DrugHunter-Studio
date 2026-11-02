@@ -15,6 +15,8 @@ from app.core.security import (
     verificar_senha,
     criar_access_token,
     criar_refresh_token,
+    criar_reset_token,
+    decodificar_token,
 )
 
 
@@ -173,6 +175,28 @@ def excluir_historico_item(db: Session, user_id: int, search_id: int) -> bool:
     db.delete(busca)
     db.commit()
     return True
+
+
+def solicitar_reset_senha(db: Session, email: str) -> Optional[tuple[str, str]]:
+    """Gera token de reset para o email. Retorna (token, email) ou None se não encontrado."""
+    user = db.query(User).filter(User.email == email.lower().strip(), User.is_active.is_(True)).first()
+    if not user:
+        return None
+    token = criar_reset_token(user.id)
+    return token, user.email
+
+
+def resetar_senha(db: Session, token: str, nova_senha: str) -> None:
+    """Valida token de reset e persiste nova senha. Lança 400/404 se inválido."""
+    payload = decodificar_token(token)
+    if not payload or payload.get("type") != "reset":
+        raise HTTPException(status_code=400, detail="Token inválido ou expirado.")
+    user_id = payload.get("sub")
+    user = db.query(User).filter(User.id == int(user_id), User.is_active.is_(True)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+    user.hashed_password = hash_senha(nova_senha)
+    db.commit()
 
 
 def limpar_historico_antigo(db: Session) -> int:
